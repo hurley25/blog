@@ -82,6 +82,73 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2013/05/23/18-linux-process-address-space/" title="进程眼中的线性地址空间" itemprop="url">进程眼中的线性地址空间</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-05-23T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-05-23</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义：</p>
+<p><strong>进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。</strong></p>
+<p>还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程就是一个进程。这下理解了吧？那我们继续。</p>
+<p>每个程序在启动之后都会拥有自己的虚拟地址空间（Virtual Address Space），这个虚拟地址空间的大小由计算机平台决定，具体一点说由操作系统的位数和CPU的地址总线宽度所决定，其中CPU的地址总线宽度决定了地址空间的理论上限（先不考虑主板…）。</p>
+<p>比如32位的硬件平台可编址范围就是0x00000000～0xFFFFFFFF，即就是4GB。而64位的硬件平台达到了理论上0x0000000000000000～0xFFFFFFFFFFFFFFFF的寻址空间，即就是17179869184GB的大小（事实上我自己的64位Intel Core i3处理器也仅有36位地址总线，加上虚拟地址扩展功能也才48位，并非64位）。</p>
+<p>为了行文的简单，我就以32位硬件平台来描述吧（事实上我对64位所知甚少，不敢信口开河…），同时指定环境为32位的Linux操作系统。</p>
+<p>可能看到这里你反而更迷惑了，我一直在说一个进程拥有4GB的线性地址空间（以下只讨论32位），可是操作系统上同时在运行着N个进程，难不成每个都有4GB的线性地址空间不成？没错，每个都有。我们一直在使用术语“线性地址空间”而非“主存储器（内存）”，因为线性地址空间并非和主存等价。我们平时只要一提到“地址”这个概念，想必大家自然而然的就想到了主存储器。但事实上并非线性地址就一定指向主存储器的物理地址，如果你对“线性地址空间”不理解的话，我建议你先去看看我的另一篇博文《基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程》。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/05/23/18-linux-process-address-space/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2013/04/17/17-complier-and-linker-2/" title="编译和链接那点事&lt;下&gt;" itemprop="url">编译和链接那点事&lt;下&gt;</a>
   </h1>
   <p class="article-author">By
@@ -230,7 +297,7 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2013/03/14/15-x86-boot/" title="基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程" itemprop="url">基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程</a>
+      <a href="/2013/03/14/15-x86-boot/" title="基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程" itemprop="url">基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程</a>
   </h1>
   <p class="article-author">By
        
@@ -292,73 +359,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2013/02/25/14-emmet/" title="Emmet——快速的编写HTML和CSS代码" itemprop="url">Emmet——快速的编写HTML和CSS代码</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2013-02-25T07:00:00.000Z" itemprop="datePublished"> 发表于 2013-02-25</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>这学期被自愿的选择了《Web应用程序设计》这门课，还是自学课。好吧，反正基础的HTML和CSS迟早也是要学习的，就提前学吧。</p>
-<p>按照我的性子，当学习新的语言以及语法规则的时候，我就又开始折腾编辑器的语法高亮和配置自动补全功能了。其实接触到新的语言时，我个人建议还是不要急着去寻找相关的IDE去使用，还是先用基本的文本编辑器写，尝试自己手工去构建。等到理解了之后再使用IDE提高编码效率也不晚。IDE的方便是建立在对很多细节的屏蔽之上的，这样对学习新的知识没有益处。没有手写HTML的经验，全靠IDE点点按钮，拖拖控件的设计人员在调试的时候就会是一场噩梦。</p>
-<p>另外，个人吐槽下网上到处可见的什么“真正的高手写代码只用记事本”。你确定是notepad？没有++？好吧，个人感觉用记事本写代码如果不是临时找不到替代品之外，除了装逼就再没有什么意义了。即便是不需要IDE的自动补全和错误检测，个人认为代码编辑器的语法高亮和格式调整还是很重要的。手工调整格式很麻烦，而语法高亮除了看起来赏心悦目还能指出来明显的拼写错误。方便的代码编辑器notapad++、Vim，Emacs等等是很好的选择。</p>
-<p>废话少说，言归正传。我们今天给熟悉了HTML和CSS的程序员推荐一款文本编辑器的插件——Emmet。如果你没有听说过Emmet，那你至少听说过大名鼎鼎的Zen coding吧？Emmet就是Zen coding的新名字。什么？你没有听说过？太好了，你可以继续看下去了，否则，也就没有看的必要了……</p>
-<p>简单介绍下Emmet，官方是这么说的“Emmet is a plugin for many popular text editors which greatly improves HTML &amp; CSS workflow”。</p>
-<p>官方主页在 <a href="http://www.emmet.io/" target="_blank" rel="noopener">http://www.emmet.io/</a></p>
-<p>Emmet作为文本编辑器的插件提供给 Eclipse/Aptana，Sublime Text 2，TextMate 1.x，Coda 1.6 and 2.x 等等编辑器作为扩展。我们以我比较喜欢的编辑器 Sublime Text 为例介绍下安装与使用方法吧。（暂时先委屈下Vim，因为Vim的插件自动补全是“Ctrl+Y+逗号/分号”，这个快捷键很不好用，而我还没有找到修改的方法  我暂时在vimrc文件里加入 imap <c-e> <c-y>;  映射到Ctrl+E，官方的重定义方法太麻烦了）</c-y></c-e></p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2013/02/25/14-emmet/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/编程工具/">编程工具</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/前端/">前端</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/page/6/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/8/">Next<span></span></a>
@@ -380,7 +380,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
   </div>
 
 
@@ -398,7 +398,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
 		  
 		
 		  
@@ -467,7 +467,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
 			
 		
 			
@@ -483,11 +483,11 @@
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
@@ -503,7 +503,7 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
 			
 		
 			
@@ -515,14 +515,6 @@
 			
 		
 			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
 			
 		
@@ -531,7 +523,7 @@
 			
 		
 			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
@@ -539,7 +531,15 @@
 			
 		
 			
-				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/memory/" title="memory">memory<sup>1</sup></a></li>
 			
 		
 		</ul>

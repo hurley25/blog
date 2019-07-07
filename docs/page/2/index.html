@@ -82,6 +82,69 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2016/02/11/38-c++-concurrency/" title="C++ 并发编程那些事" itemprop="url">C++ 并发编程那些事</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2016-02-11T13:56:10.000Z" itemprop="datePublished"> 发表于 2016-02-11</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h3><p>这篇文章主要针对C++11标准发布之后的现代C++的并发编程进行阐述。C++11首次在语言层面承认了多线程的存在，这使得“仅仅使用C++标准库就能编写跨平台的多线程程序”的愿望成为现实。</p>
+<p>设计多线程的程序目的主要有两个：<strong>充分利用多核CPU的性能</strong>（利用多核心的计算能力以及让计算和IO重叠来降低RT并提升吞吐量）和<strong>简化程序逻辑</strong>（即把单线程状态机的逻辑拆分成多个线程彼此同步，这么做虽然不见得能提升代码性能，但是可以简化代码逻辑）。然而有些场合是不合适使用多线程的，最常见的两种场景是：<strong>限制CPU使用率</strong>和<strong>线程代码中调用了<code>fork(2)</code></strong>。前者不用解释，后者道理也很简单，因为<code>fork(2)</code>这个系统调用只会复制当前调用了该系统调用的线程，而其它线程并不会原样复制。如果此线程执行路径上的某个互斥锁已被没有原样复制的线程持有，那么该线程将永远死锁。只复制当前线程的行为也很合理。因为其它线程可能等在IO上，可能持有某些互斥锁，这些都使得forkall这样的行为难以实现。除非立即在调用<code>fork(2)</code>后调用<code>exec(2)</code>，否则在线程代码里调用<code>fork(2)</code>可不是什么好主意。</p>
+<p>其他的非必要场景也可以举一个例子，比如少量的CPU负载就能把IO跑满（静态web或者文件下载服务器）。这样的场景没有必要使用多线程，因为增加线程数也没有办法提高吞吐量。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2016/02/11/38-c++-concurrency/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/c/">c++</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/c/">c++</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/12/06/37-How-to-benchmark-code-execution-times/" title="如何精确测量一段代码的执行时间" itemprop="url">如何精确测量一段代码的执行时间</a>
   </h1>
   <p class="article-author">By
@@ -153,7 +216,7 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/04/15/36-The-TCP-three-way-handshake-with-data/" title="TCP连接建立的三次握手过程可以携带数据吗？" itemprop="url">TCP连接建立的三次握手过程可以携带数据吗？</a>
+      <a href="/2015/04/15/36-The-TCP-three-way-handshake-with-data/" title="TCP 连接建立的三次握手过程可以携带数据吗？" itemprop="url">TCP 连接建立的三次握手过程可以携带数据吗？</a>
   </h1>
   <p class="article-author">By
        
@@ -218,7 +281,7 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2015/03/28/35-Tair-mdb-analyse/" title="Tair mdb 存储引擎的实现" itemprop="url">Tair mdb 存储引擎的实现</a>
+      <a href="/2015/03/28/35-Tair-mdb-analyse/" title="Tair MDB 存储引擎的实现" itemprop="url">Tair MDB 存储引擎的实现</a>
   </h1>
   <p class="article-author">By
        
@@ -277,76 +340,6 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2015/01/14/34-sigslot-code-analyse/" title="sigslot库源码分析" itemprop="url">sigslot库源码分析</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2015-01-14T03:38:00.000Z" itemprop="datePublished"> 发表于 2015-01-14</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>最近一直在忙毕设的事情，博客都快被遗忘了。最近正好在研究sigslot库，索性晚上写点源码分析的水文充充数。</p>
-<p>言归正传，sigslot是一个用标准C++语法实现的信号与槽机制的函数库，类型和线程安全。提到信号与槽机制，恐怕最容易想到的就是大名鼎鼎的Qt所支持的对象之间通信的模式吧。不过这里的信号与槽虽然在概念上等价与Qt所实现的信号与槽，但是采用的仅仅是标准C++语法，不像Qt采用了扩展C++语言的方式（Qt需要使用moc工具对代码预处理之后，才能由标准的C++编译器进行编译）。</p>
-<p>众所周知，C++是一门特性众多的语言，其支持多种编程范式。虽然C++在一定程度上支持OOP编程，但是C++这种“静态消息机制”的语言一直没有实现对象级别的delegate机制，而C++之父Bjarne主张的“库扩展胜于语言扩展”的做法使得各种解决方案层出不穷。除了信号与槽机制，C++11正式加入的std:bind/std::function组合也提供了优秀的解决方案。这里所说的信号与槽机制也是一种对象间通信的机制，具体的讨论也可以看看sigslot相关介绍中的内容。</p>
-<blockquote>
-<p>sigslot主页: <a href="http://sigslot.sourceforge.net" target="_blank" rel="noopener">http://sigslot.sourceforge.net</a></p>
-</blockquote>
-<blockquote>
-<p>sigslot文档: <a href="http://sigslot.sourceforge.net/sigslot.pdf" target="_blank" rel="noopener">http://sigslot.sourceforge.net/sigslot.pdf</a></p>
-</blockquote>
-<p>sigslot库的用法文档中已然很明了了，所以在这里就不赘述了。接下来我们看看这个库的实现。源码分析的方法有很多种，具体到库代码的分析的方法，我喜欢的是先研究库的功能，直到能写出一个demo程序为止。研究一个库的前提是你得会用它，熟悉它的接口。读完文档，很容易就写出了下面的测试代码：</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2015/01/14/34-sigslot-code-analyse/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/源码分析/">源码分析</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/源码分析/">源码分析</a><a href="/tags/c/">c++</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
     <a class="extend prev" rel="prev" href="/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/3/">Next<span></span></a>
@@ -368,7 +361,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
   </div>
 
 
@@ -386,7 +379,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
 		  
 		
 		  
@@ -455,7 +448,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
 			
 		
 			
@@ -471,11 +464,11 @@
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
@@ -491,7 +484,7 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
 			
 		
 			
@@ -503,14 +496,6 @@
 			
 		
 			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
 			
 		
@@ -519,7 +504,7 @@
 			
 		
 			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
@@ -527,7 +512,15 @@
 			
 		
 			
-				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/memory/" title="memory">memory<sup>1</sup></a></li>
 			
 		
 		</ul>

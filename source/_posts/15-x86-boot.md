@@ -1,4 +1,4 @@
-title: 基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程
+title: 基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程
 date: 2013-03-14 15:00:00
 tags:
 - x86

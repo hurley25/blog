@@ -1,4 +1,4 @@
-title: SMP架构多线程程序的一种性能衰退现象—False Sharing
+title: SMP 架构多线程程序的一种性能衰退现象—False Sharing
 date: 2014-08-09 10:00:00
 tags:
 - 并发

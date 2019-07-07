@@ -1,4 +1,4 @@
-title: Go语言简明教程
+title: Go 语言简明教程
 date: 2014-01-17 14:00:00
 tags:
 - Golang

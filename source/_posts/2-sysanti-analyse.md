@@ -1,4 +1,4 @@
-title: 对SysAnti.exe病毒的简单分析
+title: 对 SysAnti.exe 病毒的简单分析
 date: 2012-11-21 15:02:00
 tags:
 - windows

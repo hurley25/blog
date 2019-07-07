@@ -1,4 +1,4 @@
-title: Linux环境下多线程C/C++程序的内存问题调试
+title: Linux 环境下多线程 C/C++ 程序的内存问题调试
 date: 2017-01-22 15:24:00
 tags:
 - C++

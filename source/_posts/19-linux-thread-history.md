@@ -1,4 +1,4 @@
-title: Linux线程的前世今生
+title: Linux 线程的前世今生
 date: 2013-07-30 19:00:00
 tags:
 - Linux

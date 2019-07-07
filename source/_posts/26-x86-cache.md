@@ -1,4 +1,4 @@
-title: 浅析x86架构中cache的组织结构
+title: 浅析 x86 架构中 cache 的组织结构
 date: 2014-01-06 18:09:00
 tags:
 - x86

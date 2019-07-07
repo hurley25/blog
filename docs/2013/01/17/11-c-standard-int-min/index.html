@@ -4,7 +4,7 @@
 <head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
-    <title>探究C语言标准库limits.h关于INT_MIN宏的奇怪定义 | 浅墨的部落格</title>
+    <title>探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义 | 浅墨的部落格</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="浅墨">
@@ -14,7 +14,7 @@
     <meta name="description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
 <meta name="keywords" content="基础知识,C,CSAPP">
 <meta property="og:type" content="article">
-<meta property="og:title" content="探究C语言标准库limits.h关于INT_MIN宏的奇怪定义">
+<meta property="og:title" content="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义">
 <meta property="og:url" content="http://www.0xffffff.org/2013/01/17/11-c-standard-int-min/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
@@ -22,9 +22,9 @@
 <meta property="og:image" content="http://www.0xffffff.org/images/11/1.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/11/2.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/11/3.png">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.269Z">
+<meta property="og:updated_time" content="2019-07-07T09:16:05.796Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="探究C语言标准库limits.h关于INT_MIN宏的奇怪定义">
+<meta name="twitter:title" content="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义">
 <meta name="twitter:description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
 <meta name="twitter:image" content="http://www.0xffffff.org/images/11/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
@@ -86,7 +86,7 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2013/01/17/11-c-standard-int-min/" title="探究C语言标准库limits.h关于INT_MIN宏的奇怪定义" itemprop="url">探究C语言标准库limits.h关于INT_MIN宏的奇怪定义</a>
+      <a href="/2013/01/17/11-c-standard-int-min/" title="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义" itemprop="url">探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义</a>
   </h1>
   <p class="article-author">By
        
@@ -151,7 +151,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2013/01/17/11-c-standard-int-min/" data-title="探究C语言标准库limits.h关于INT_MIN宏的奇怪定义 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://www.0xffffff.org/2013/01/17/11-c-standard-int-min/" data-title="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -204,7 +204,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
   </div>
 
 
@@ -222,7 +222,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
 		  
 		
 		  
@@ -291,7 +291,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
 			
 		
 			
@@ -307,11 +307,11 @@
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
@@ -327,7 +327,7 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
 			
 		
 			
@@ -339,14 +339,6 @@
 			
 		
 			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
 			
 		
@@ -355,7 +347,7 @@
 			
 		
 			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
@@ -363,7 +355,15 @@
 			
 		
 			
-				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/memory/" title="memory">memory<sup>1</sup></a></li>
 			
 		
 		</ul>

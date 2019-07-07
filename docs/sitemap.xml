@@ -2,6 +2,153 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.0xffffff.org/2019/07/07/42-linux-memory-monitor/</loc>
+    
+    <lastmod>2019-07-07T09:25:10.382Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2012/11/20/1-gdb-coredump/</loc>
+    
+    <lastmod>2019-07-07T09:16:49.136Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2012/11/21/2-sysanti-analyse/</loc>
+    
+    <lastmod>2019-07-07T09:16:44.202Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/01/09/7-vim-setting/</loc>
+    
+    <lastmod>2019-07-07T09:16:23.754Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/01/17/11-c-standard-int-min/</loc>
+    
+    <lastmod>2019-07-07T09:16:05.796Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/02/25/14-emmet/</loc>
+    
+    <lastmod>2019-07-07T09:15:47.354Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/03/14/15-x86-boot/</loc>
+    
+    <lastmod>2019-07-07T09:15:37.036Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/07/30/19-linux-thread-history/</loc>
+    
+    <lastmod>2019-07-07T09:15:20.471Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/01/06/26-x86-cache/</loc>
+    
+    <lastmod>2019-07-07T09:14:58.118Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/</loc>
+    
+    <lastmod>2019-07-07T09:14:49.153Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/01/17/28-golang/</loc>
+    
+    <lastmod>2019-07-07T09:14:43.850Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/02/10/29-cjson-analyse/</loc>
+    
+    <lastmod>2019-07-07T09:14:38.720Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/04/16/30-linux-ip-fragment/</loc>
+    
+    <lastmod>2019-07-07T09:14:34.011Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2014/08/09/31-smp-false-sharing/</loc>
+    
+    <lastmod>2019-07-07T09:14:26.122Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2015/01/14/34-sigslot-code-analyse/</loc>
+    
+    <lastmod>2019-07-07T09:14:14.599Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2015/04/15/36-The-TCP-three-way-handshake-with-data/</loc>
+    
+    <lastmod>2019-07-07T09:14:01.347Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2016/02/11/38-c++-concurrency/</loc>
+    
+    <lastmod>2019-07-07T09:13:50.651Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2017/01/22/39-multi-thread-memory-bug/</loc>
+    
+    <lastmod>2019-07-07T09:13:45.062Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2017/05/01/41-linux-io/</loc>
+    
+    <lastmod>2019-07-07T09:13:31.966Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2015/03/28/35-Tair-mdb-analyse/</loc>
+    
+    <lastmod>2019-07-07T09:13:06.540Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/01/15/8-csapp-1/</loc>
+    
+    <lastmod>2019-07-07T08:12:41.275Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.0xffffff.org/about/index.html</loc>
     
     <lastmod>2019-07-07T08:12:41.275Z</lastmod>
@@ -16,42 +163,7 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2013/01/15/8-csapp-1/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.275Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/01/09/7-vim-setting/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.275Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2012/12/02/5-stack-overflow-1/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.274Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2017/05/01/41-linux-io/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.274Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.0xffffff.org/2012/12/09/6-stack-overflow-2/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.274Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/</loc>
     
     <lastmod>2019-07-07T08:12:41.274Z</lastmod>
     
@@ -65,16 +177,16 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2015/03/28/35-Tair-mdb-analyse/</loc>
+    <loc>http://www.0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/</loc>
     
-    <lastmod>2019-07-07T08:12:41.273Z</lastmod>
+    <lastmod>2019-07-07T08:12:41.274Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2015/04/15/36-The-TCP-three-way-handshake-with-data/</loc>
+    <loc>http://www.0xffffff.org/2012/12/02/5-stack-overflow-1/</loc>
     
-    <lastmod>2019-07-07T08:12:41.273Z</lastmod>
+    <lastmod>2019-07-07T08:12:41.274Z</lastmod>
     
   </url>
   
@@ -86,28 +198,7 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2017/01/22/39-multi-thread-memory-bug/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.273Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2016/02/11/38-c++-concurrency/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.273Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2015/01/14/34-sigslot-code-analyse/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.273Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2014/02/10/29-cjson-analyse/</loc>
+    <loc>http://www.0xffffff.org/2014/11/20/33-servie-program/</loc>
     
     <lastmod>2019-07-07T08:12:41.272Z</lastmod>
     
@@ -121,20 +212,6 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2014/11/20/33-servie-program/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.272Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2014/04/16/30-linux-ip-fragment/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.272Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.0xffffff.org/2014/10/31/32-memory-management/</loc>
     
     <lastmod>2019-07-07T08:12:41.272Z</lastmod>
@@ -142,42 +219,7 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2014/08/09/31-smp-false-sharing/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.272Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2014/01/06/26-x86-cache/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.271Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2014/01/17/28-golang/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.271Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.0xffffff.org/2013/12/01/25-hurlex-kernel/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.271Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/10/24/23-x86-asm-3/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.271Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/</loc>
     
     <lastmod>2019-07-07T08:12:41.271Z</lastmod>
     
@@ -191,28 +233,14 @@
   </url>
   
   <url>
+    <loc>http://www.0xffffff.org/2013/10/24/23-x86-asm-3/</loc>
+    
+    <lastmod>2019-07-07T08:12:41.271Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.270Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/07/30/19-linux-thread-history/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.270Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2012/11/21/2-sysanti-analyse/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.270Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/10/23/22-x86-asm-2/</loc>
     
     <lastmod>2019-07-07T08:12:41.270Z</lastmod>
     
@@ -226,6 +254,13 @@
   </url>
   
   <url>
+    <loc>http://www.0xffffff.org/2013/10/23/22-x86-asm-2/</loc>
+    
+    <lastmod>2019-07-07T08:12:41.270Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.0xffffff.org/2013/10/22/21-x86-asm-1/</loc>
     
     <lastmod>2019-07-07T08:12:41.270Z</lastmod>
@@ -233,35 +268,7 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2013/04/05/16-complier-and-linker-1/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.269Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/01/17/10-csapp-3/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.269Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://www.0xffffff.org/2013/02/08/13-my-opinion-about-technology/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.269Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/01/27/12-about-encode/</loc>
-    
-    <lastmod>2019-07-07T08:12:41.269Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2013/01/17/11-c-standard-int-min/</loc>
     
     <lastmod>2019-07-07T08:12:41.269Z</lastmod>
     
@@ -275,14 +282,21 @@
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2013/02/25/14-emmet/</loc>
+    <loc>http://www.0xffffff.org/2013/01/17/10-csapp-3/</loc>
     
     <lastmod>2019-07-07T08:12:41.269Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://www.0xffffff.org/2013/03/14/15-x86-boot/</loc>
+    <loc>http://www.0xffffff.org/2013/01/27/12-about-encode/</loc>
+    
+    <lastmod>2019-07-07T08:12:41.269Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.0xffffff.org/2013/04/05/16-complier-and-linker-1/</loc>
     
     <lastmod>2019-07-07T08:12:41.269Z</lastmod>
     
@@ -290,13 +304,6 @@
   
   <url>
     <loc>http://www.0xffffff.org/404.html</loc>
-    
-    <lastmod>2019-07-07T08:12:41.268Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://www.0xffffff.org/2012/11/20/1-gdb-coredump/</loc>
     
     <lastmod>2019-07-07T08:12:41.268Z</lastmod>
     

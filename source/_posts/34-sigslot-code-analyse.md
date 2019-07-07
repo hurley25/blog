@@ -1,4 +1,4 @@
-title: sigslot库源码分析
+title: sigslot 库源码分析
 date: 2015-01-14 11:38:00
 tags:
 - 源码分析

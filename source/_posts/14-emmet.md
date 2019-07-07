@@ -1,4 +1,4 @@
-title: Emmet——快速的编写HTML和CSS代码
+title: Emmet —— 快速的编写 HTML 和 CSS 代码
 date: 2013-02-25 15:00:00
 tags:
 - 前端

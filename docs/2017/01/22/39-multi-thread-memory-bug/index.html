@@ -4,7 +4,7 @@
 <head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="UTF-8">
   
-    <title>Linux环境下多线程C/C++程序的内存问题调试 | 浅墨的部落格</title>
+    <title>Linux 环境下多线程 C/C++ 程序的内存问题调试 | 浅墨的部落格</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     
     <meta name="author" content="浅墨">
@@ -14,7 +14,7 @@
     <meta name="description" content="背景很久以前写过一篇调试内存错误的文章《用gdb配合内核转储文件瞬间定位段错误》，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。 但是在具体实践中，往往会有一些复杂的内存访问错误，尤其是多线程环境下的C/C++程序。因为其内存的分配、释放与访问经常会牵扯到多个线程，容易引入复杂而难以定位的内存错">
 <meta name="keywords" content="C++,coredump,调试">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Linux环境下多线程C&#x2F;C++程序的内存问题调试">
+<meta property="og:title" content="Linux 环境下多线程 C&#x2F;C++ 程序的内存问题调试">
 <meta property="og:url" content="http://www.0xffffff.org/2017/01/22/39-multi-thread-memory-bug/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="背景很久以前写过一篇调试内存错误的文章《用gdb配合内核转储文件瞬间定位段错误》，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。 但是在具体实践中，往往会有一些复杂的内存访问错误，尤其是多线程环境下的C/C++程序。因为其内存的分配、释放与访问经常会牵扯到多个线程，容易引入复杂而难以定位的内存错">
@@ -26,9 +26,9 @@
 <meta property="og:image" content="http://www.0xffffff.org/images/39/5.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/39/6.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/39/7.png">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.273Z">
+<meta property="og:updated_time" content="2019-07-07T09:13:45.062Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux环境下多线程C&#x2F;C++程序的内存问题调试">
+<meta name="twitter:title" content="Linux 环境下多线程 C&#x2F;C++ 程序的内存问题调试">
 <meta name="twitter:description" content="背景很久以前写过一篇调试内存错误的文章《用gdb配合内核转储文件瞬间定位段错误》，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。 但是在具体实践中，往往会有一些复杂的内存访问错误，尤其是多线程环境下的C/C++程序。因为其内存的分配、释放与访问经常会牵扯到多个线程，容易引入复杂而难以定位的内存错">
 <meta name="twitter:image" content="http://www.0xffffff.org/images/39/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
@@ -90,7 +90,7 @@
 		<header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2017/01/22/39-multi-thread-memory-bug/" title="Linux环境下多线程C/C++程序的内存问题调试" itemprop="url">Linux环境下多线程C/C++程序的内存问题调试</a>
+      <a href="/2017/01/22/39-multi-thread-memory-bug/" title="Linux 环境下多线程 C/C++ 程序的内存问题调试" itemprop="url">Linux 环境下多线程 C/C++ 程序的内存问题调试</a>
   </h1>
   <p class="article-author">By
        
@@ -248,7 +248,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2017/01/22/39-multi-thread-memory-bug/" data-title="Linux环境下多线程C/C++程序的内存问题调试 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://www.0xffffff.org/2017/01/22/39-multi-thread-memory-bug/" data-title="Linux 环境下多线程 C/C++ 程序的内存问题调试 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -272,9 +272,9 @@
 
 
 <div class="next">
-<a href="/2016/02/11/38-c++-concurrency/"  title="C++并发编程那些事">
+<a href="/2016/02/11/38-c++-concurrency/"  title="C++ 并发编程那些事">
  <strong>下一篇：</strong><br/> 
- <span>C++并发编程那些事
+ <span>C++ 并发编程那些事
 </span>
 </a>
 </div>
@@ -301,7 +301,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
   </div>
 
 
@@ -319,7 +319,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
 		  
 		
 		  
@@ -388,7 +388,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
 			
 		
 			
@@ -404,11 +404,11 @@
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
@@ -424,7 +424,7 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
 			
 		
 			
@@ -436,14 +436,6 @@
 			
 		
 			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
 			
 		
@@ -452,7 +444,7 @@
 			
 		
 			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
@@ -460,7 +452,15 @@
 			
 		
 			
-				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/memory/" title="memory">memory<sup>1</sup></a></li>
 			
 		
 		</ul>

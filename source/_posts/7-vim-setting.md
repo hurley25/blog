@@ -1,4 +1,4 @@
-title: Vim编辑器的配置
+title: Vim 编辑器的配置
 date: 2013-01-09 11:02:00
 tags:
 - vim

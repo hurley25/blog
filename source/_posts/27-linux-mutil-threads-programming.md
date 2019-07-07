@@ -1,4 +1,4 @@
-title: 《Linux多线程服务端编程》总结备忘
+title: 《Linux 多线程服务端编程》总结备忘
 date: 2014-01-09 15:09:00
 tags:
 - Linux

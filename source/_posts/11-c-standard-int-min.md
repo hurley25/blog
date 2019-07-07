@@ -1,4 +1,4 @@
-title: 探究C语言标准库limits.h关于INT_MIN宏的奇怪定义   
+title: 探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义   
 date: 2013-01-17 11:02:00
 tags:
 - C
