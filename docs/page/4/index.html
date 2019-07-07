@@ -1,0 +1,770 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="浅墨的部落格">
+<meta property="og:url" content="http://www.0xffffff.org/page/4/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅墨的部落格">
+<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/02/10/29-cjson-analyse/" title="cJSON库源码分析" itemprop="url">cJSON库源码分析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-02-10T07:00:00.000Z" itemprop="datePublished"> 发表于 2014-02-10</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>cJSON是一个超轻巧，携带方便，单文件，简单的可以作为ANSI-C标准的Json格式解析库。</p>
+<p>那什么是Json格式？这里照搬度娘百科的说法：</p>
+<blockquote>
+<p>Json(JavaScript Object Notation) 是一种轻量级的数据交换格式。它基于JavaScript（Standard ECMA-262 3rd Edition – December 1999）的一个子集。JSON采用完全独立于语言的文本格式，但是也使用了类似于C语言家族的习惯（包括C, C++, C#, Java, JavaScript, Perl, Python等）。这些特性使JSON成为理想的数据交换语言。易于人阅读和编写，同时也易于机器解析和生成。</p>
+</blockquote>
+<p>更加详细的解释和示例请查看 <a href="http://www.json.org/" target="_blank" rel="noopener">http://www.json.org/</a> 主页。</p>
+<p>其实简单说，Json就是一种信息交换格式，而cJSON其实就是对Json格式的字符串进行构建和解析的一个C语言函数库。</p>
+<p>可以在这个地址下载到cJSON的源代码： <a href="http://sourceforge.net/projects/cjson/" target="_blank" rel="noopener">http://sourceforge.net/projects/cjson/</a></p>
+<p>__MACOSX目录是在Mac OSX系统下打包引入的临时目录，无视它。</p>
+<p>简单的阅读下README文件，先学习cJSON库的使用方法。若是连库都还不会使用，分析源码就无从谈起了。通过简单的了解，我们得知cJSON库实际上只有cJSON.c和cJSON.h两个文件组成，绝对轻量级。</p>
+<p>不过，代码风格貌似有点非主流，先用indent格式化一下代码吧。我个人喜欢K&amp;R风格的代码，使用的indent命令行参数如下：</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">indent</span> -<span class="keyword">bad </span>-<span class="keyword">bli </span><span class="number">0</span> -ce -kr -nsob --<span class="meta">space</span>-after-<span class="meta">if</span> --<span class="meta">space</span>-after-<span class="meta">while</span> --<span class="meta">space</span>-after-for --use-tabs -i8</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/02/10/29-cjson-analyse/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/源码分析/">源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/源码分析/">源码分析</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/01/17/28-golang/" title="Go语言简明教程" itemprop="url">Go语言简明教程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-01-17T06:00:00.000Z" itemprop="datePublished"> 发表于 2014-01-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="Go语言简介"><a href="#Go语言简介" class="headerlink" title="Go语言简介"></a>Go语言简介</h3><p>Go语言(golang)是Google推出的一种全新的编程语言，可以在不损失应用程序性能的情况下降低代码的复杂性。Google首席软件工程师罗布派克(Rob Pike)说：我们之所以开发Go，是因为过去10多年间软件开发的难度令人沮丧。</p>
+<p>Go语言的主要特性：</p>
+<ul>
+<li>编译型语言，执行效率接近c/c++</li>
+<li>自动垃圾回收</li>
+<li>更丰富的内置类型和自动类型推导(类似c++11的auto)</li>
+<li>函数可以返回多个值</li>
+<li>拥有更好的错误处理</li>
+<li>匿名函数和闭包</li>
+<li>支持类型和接口</li>
+<li>并发编程</li>
+<li>支持反射机制</li>
+<li>语言交互性强</li>
+<li>工程依赖自动推导</li>
+<li>打包和部署容易</li>
+<li>……</li>
+</ul>
+<p>就我个人而言，感觉Go语言是对像是对c语言的修补和延伸。这个由一群工程师们设计出的语言实在太符合我的口味了，所有的特性都是为了解决实际问题而存在的。但是新增加的特性并没有给语言带来额外的负担，相反，Go的语法反而很简单。大道至简，这是我喜欢Go的原因。</p>
+<h3 id="Go语言开发环境部署"><a href="#Go语言开发环境部署" class="headerlink" title="Go语言开发环境部署"></a>Go语言开发环境部署</h3><p>这个相信大家很容易在网上就能获取到下载和安装的教程，就不赘述了。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/01/17/28-golang/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Golang/">Golang</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Golang/">Golang</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/01/09/27-linux-mutil-threads-programming/" title="《Linux多线程服务端编程》总结备忘" itemprop="url">《Linux多线程服务端编程》总结备忘</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-01-09T07:09:00.000Z" itemprop="datePublished"> 发表于 2014-01-09</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><strong>§ 1 线程安全的对象生命期管理</strong></p>
+<ul>
+<li><p>对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。</p>
+</li>
+<li><p>当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：</p>
+<ul>
+<li>即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？</li>
+<li>如何保证在执行成员函数期间，对象不会被另一个线程所析构？</li>
+<li>在调用某个对象的成员函数之前，如何得之这个对象还活着？它的析构函数是否会碰巧执行到一半？</li>
+</ul>
+</li>
+<li><p>一个线程安全的class应当满足下面三个条件：</p>
+<ul>
+<li>多个线程同时访问时，其表现出正确的行为。</li>
+<li>无论操作系统如何调度这些线程，无论这些线程的执行顺序如何交织（interleaving）。</li>
+<li>调用端代码无需额外的同步或其它协调动作。</li>
+</ul>
+</li>
+<li><p>按照以上定义，C++标准库中的大多数类都不是线程安全的，包括std:string、std::vector、std::map等，这些class通常需要在外部加锁才能供多个线程同步访问。</p>
+</li>
+</ul>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/01/09/27-linux-mutil-threads-programming/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/读书笔迹/">读书笔迹</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/多线程/">多线程</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/01/06/26-x86-cache/" title="浅析x86架构中cache的组织结构" itemprop="url">浅析x86架构中cache的组织结构</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-01-06T10:09:00.000Z" itemprop="datePublished"> 发表于 2014-01-06</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <blockquote>
+<p>cache通常被翻译为高速缓冲存储器（以下简称“高速缓存”），虽然现在cache的含义已经不单单指CPU和主存储器（也就是通常所谓的内存）之间的高速缓存了，但在本文中所谓的cache依旧特指CPU和主存储器之间的高速缓存。</p>
+</blockquote>
+<p>这篇文章诞生的源头是我之前在stackoverflow看到的一个问题：</p>
+<p><a href="http://stackoverflow.com/questions/11413855/why-is-transposing-a-matrix-of-512x512-much-slower-than-transposing-a-matrix-of" target="_blank" rel="noopener">Why is transposing a matrix of 512×512 much slower than transposing a matrix of 513×513 ?</a></p>
+<p>这个问题虽然国外的大神给出了完美的解释，但是我当时看过之后还是一头雾水。想必对x86架构上的cache没有较深入了解过的童鞋看过之后也是一样的感受吧。于是趁着寒假回家第一天还没有过多外界干扰的时候，我们就来详细的研究下x86架构下cache的组织方式吧。</p>
+<p>我们就由这个问题开始讨论吧。这个问题说为什么转置一个512×512的矩阵反倒比513×513的矩阵要慢？（不知道什么是矩阵转置的童鞋补习线性代数去）提问者给出了测试的代码以及执行的时间。</p>
+<p>不过我们不知道提问者测试机器的硬件架构，不过我的测试环境就是我这台笔记本了，x86架构，处理器是Intel Core i3-2310M 2.10GHz。顺便啰嗦一句，在linux下，直接用cat命令查看/proc/cpuinfo这个虚拟文件就可以查看到当前CPU的很多信息。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/01/06/26-x86-cache/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/x86/">x86</a><a href="/tags/cache/">cache</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/3/"><span></span>Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/">Next<span></span></a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

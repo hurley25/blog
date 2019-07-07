@@ -1,0 +1,753 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="浅墨的部落格">
+<meta property="og:url" content="http://www.0xffffff.org/page/7/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅墨的部落格">
+<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/04/17/17-complier-and-linker-2/" title="编译和链接那点事&lt;下&gt;" itemprop="url">编译和链接那点事&lt;下&gt;</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-04-17T08:00:00.000Z" itemprop="datePublished"> 发表于 2013-04-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>上回书我们说到了链接以前，今天我们来研究最后的链接问题。</p>
+<p>链接这个话题延伸之后完全可以跑到九霄云外去，为了避免本文牵扯到过多的话题导致言之泛泛，我们先设定本文涉及的范围。我们今天讨论只链接进行的大致步骤及其规则、静态链接库与动态链接库的创建和使用这两大块的问题。至于可执行文件的加载、可执行文件的运行时储存器映像之类的内容我们暂时不讨论。</p>
+<p>首先，什么是链接？我们引用CSAPP的定义：<strong>链接（linking）是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可被加载（或被拷贝）到存储器并执行。</strong></p>
+<p>需要强调的是，链接可以执行于编译时（compile time），也就是在源代码被翻译成机器代码时；也可以执行于加载时，也就是在程序被加载器（loader）加载到存储器并执行时；甚至执行于运行时（run time），由应用程序来执行。</p>
+<p>说了这么多，了解链接有什么用呢？生命这么短暂，我们干嘛要去学习一些根本用不到的东西。当然有用了，继续引用CSAPP的说法，如下：</p>
+<blockquote>
+<ol>
+<li>理解链接器将帮助你构造大型程序。</li>
+<li>理解链接器将帮助你避免一些危险的编程错误。</li>
+<li>理解链接将帮助你理解语言的作用域是如何实现的。</li>
+<li>理解链接将帮助你理解其他重要的系统概念。</li>
+<li>理解链接将使你能够利用共享库。<br>……</li>
+</ol>
+</blockquote>
+<p>言归正传，我们开始吧。为了避免我们的描述过于枯燥，我们还是以C语言为例吧。想必大家通过我们在上篇中的描述，已经知道C代码编译后的目标文件了吧。目标文件最终要和标准库进行链接生成最后的可执行文件。那么，标准库和我们生成的目标文件是什么关系呢？</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/04/17/17-complier-and-linker-2/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a><a href="/tags/C-C/">C/C++</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/04/05/16-complier-and-linker-1/" title="编译和链接那点事&lt;上&gt;" itemprop="url">编译和链接那点事&lt;上&gt;</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-04-05T08:00:00.000Z" itemprop="datePublished"> 发表于 2013-04-05</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>有位学弟想让我说说编译和链接的简单过程，我觉得几句话简单说的话也没什么意思，索性写篇博文稍微详细的解释一下吧。其实详细的流程在经典的《Linkers and Loaders》和《深入理解计算机系统》中均有描述，也有国产的诸如《程序员的自我修养——链接、装载与库》等大牛著作。不过，我想大家恐怕很难有足够的时间去研读这些厚如词典的书籍。正巧我大致翻阅过其中的部分章节，干脆也融入这篇文章作为补充吧。</p>
+<p>我的环境：Fedora 16  i686  kernel-3.6.11-4  gcc 4.6.3</p>
+<p>其实MSVC的编译器在编译过程中的流程是差不多的，只是具体调用的程序和使用的参数不同罢了。不过为了描述的流畅性，我在行文中不会涉及MSVC的具体操作，使用Windows的同学可以自行搜索相关指令和参数。但是作为Linuxer，我还是欢迎大家使用Linux系统。如果大家确实需要，我会挤时间在附言中给出MSVC中相对应的试验方法。</p>
+<p>闲话不多说了，我们进入正题。在正式开始我们的描述前，我们先来引出几个问题：</p>
+<blockquote>
+<ol>
+<li>C语言代码为什么要编译后才能执行？整个过程中编译器都做了什么？</li>
+<li>C代码中经常会包含头文件，那头文件是什么？C语言库又是什么？</li>
+<li>有人说main函数是C语言程序的入口，是这样吗？难道就不能把其它函数当入口？</li>
+<li>不同的操作系统上编译好的程序可以直接拷贝过去运行吗？</li>
+</ol>
+</blockquote>
+<p>如果上面的问题你都能回答的话，那么后文就不用再看下去了。因为本文是纯粹的面向新手，所以注定了不会写的多么详细和深刻。如果你不知道或者不是很清楚，那么我们就一起继续研究吧。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/04/05/16-complier-and-linker-1/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a><a href="/tags/C-C/">C/C++</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/03/14/15-x86-boot/" title="基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程" itemprop="url">基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-03-14T07:00:00.000Z" itemprop="datePublished"> 发表于 2013-03-14</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p> 前段时间我在微博上看到了阮一峰的一篇日志《计算机是如何启动的？》才想起来自己之前尝试探索X86架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于BIOS查找“启动顺序”（Boot Sequence）之前，也就是从按下电源到BIOS移交权限之间的这一段。关于MBR分区体系磁盘的分区表，阮一峰描述的很详细，我就不重复造轮子了。</p>
+<p><strong>顺便罗嗦一下，有关“扩展分区”（Extended partition）描述，阮一峰这里是很正确的，而网上有不少说法是错误的。倘若读者真有疑问，不妨用WinHex之类的工具直接以二进制打开磁盘，一看便知。Linux也可以用dd命令拷贝出磁盘的内容到文件，再查看文件内容。比如dd if=/dev/sda of=/tmp/xxx bs=512 count=1什么的。</strong></p>
+<p>言归正传，开始我们的探索之旅吧。不过，我们不会深入到开机电路之类的硬件问题上去，毕竟，我们还是以一个程序员的角度来看待计算机，再者，我也没有能力从硬件角度去探究。<strong>同时，我们假定读者能完全读懂并理解上面我提到的那篇博文并且能理解寻址空间，实模式、保护模式、端口独立编址和端口统一编址等相关术语名词。</strong></p>
+<p>我们从按下电源开始。</p>
+<p>首先，是CPU Reset。<strong>主板加电之后在电压尚未稳定之前，其北桥控制芯片会向CPU发出重置信号（Reset），此时CPU进行初始化。当电压稳定后，控制芯片会撤销Reset信号，CPU开始工作。</strong>我们要探讨的第一个问题就是CPU执行的第一条指令的位置。</p>
+<p>现在网上流传的资料基本上是8086 CPU的资料，给出的说法一般是这样：CS寄存器初始化为0xF000，IP寄存器初始化为0xFFF0，所以按照CPU实模式地址计算法则，CPU执行的第一条指令地址是CS*10h+IP，即0xFFFF0处。也许8086CPU确实如此，但我们的问题是，80386及其以上的CPU怎么处理呢？其计算地址法则还是如此吗？当然不是，否则我说这些废话做什么。如果读者之前对实模式和保护模式寻址以及地址计算的理念根深蒂固的话，那么请先暂时忘却以前的认知，因为我下文说的也许有些惊世骇俗（我指的是相对于国产的教材来说）。</p>
+<p><strong>第一点，80386及其以上的现代CPU（以下简称CPU）加电Reset之后并不是直接进入实模式；</strong></p>
+<p><strong>第二点，CPU在合成地址的时候不区分实模式和保护模式。</strong></p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/03/14/15-x86-boot/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/x86/">x86</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/02/25/14-emmet/" title="Emmet——快速的编写HTML和CSS代码" itemprop="url">Emmet——快速的编写HTML和CSS代码</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-02-25T07:00:00.000Z" itemprop="datePublished"> 发表于 2013-02-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>这学期被自愿的选择了《Web应用程序设计》这门课，还是自学课。好吧，反正基础的HTML和CSS迟早也是要学习的，就提前学吧。</p>
+<p>按照我的性子，当学习新的语言以及语法规则的时候，我就又开始折腾编辑器的语法高亮和配置自动补全功能了。其实接触到新的语言时，我个人建议还是不要急着去寻找相关的IDE去使用，还是先用基本的文本编辑器写，尝试自己手工去构建。等到理解了之后再使用IDE提高编码效率也不晚。IDE的方便是建立在对很多细节的屏蔽之上的，这样对学习新的知识没有益处。没有手写HTML的经验，全靠IDE点点按钮，拖拖控件的设计人员在调试的时候就会是一场噩梦。</p>
+<p>另外，个人吐槽下网上到处可见的什么“真正的高手写代码只用记事本”。你确定是notepad？没有++？好吧，个人感觉用记事本写代码如果不是临时找不到替代品之外，除了装逼就再没有什么意义了。即便是不需要IDE的自动补全和错误检测，个人认为代码编辑器的语法高亮和格式调整还是很重要的。手工调整格式很麻烦，而语法高亮除了看起来赏心悦目还能指出来明显的拼写错误。方便的代码编辑器notapad++、Vim，Emacs等等是很好的选择。</p>
+<p>废话少说，言归正传。我们今天给熟悉了HTML和CSS的程序员推荐一款文本编辑器的插件——Emmet。如果你没有听说过Emmet，那你至少听说过大名鼎鼎的Zen coding吧？Emmet就是Zen coding的新名字。什么？你没有听说过？太好了，你可以继续看下去了，否则，也就没有看的必要了……</p>
+<p>简单介绍下Emmet，官方是这么说的“Emmet is a plugin for many popular text editors which greatly improves HTML &amp; CSS workflow”。</p>
+<p>官方主页在 <a href="http://www.emmet.io/" target="_blank" rel="noopener">http://www.emmet.io/</a></p>
+<p>Emmet作为文本编辑器的插件提供给 Eclipse/Aptana，Sublime Text 2，TextMate 1.x，Coda 1.6 and 2.x 等等编辑器作为扩展。我们以我比较喜欢的编辑器 Sublime Text 为例介绍下安装与使用方法吧。（暂时先委屈下Vim，因为Vim的插件自动补全是“Ctrl+Y+逗号/分号”，这个快捷键很不好用，而我还没有找到修改的方法  我暂时在vimrc文件里加入 imap <c-e> <c-y>;  映射到Ctrl+E，官方的重定义方法太麻烦了）</c-y></c-e></p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/02/25/14-emmet/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/编程工具/">编程工具</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/前端/">前端</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/6/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/8/">Next<span></span></a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

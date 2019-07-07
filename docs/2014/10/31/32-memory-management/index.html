@@ -1,0 +1,715 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>聊聊内存管理 | 浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="这篇文章我们聊聊内存管理。 本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对IA32平台Linux下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。 物理地址空间首先，什么是物理地址空间？我们知道CPU与外部进行信息传递的公用通道就是总线，一般而言，CPU有三大总线：控制总线、数据总线、地址">
+<meta name="keywords" content="基础知识,内存管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊聊内存管理">
+<meta property="og:url" content="http://www.0xffffff.org/2014/10/31/32-memory-management/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="这篇文章我们聊聊内存管理。 本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对IA32平台Linux下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。 物理地址空间首先，什么是物理地址空间？我们知道CPU与外部进行信息传递的公用通道就是总线，一般而言，CPU有三大总线：控制总线、数据总线、地址">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/1.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/2.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/3.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/4.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/5.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/6.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/7.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/32/8.png">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.272Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="聊聊内存管理">
+<meta name="twitter:description" content="这篇文章我们聊聊内存管理。 本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对IA32平台Linux下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。 物理地址空间首先，什么是物理地址空间？我们知道CPU与外部进行信息传递的公用通道就是总线，一般而言，CPU有三大总线：控制总线、数据总线、地址">
+<meta name="twitter:image" content="http://www.0xffffff.org/images/32/1.png">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/10/31/32-memory-management/" title="聊聊内存管理" itemprop="url">聊聊内存管理</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-10-31T03:00:00.000Z" itemprop="datePublished"> 发表于 2014-10-31</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#物理地址空间"><span class="toc-number">1.</span> <span class="toc-text">物理地址空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动时的内存信息获取"><span class="toc-number">2.</span> <span class="toc-text">启动时的内存信息获取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#物理内存管理"><span class="toc-number">3.</span> <span class="toc-text">物理内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#虚拟内存管理"><span class="toc-number">4.</span> <span class="toc-text">虚拟内存管理</span></a></li></ol>
+		
+		</div>
+		
+		<p>这篇文章我们聊聊内存管理。</p>
+<p>本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对IA32平台Linux下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。</p>
+<h3 id="物理地址空间"><a href="#物理地址空间" class="headerlink" title="物理地址空间"></a>物理地址空间</h3><p>首先，什么是物理地址空间？我们知道CPU与外部进行信息传递的公用通道就是总线，一般而言，CPU有三大总线：控制总线、数据总线、地址总线。这三类总线在一定程度上决定了CPU对外部设备的控制和数据传送能力。其中地址总线决定了CPU能向外部输出的地址宽度，也就是CPU的寻址能力。</p>
+<p>通过/proc/cpuinfo可以查看具体的数据：</p>
+<p><img src="/images/32/1.png" alt></p>
+<p>本文只需要关心红色框内的信息即可，我的CPU拥有36位地址总线，其寻址范围是2^36=64G. 那么其物理上理论能编址的上限就是这么大了。关于48 bits virtual的相关信息以及64 bit的现有实现，则可以<a href="http://en.wikipedia.org/wiki/X86-64" target="_blank" rel="noopener">参考这里</a>。</p>
+<a id="more"></a>
+<p>《Intel® 64 and IA-32 Architectures Software Developer’ s Manual》对物理地址空间的解释如下：</p>
+<p><img src="/images/32/2.png" alt></p>
+<p>重点标记的区域请认真阅读，物理地址空间一定就是内存（DRAM）么？显然不是，文档里也指出了物理地址空间可以映射到read-write memory、read-only memory和memory mapped I/O.</p>
+<p>也就是说，除了常见的内存（DRAM），还有主板上的ROM和EEPROM（BIOS、显存等等）也在这个地址空间里。常见的编址方案有IO独立编址和IO统一编址，具体的讨论可以参考<a href="http://www.0xffffff.org/2013/03/14/15-x86-boot/">这里</a>。下面就假定读者接受了这一基本事实。</p>
+<h3 id="启动时的内存信息获取"><a href="#启动时的内存信息获取" class="headerlink" title="启动时的内存信息获取"></a>启动时的内存信息获取</h3><p><strong>BIOS的中断调用</strong></p>
+<p>上一节说到，物理地址空间被映射到了主存储器，主板上芯片的存储区域等位置。那么，操作系统如何得知这一映射关系，显然不同品牌的机器和主板不可能完全一致么。答案就在BIOS（Basic Input/Output System）了，那BIOS又如何得知呢？嗯，我查到的资料是……探测。具体说来，BIOS其实是一个通称，显卡、网卡、键盘接口电路等外设上都会有一块ROM芯片用于其初始化检测和功能调用。按照规范，这个部分前两个字节必须是0x55和0xAA（和可启动存储介质的第一个扇区结尾字符一样，注意区别），第三个字节是其ROM以512为单位的代码长度，之后就是代码了。从物理地址A0000～FFFFF之间的区域就是保留给外围设备的，如果外设存在，其自带的ROM就会被映射到这个区域。主板BIOS在机器加电后，会以2KB为单位在C0000～E0000之间检索0x55和0xAA并校验长度，执行ROM的代码。有兴趣你可以去读《BIOS研发技术剖析》类似的书，这里我个人不怎么了解，就不敢再多说了。</p>
+<p>啰嗦了这么多，其实只需要明白最初的地址映射表是由BIOS检测并提供给操作系统的就好。而操作系统获取这个表的方法自然就是BIOS的中断调用了。e820调用即可获取这些信息，终端下使用dmesg命令打印内核日志就可以看到内核打印出的物理内存布局了。</p>
+<p><img src="/images/32/3.png" alt></p>
+<p>简要解释下上面的输出：</p>
+<ul>
+<li><p>Usable：是已经被映射到物理内存（DRAM）的物理地址。</p>
+</li>
+<li><p>Reserved：这些区间是没有被映射到任何地方，不能当作内存来使用。（内核可以修改这些映射，/proc/iomem文件描述了具体的映射）</p>
+</li>
+<li><p>ACPI data：映射到用来存放ACPI数据的RAM空间，ACPI Table应读入到这个区间内。</p>
+</li>
+<li><p>ACPI NVS：映射到存放ACPI数据的空间，操作系统不能使用。</p>
+</li>
+</ul>
+<p>至于具体的e820调用怎么用，就不展开说了。这段之后的信息有兴趣的同学可以接着去读，内核对内存的映射和统计信息也会随后打印出来。</p>
+<p><strong>Shadow RAM</strong></p>
+<p>这个小节其实是次要的，留在这里只是为了完整性，本文也不展开去描述了。还是那句话，有探究兴趣的话，请自行去Google.</p>
+<h3 id="物理内存管理"><a href="#物理内存管理" class="headerlink" title="物理内存管理"></a>物理内存管理</h3><p>通过前文的描述，我想大家已经知道了操作系统终归是拿到了一张物理地址空间的映射表了。那么所谓的内存管理，最主要的部分就是如何来管理主存也就是DRAM的空间了。此处主要的挑战就是实现具体的数据结构和算法，使得内存分配的时候高效的分配内存，并且在内存释放时进行相邻内存块的合并回收以避免内存外部碎片的产生。</p>
+<p>Linux内核采用的伙伴内存分配算法就是用来解决这一问题的。 关于Linux的内存管理有无数的好文章和好书在描述了，本文的定位就是梳理脉络，所以我只给出链接，请大家自行去了解。</p>
+<p><a href="http://edsionte.com/techblog/archives/3652" target="_blank" rel="noopener">《物理内存管理中的基本数据结构》</a></p>
+<p><a href="http://edsionte.com/techblog/archives/3937" target="_blank" rel="noopener">《Linux物理内存管理概述》</a></p>
+<p>伙伴算法的实现自然不只有一种思路，看看下面的文章也是一种启发：</p>
+<p><a href="http://coolshell.cn/articles/10427.html" target="_blank" rel="noopener">《伙伴分配器的一个极简实现》</a></p>
+<h3 id="虚拟内存管理"><a href="#虚拟内存管理" class="headerlink" title="虚拟内存管理"></a>虚拟内存管理</h3><p>接下来就是虚拟内存管理了，<a href="http://www.0xffffff.org/2013/10/23/24-x86-asm-4/">[保护模式汇编系列之四] 段页式内存管理</a>，请先看看我以前写得这篇文章了解下虚拟内存出现的原因和解决的问题。我不想太纠结于细节，以免这篇文章过于冗长，但是有些细节不交代清楚有没有办法继续下去。只有自己真正理解掌握了所有细节，才敢站在较高的层次上俯视整个知识脉络，这里的Linux虚拟内存管理容我自己理解深入之后再行补充。</p>
+<p>大家可以先参考下武特学长的博文，然后就可以进到下一个章节。</p>
+<p><strong>Linux进程的内存布局</strong></p>
+<p>又要偷懒贴文章了，之前有写过一篇<a href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">《进程眼中的线性地址空间》</a>，这里描述的即是虚拟地址空间里的4G线性地址的映射：</p>
+<p><img src="/images/32/4.png" alt></p>
+<p>学过操作系统的同学一定知道PCB（Process Control Block，进程控制块）吧。</p>
+<p>用课本上的话说，<strong>进程控制块是用来描述进程的当前状态，本身特性的数据结构，是进程中组成的最关键部分，其中含有描述进程信息和控制信息，是进程的集中特性反映，是操作系统对进程具体进行识别和控制的依据</strong>。</p>
+<p>具体到Linux内核中，所谓的PCB其实就是task_struct这个结构体了。既然PCB描述了进程的信息，自然也就包括了进程内存空间的相关描述信息了。内存相关信息在struct mm_struct <em>mm, </em>active_mm字段，mm指向进程所拥有的内存描述符，而active_mm指向进程运行时所使用的内存描述符。mm_struct里的pgd_t * pgd字段即指向进程的页目录。struct vm_area_struct</p>
+<ul>
+<li>mmap字段指向虚拟区间（VMA）链表。如下图所示：</li>
+</ul>
+<p><img src="/images/32/5.png" alt></p>
+<p>了解了这些，就可以到本文的最后一部分了。</p>
+<p><strong>探究malloc的效率与写时映射</strong></p>
+<p>开始描述前，写点代码玩玩先。通过上文的描述，我想大家已经了解了32bit下linux进程拥有的4G线性地址空间只有3G是属于进程所有的。那么我们容易想到，malloc函数从堆里获取到的内存最多也不会超出这个范畴。而程序代码和链接库部分也占据了一定的空间，所以可以申请到的内存的总数应该略与3G这个数字（视进程本身代码和数据占据大小而定）。代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="built_in">malloc</span>(<span class="number">1</span>*<span class="number">1024</span>*<span class="number">1024</span>) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"count is %f G\n"</span>, count / <span class="number">1024.0f</span>);</span><br><span class="line"></span><br><span class="line">    sleep(<span class="number">10000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译运行，结果如下：</p>
+<p><img src="/images/32/6.png" alt></p>
+<p>这基本也证实了我们的猜想。接着我们去掉sleep语句用time命令记录内存申请时间可以看到：</p>
+<p><img src="/images/32/7.png" alt></p>
+<p>以1MB为单位分配接近3G的内存也太快了点吧，就是逐一建立页表也没有这般迅速吧？<br>更神奇的还在后面，如果我们让程序sleep，在另一个终端执行free命令查看内存占用的话，会看到神奇的结果：</p>
+<p><img src="/images/32/8.png" alt></p>
+<p>used那里居然几乎没有增加，这不科学！</p>
+<p>Linux系统调用提供的内存获取的函数是brk/sbrk和mmap，而且时以页（通常4K）为单位进行内存的分配的。而Glibc实现的malloc/free是建立在系统调用之上的内存“批发后零售”的函数。问题肯定出在brk/sbrk等系统调用上。这两个系统调用是增加程序可用的堆区的空间，其实内核仅仅只是修改里进程PCB里vm_area_struct链表中堆那个节点的结束位置（许可地址范围），并没有真正去获取物理内存并建立页表的映射。为什么要这么做呢？原因大家可以自己去思考，比如进程申请的内存不一定立即就会完全用到，可以延迟到使用的时候再去分配，以暂时节省物理内存。那么具体流程是怎样的呢？</p>
+<p>其实，CPU在分页开启后，对于给出的线性地址（此处略过分段）会由MMU进行页表的查阅来翻译为最终的物理地址，如果在页表中查阅不到或者该页不存在呢？此时CPU会产生一个内部异常： 14  #PF 页故障。此时处理流程会转入到内核为该异常创建的对应异常处理函数去执行，内核此处的代码首先会遍历当前进程的vm_area_struct链表，检查该地址是否在许可的地址范围内，如果是为其申请物理内存并建立映射。之后异常返回到触发了异常的代码出继续执行，所以程序接着运行下去。如果发现该地址是非法的地址，内核为给进程发信号SIGSEGV，该信号的默认处理函数即会打印出段错误，然后结束进程。流程即是：</p>
+<blockquote>
+<p>缺页异常-&gt;异常处理函数-&gt;task_struct、mm_struct、vm_area_struct-&gt;页分配-&gt;中断返回</p>
+</blockquote>
+<p>具体的函数调用细节，大家可以看看 malloc()之后，内核发生了什么？</p>
+<p>这篇定位为科普的文章到此就结束了。几个小时的描述难免有些仓卒，先贴出来大家看看，后续再慢慢修改。</p>
+  
+	</div>
+
+    <div>
+        <img src="http://www.0xffffff.org/img/alipay.png" style="width:200px; height:200px; display:block; margin:0 auto;">
+        <div class="post" style="text-align:center">赏杯咖啡鼓励下~</div>
+        <br>
+    </div>
+
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.0xffffff.org/2014/10/31/32-memory-management/" data-title="聊聊内存管理 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/11/20/33-servie-program/" title="浅谈服务端编程">
+  <strong>上一篇：</strong><br/>
+  <span>
+  浅谈服务端编程</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/08/09/31-smp-false-sharing/"  title="SMP架构多线程程序的一种性能衰退现象—False Sharing">
+ <strong>下一篇：</strong><br/> 
+ <span>SMP架构多线程程序的一种性能衰退现象—False Sharing
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>
+
+
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#物理地址空间"><span class="toc-number">1.</span> <span class="toc-text">物理地址空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#启动时的内存信息获取"><span class="toc-number">2.</span> <span class="toc-text">启动时的内存信息获取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#物理内存管理"><span class="toc-number">3.</span> <span class="toc-text">物理内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#虚拟内存管理"><span class="toc-number">4.</span> <span class="toc-text">虚拟内存管理</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

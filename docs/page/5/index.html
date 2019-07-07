@@ -1,0 +1,732 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="浅墨的部落格">
+<meta property="og:url" content="http://www.0xffffff.org/page/5/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅墨的部落格">
+<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/12/01/25-hurlex-kernel/" title="hurlex 一个基于x86架构的简单内核实现" itemprop="url">hurlex 一个基于x86架构的简单内核实现</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-12-01T11:09:00.000Z" itemprop="datePublished"> 发表于 2013-12-01</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>博客很久都没有更斯了，因为一直在忙于一个小项目的开发。</p>
+<p>事情的起因是这样的：因为今年开设了操作系统课程，但是纯粹的理论学习始终给我一种漂浮在云中的感觉。为了能在实践中深刻理解操作系统的运行机制和x86CPU以及硬件原理，我决定自己动手写一个操作系统内核的Demo程序。</p>
+<p>当然，一开始没有相关的基础自然要找资料去学习。在翻阅了于渊的《Orange’s 一个操作系统的实现》和川合秀实先生的《30天自制操作系统》后感觉这两本书都不是很适合初学者学习。前者体系略乱且在一开始就陷入了硬件机制的漩涡，容易让初学者找不到北；后者不需要初学者有足够的基础，但是在硬件机制等内容上过于简略。只适合一般的爱好者去使用，而作为计算机专业的同学只能作为参考。（肆意诋毁大神作品，罪过罪过……）</p>
+<p>后来在Google上搜索到了《JamesM’s kernel development tutorials》这篇文档后，我立即被作者合理有序的安排所吸引。我理想中的教程就是这样的，应该一步一步逐渐搭建起整个系统原型，由“发现问题——寻找机制——建立策略”的流程来处理。而不是一股脑的告诉我们所有的硬件机制，然后才是一般性的实现策略。</p>
+<p>我主张的学习方法就是先学习一个新事物的基础框架和基本的模式结构，而旁枝末节的细节问题完全可以交给实践去慢慢掌握。暂时用不到的东西就不要告诉读者，完全可以用到了再慢慢补充。同时以任务和实践的方式驱动学习过程，既提升了理论学习的速度，又充满了实践的乐趣和成就感。</p>
+<p>不过我在实践的过程中逐渐发现了这篇教程还是过于简陋，很多地方知其然而不知其所以然，并且部分的代码存在BUG。虽然代码能在当前的测试中通过，但会导致复杂化后其它的模块出现问题。另外这里调试也存在问题，若是能实现内核代码级别的调试功能就能极大的方便学习和开发。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/12/01/25-hurlex-kernel/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/内核/">内核</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/内核/">内核</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/10/25/24-x86-asm-4/" title="保护模式汇编系列之四 - 段页式内存管理（二）" itemprop="url">保护模式汇编系列之四 - 段页式内存管理（二）</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-10-25T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-10-25</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>我们这次接着内存分页继续说。稍微插一句，虽然本系列的名字叫做保护模式汇编，可是到现在颇有些挂羊头卖狗肉的意味。我们只是在一个劲的谈理论，就连仅有的一点代码也是用C语言描述的，而不是汇编。不过我觉得这不是关键，我觉得只要我们掌握了理论就好，至于用什么语言描述都是次要的，你说呢？</p>
+<p>言归正传，我们开始说分页机制。长时间以来，随着计算机技术的发展，存储器的容量在不断的高速增加着。但是说起内存(这里指RAM，下同)这个东西，它有一个很奇葩的特性，就是无论它有多大，都总是不够用(P.S.厨房的垃圾桶也一样)。现在我们看似拥有着以前的程序员想都不敢想的“天文数字”的内存，动辄就是几G十几G的。但是相信我，历史总是嘲弄人的。就像当年程序员们质疑32位地址线带来的4GB空间太大没有意义似的，我们也会有一天抱怨现在的内存太小的。</p>
+<p>那么，既然内存总是不够用的，那内存不够用了怎么办？还有，使用过程中出现的内存碎片怎么办？假设我们有4GB的物理内存，现在有1、2、3、4一共4个程序分别各占据连续的1G内存，然后2、4退出，此时我们拥有着空闲的两段内存，却连一个稍大于1GB的程序都无法载入了。</p>
+<p>当然了，这只是一个例子。不过按照一般的思路，在内存释放之后，我们如何回收呢？做碎片整理吗？即便我们不在乎整理过程带来的效率损失，光是程序加载时候的地址逐一重定位就是及其麻烦的。那怎么办？当然了，解决的办法是有的，聪明的计算机工程师们想到了采用分页的方式来管理物理内存。他们在逻辑上把内存划分为定长的物理页，同时将一个程序执行时候的线性地址地址空间划分为逻辑页，在分页机制工作的前提下，给硬件提供一组数据结构来保存这种映射关系。也就是说，线性地址是连续的，但是其实际指向的物理地址就不见得是连续的了。别忘了，RAM是随机存储器，读取任意一个地址的理论时间都是一样的(暂时让我们忘了cache吧…)。我们让CPU在寻址的时候，自动的去查找线性地址到物理地址的映射关系，从而找到实际的数据就好。严格说地址翻译是由MMU组件来进行的，但是现在MMU一般都是CPU的一个组成部分了，所以我们也不严格区分了。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/10/25/24-x86-asm-4/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/x86架构/">x86架构</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/汇编/">汇编</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/10/24/23-x86-asm-3/" title="保护模式汇编系列之三 - 段页式内存管理（一）" itemprop="url">保护模式汇编系列之三 - 段页式内存管理（一）</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-10-24T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-10-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>这是本系列第三篇了，我们这次来谈谈x86的段页式内存管理。这篇文章的定位是阐述分段分页的来历和要解决的问题。需要阐述细节的地方，我会贴出相关的文档和代码。</p>
+<p>首先，如果我这个标题让你觉得段页式是一种方式而且密不可分的话，那我先说声抱歉了。其实分段和分页没什么必然联系。只不过Intel从8086开始，其制造的CPU就以段地址+偏移地址的方式来访问内存。后来要兼容以前的CPU，Intel不得不一直保留着这个传统。分段可以说是Intel的CPU一直保持着的一种机制，而分页只是保护模式下的一种内存管理策略。不过想开启分页机制，CPU就必须工作在保护模式，而工作在保护模式时候可以不开启分页。</p>
+<p>关于保护模式的段机制我们在系列一里面已经谈过不少，而且我们也谈过“绕过”分段的平坦模式。那么，我们下文的重点就是谈谈在设置平坦模式的环境之后，进行内存分页管理的问题了。光说不练是假把式，这次我们就贴上来一些代码具体感受一下吧。</p>
+<p>首先是设置全局段描述符表。我们给出全局段描述符表和全局描述符表寄存器的结构体定义：</p>
+<p><img src="/images/23/1.png" alt></p>
+<p>注意结构体定义后面的那个 <code>__attribute__((packed))</code> 很重要，这是GCC的扩展，用来设置该结构体不进行字节对齐。什么？你不知道什么是字节对齐？那么你先去谷歌一下再回来接着看吧。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/10/24/23-x86-asm-3/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/x86架构/">x86架构</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/汇编/">汇编</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/10/23/22-x86-asm-2/" title="保护模式汇编系列之二 - 中断和异常处理" itemprop="url">保护模式汇编系列之二 - 中断和异常处理</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-10-23T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-10-23</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>如果你对中断是什么都不清楚的话，还是先Google一下中断的定义和基本概念吧，这里给出一个链接: <a href="http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7" target="_blank" rel="noopener">http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7</a></p>
+<p>好了，看完了这个链接，我想你已经大致明白了什么是中断，还有中断的作用了吧？我们再来总结下，其实简单说中断就是一种通知机制罢了。我们知道操作系统的一个核心任务就是和连接在主板上的所有的硬件设备进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，倘若CPU向某一个设备发出一个请求并且一直等待反馈结果的话，这样带来的性能损失是不可接受的。而且CPU在运行期间需要得知外设所发生的事件，轮询显然是不可取的，那么就迫切需要一种机制来帮助我们解决这个问题。</p>
+<p>肩负着这一伟大使命，中断应运而生。当中断发生时，典型的处理方式就是打断CPU目前正在做的事情，CPU会保留当前的执行现场，转移到该中断事先安排好的中断处理函数去执行，执行结束之后再回来恢复之前的执行现场去执行。</p>
+<p>从物理学的角度看，中断其实就是一种电信号，一般由硬件设备生成并送入中断控制器统一协调（当然需要一个“协调机构”了，试想所有设备不区分轻重缓急的和CPU发送中断信号的恐怖场景…）。中断控制器就是个简单的电子芯片，其作用就是将汇集的多路中断管线，采用复用技术只通过一条中断线和CPU相连接。既然中断控制器这里只有一条线和CPU相链接，那么为了区分各个设备，中断自然就有编号了。</p>
+<p>补充一下，其实CPU的中断管脚并非只有一根，其实是有NMI和INTR两个管脚，因为从严重性上来看，中断是分为两类的，首先NMI管脚触发的中断是需要无条件立即处理的，这种类型的中断是不会被阻塞和屏蔽的，所以叫做非屏蔽中断（Non Maskable Interrupt， NMI）。事实上一旦产生了NMI中断，就意味着CPU遇到了不可挽回的错误，一般不会进行处理，只是给出一个错误信息。而我们之前所说的中断控制器连接的管脚叫做INTR，这类中断有两个特点，分别是数量多和可屏蔽。而我们主要关注的正是INTR中断。</p>
+<p>我举一个通俗的例子，假设你就是CPU，你正在看书（执行任务），突然间你的鼻涕流下来了（一个NMI中断），这个自然是不可以屏蔽的，不然会流到嘴里的…（好恶心），你现在把书反着扣在桌子上避免找不到页码（保留当前执行现场），取出纸巾…（此处省略几十个字），OK，你处理完后把书拿起来继续看（恢复之前的执行现场）。这就是一个中断的处理过程，其实很简单是不是？这是不可屏蔽中断，那么可屏蔽的呢？还是刚刚那个场景，你在看书，手机响了（一个INTR中断），但是你在学习期间不想被打扰，就无视它了…这就是可屏蔽中断了。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/10/23/22-x86-asm-2/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/x86架构/">x86架构</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/汇编/">汇编</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix">
+    <a class="extend prev" rel="prev" href="/page/4/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/6/">Next<span></span></a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

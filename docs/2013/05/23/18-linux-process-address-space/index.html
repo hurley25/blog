@@ -1,0 +1,679 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>进程眼中的线性地址空间 | 浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
+<meta name="keywords" content="Linux,基础知识">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程眼中的线性地址空间">
+<meta property="og:url" content="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.0xffffff.org/images/18/1.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/18/2.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/18/3.png">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.270Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="进程眼中的线性地址空间">
+<meta name="twitter:description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
+<meta name="twitter:image" content="http://www.0xffffff.org/images/18/1.png">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/05/23/18-linux-process-address-space/" title="进程眼中的线性地址空间" itemprop="url">进程眼中的线性地址空间</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-05-23T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-05-23</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义：</p>
+<p><strong>进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。</strong></p>
+<p>还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程就是一个进程。这下理解了吧？那我们继续。</p>
+<p>每个程序在启动之后都会拥有自己的虚拟地址空间（Virtual Address Space），这个虚拟地址空间的大小由计算机平台决定，具体一点说由操作系统的位数和CPU的地址总线宽度所决定，其中CPU的地址总线宽度决定了地址空间的理论上限（先不考虑主板…）。</p>
+<p>比如32位的硬件平台可编址范围就是0x00000000～0xFFFFFFFF，即就是4GB。而64位的硬件平台达到了理论上0x0000000000000000～0xFFFFFFFFFFFFFFFF的寻址空间，即就是17179869184GB的大小（事实上我自己的64位Intel Core i3处理器也仅有36位地址总线，加上虚拟地址扩展功能也才48位，并非64位）。</p>
+<p>为了行文的简单，我就以32位硬件平台来描述吧（事实上我对64位所知甚少，不敢信口开河…），同时指定环境为32位的Linux操作系统。</p>
+<p>可能看到这里你反而更迷惑了，我一直在说一个进程拥有4GB的线性地址空间（以下只讨论32位），可是操作系统上同时在运行着N个进程，难不成每个都有4GB的线性地址空间不成？没错，每个都有。我们一直在使用术语“线性地址空间”而非“主存储器（内存）”，因为线性地址空间并非和主存等价。我们平时只要一提到“地址”这个概念，想必大家自然而然的就想到了主存储器。但事实上并非线性地址就一定指向主存储器的物理地址，如果你对“线性地址空间”不理解的话，我建议你先去看看我的另一篇博文《基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程》。</p>
+<a id="more"></a>
+<p>其实说到线性地址空间，就不得不提到Intel CPU保护模式下的内存分段和分页，但这偏离了文章的主旨。我们暂时只需要知道，之所以进程拥有独立的4GB的虚拟地址，是因为CPU和操作系统提供了一种虚拟地址到实际物理地址的映射机制，在页映射模式下，CPU发出的是虚拟地址，即进程看到的虚拟的地址，经过MMU（Memory Management Unit）部件转换之后就成了物理地址。</p>
+<p>好了，下文中我将假定读者理解了线性地址空间的概念，并认可了每个进程拥有4GB线性地址空间这一事实（物理地址扩展（PAE：Physical Address Extension）技术后面再说）。那么，这4GB的线性地址空间里都有些什么呢？我们画一张图来说明一下。</p>
+<p><img src="/images/18/1.png" alt></p>
+<p>内存高地址区域是被操作系统内核所占据的，Linux操作系统占据了高地址区域的1GB内存（Windows系统默认保留2GB给操作系统，但是可以配置为保留1GB）。如果我们想知道一个进程具体的内存空间布局的话，可以去/proc目录找以进程的pid所命名的目录下一个叫maps的文件，使用cat命令查看即可（需要root权限）。</p>
+<p>我们从图中可以看到，32位Linux系统中，代码段总是从地址0x08048000处开始的。数据段一般是在下一个4KB（分页机制默认选择4KB一个内存页）对齐的地址处开始。运行时堆是在数据段之后又一个4KB对齐处开始的，并通过malloc()函数调用向上增长（Linux下的malloc()一般依靠调用brk()或者mmap()系统调用实现）。再接着跳过动态链接库的区域就是进程的运行时栈了，需要注意的是栈是由高地址向着低地址增长的。栈空间再往上就是操作系统保留区域了，用于驻留内核的代码和数据。即就是在一个进程的眼里，只有它和操作系统在一起。</p>
+<p>也许你会问，那么一个进程如何修改另外一个进程的运行时数据呢？比如所谓的外挂程序。我们想想，一个进程不知道另一个进程，那谁知道所有的进程呢？操作系统呗，没错，操作系统提供了这种抽象，它也就拥有访问所有进程地址空间的能力。答案就是，一个进程倘若要修改不属于自己的进程空间的数据，就需要操作系统提供相关的系统调用（或API函数）的支持来实现。</p>
+<p>我们具体来看看代码段，以C语言为例，程序代码段的入口_start地址处的启动代码（startup code）是在目标文件ctr1.o（属于C运行时库的部分）中定义的，对于特定平台上的C程序都一样。其执行流程如下：</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>x080480c0 &lt;<span class="variable">_start</span>&gt;:</span><br><span class="line"></span><br><span class="line">    调用 <span class="variable">__libc_init_first</span> 函数</span><br><span class="line">    调用 <span class="variable">_init</span> 函数</span><br><span class="line">    调用 atexit 函数</span><br><span class="line">    调用 main 函数</span><br><span class="line">    调用 <span class="variable">_exit</span> 函数</span><br></pre></td></tr></table></figure>
+<p>而我们平时写的main函数只是整个C程序运行过程中所调用的一环而已。</p>
+<p>我们给出一段代码来看看一个C语言程序编译链接之后如何安排各个元素的内存位置吧，代码和注释如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">1</span>;              <span class="comment">// 栈区</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> b = <span class="number">2</span>;       <span class="comment">// 全局静态区（读/写段）</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> c = <span class="number">3</span>;        <span class="comment">// 只读段</span></span><br><span class="line">    <span class="keyword">char</span> *str1 = <span class="string">"Hello"</span>;   <span class="comment">// str1指针在栈区，"hello"字符串在只读段</span></span><br><span class="line">    <span class="keyword">char</span> str2[] = <span class="string">"world"</span>;             <span class="comment">// 只在栈区（字符串）</span></span><br><span class="line">    <span class="keyword">char</span> *str3 = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">20</span>);   <span class="comment">// str3变量在栈区，指针指向堆区</span></span><br><span class="line">　　　</span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注释中我们看到了各个元素所在内存段的位置。而编译好的main函数本身是存在于代码区的（一般代码段也是只读段）。我们这个程序运行后如果是动态链接的C语言运行时库的话，动态库会存在图示的动态库映射区。其实无论使用C语言运行时库的程序无论有多少，运行时库的代码在内存里只会有一份。对于不同的程序，进行地址映射即可。</p>
+<p>接下来我们简单说说栈（stack），关于栈的基本概念到处都是，如果大家不明白可以自己去查查。其实这里的栈就是把一段位于用户线性地址空间最高处的一段连续内存以栈的思想来使用罢了。大家不要觉得线性空间有4GB，栈占据了很大。其实栈大小默认就几MB罢了。Linux可以在终端下执行 ulimit -a命令查看限制。如图所示：</p>
+<p><img src="/images/18/2.png" alt></p>
+<p>我这里不过也就默认8192KB（8MB）大小，不过可以使用ulimit命令调整（调整只在本次bash执行过程中有效，下次需要重新设置）。</p>
+<p>栈也经常被叫做栈帧（Stack Frame）或者活动记录（Activate Record）。栈里通常存储以下内容：</p>
+<blockquote>
+<p>函数的临时变量;<br>函数的返回地址和参数;<br>函数调用过程中保存的上下文。</p>
+</blockquote>
+<p>在i386中，使用esp和ebp寄存器划定范围。esp寄存器始终指向栈顶，随着压栈和出栈操作而改变值。ebp寄存器随着调用过程，暂时的指向一个固定的栈位置，便于寻址操作的进行。</p>
+<p>我们画一张图来看看吧：</p>
+<p><img src="/images/18/3.png" alt></p>
+<p>这里照抄网上的函数调用流程：</p>
+<blockquote>
+<ol>
+<li>把所有的参数压入栈（有时候是一部分参数，剩余参数通过寄存器传递）</li>
+<li>把当前指令的下一条指令的地址压入栈</li>
+<li>跳转到函数体执行</li>
+</ol>
+</blockquote>
+<p>我继续续上后面的操作：</p>
+<blockquote>
+<ol start="4">
+<li>在栈里继续创建该函数的临时变量和其他数据</li>
+<li>函数代码执行完之后栈后退到局部变量之上的位置</li>
+<li>恢复之前保存的所有寄存器</li>
+<li>取出原先保存的返回地址，跳转回去</li>
+<li>eax寄存器保存了函数的返回值（浮点数是把返回值放在第一个浮点寄存器上%st(0) ）</li>
+</ol>
+</blockquote>
+<p>为了不让大家变的过于纠结，我就不贴出相关的汇编代码了，有兴趣的同学可以自己研究编译器生成的汇编语言。具体方法在《编译和链接那点事》和《浅谈缓冲区溢出之栈溢出》中有详细的描述。</p>
+<p>好了，本篇暂时结束，下文以后再说。</p>
+  
+	</div>
+
+    <div>
+        <img src="http://www.0xffffff.org/img/alipay.png" style="width:200px; height:200px; display:block; margin:0 auto;">
+        <div class="post" style="text-align:center">赏杯咖啡鼓励下~</div>
+        <br>
+    </div>
+
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/" data-title="进程眼中的线性地址空间 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2013/07/30/19-linux-thread-history/" title="Linux线程的前世今生">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Linux线程的前世今生</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2013/04/17/17-complier-and-linker-2/"  title="编译和链接那点事&lt;下&gt;">
+ <strong>下一篇：</strong><br/> 
+ <span>编译和链接那点事&lt;下&gt;
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>
+
+
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

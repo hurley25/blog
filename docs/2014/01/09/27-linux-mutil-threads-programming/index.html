@@ -1,0 +1,725 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>《Linux多线程服务端编程》总结备忘 | 浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
+<meta name="keywords" content="Linux,多线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Linux多线程服务端编程》总结备忘">
+<meta property="og:url" content="http://www.0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.271Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《Linux多线程服务端编程》总结备忘">
+<meta name="twitter:description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/01/09/27-linux-mutil-threads-programming/" title="《Linux多线程服务端编程》总结备忘" itemprop="url">《Linux多线程服务端编程》总结备忘</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-01-09T07:09:00.000Z" itemprop="datePublished"> 发表于 2014-01-09</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p><strong>§ 1 线程安全的对象生命期管理</strong></p>
+<ul>
+<li><p>对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。</p>
+</li>
+<li><p>当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：</p>
+<ul>
+<li>即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？</li>
+<li>如何保证在执行成员函数期间，对象不会被另一个线程所析构？</li>
+<li>在调用某个对象的成员函数之前，如何得之这个对象还活着？它的析构函数是否会碰巧执行到一半？</li>
+</ul>
+</li>
+<li><p>一个线程安全的class应当满足下面三个条件：</p>
+<ul>
+<li>多个线程同时访问时，其表现出正确的行为。</li>
+<li>无论操作系统如何调度这些线程，无论这些线程的执行顺序如何交织（interleaving）。</li>
+<li>调用端代码无需额外的同步或其它协调动作。</li>
+</ul>
+</li>
+<li><p>按照以上定义，C++标准库中的大多数类都不是线程安全的，包括std:string、std::vector、std::map等，这些class通常需要在外部加锁才能供多个线程同步访问。</p>
+</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p>对象构造要做到线程安全，唯一的要求是在构造期间不要泄漏this指针，即：</p>
+<ul>
+<li>不要在构造函数中注册任何回调。</li>
+<li>不要在构造函数中把this指针传给跨线程的对象。</li>
+<li>即使是构造函数最后一行也不行（如果该类是一个基类，基类会先于派生类构造，执行完父类构造函数的最后一句后会接着执行子类的构造函数，这时most-derived class的对象还处于构造中，仍然不安全）。</li>
+</ul>
+</li>
+<li><p>一个函数如果要锁住相同类型的多个对象，为了始终按照相同的顺序加锁，我们可以比较mutex对象的地址，始终先加锁地址较小的对象。</p>
+</li>
+<li><p>一个对象在析构的时候，调用它的任何非静态函数都是不安全的。</p>
+</li>
+<li><p>scoped_ptr/shared_ptr/weak_ptr都是值语义，要么是栈上对象，或者是其它对象的直接数据成员，其“计数”操作在主流平台上的实现都是原子操作。</p>
+</li>
+<li><p>注意shared_ptr本身不是线程安全的，它的引用计数本身是安全无锁的，但对象的读写却不是。如果多个线程要读写同一个shared_ptr，那么需要加锁。</p>
+</li>
+<li><p>如果对象的析构比较耗时，我们可以用一个单独的线程专门做析构，通过一个BlockingQueue&lt;shared_ptr<void>&gt;把对象的析构都挪到专门的析构线程。</void></p>
+</li>
+<li><p>分析可能出现的rece condition不仅是多线程编程的基本功，也是分布式系统设计的基本功，需要反复历练，形成一定的思考范式，并积累一些经验教训，才能少犯错误。</p>
+</li>
+<li><p>用流水线、生产者消费者、任务队列等这些有规律的机制，最低限度的共享数据。这是我已知的最好的多线程编程的建议了。</p>
+</li>
+</ul>
+<p><strong>§ 2 线程同步精要</strong></p>
+<ul>
+<li><p>并发编程有两种基本模型，一种是message passing（消息传递），另一种是shared memory（共享内存）。在分布式系统中，运行在多台机器的多个进程的并行编程只有一种实用的模型：message passing。</p>
+</li>
+<li><p>线程同步的四项重要原则：</p>
+<ul>
+<li>首要原则是最低限度的共享对象，减少需要同步的场合。</li>
+<li>其次是尽量使用高级的并发编程构建，如TaskQueue、Producer-Consumer Queue等等。</li>
+<li>最后不得已必须使用底层同步原语（primitives）时，只用非递归（不可重入）的互斥器和条件变量，慎用读写锁，不要用信号量。</li>
+<li>除了使用atomic整数之外，不要再自己编写lock-free代码，也不要使用内核级的同步原语，不凭空猜测哪种效率可能会更好。</li>
+</ul>
+</li>
+<li><p>互斥器（mutex）注意点：</p>
+<ul>
+<li>用RAII手法封装mutex的创建、销毁、加锁、解锁操作。</li>
+<li>只使用不可重入的mutex（非递归）。</li>
+<li>不手工调用lock()和unlock()函数，一切交给栈上的Guard对象的构造和析构函数负责。Guard对象的生命期正好等于临界区。</li>
+<li>在每次构造Guard对象的时候，思考栈上已经持有的锁，放置因为加锁顺序所导致的死锁（deadlock）。</li>
+<li>不使用跨进程的mutex，进程间通信只使用TCP Sockets。</li>
+<li>加锁/解锁在同一个线程里进行，线程a不能去unlock线程b已经锁住的mutex（RAII自动保证）。</li>
+</ul>
+</li>
+<li><p>Linux下mutex的一个封装实例：</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Mutex.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> MUTEX_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MUTEX_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"noncopyable.h"</span></span></span><br><span class="line">    </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 原始互斥锁的封装</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MutexLock</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    MutexLock();</span><br><span class="line">    ~MutexLock();</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 加锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 解锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">unlock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 返回原始互斥锁类型的指针（仅允许 Condition 类调用）</span></span><br><span class="line">    <span class="keyword">pthread_mutex_t</span> *getPthreadMutex();</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">pthread_mutex_t</span> mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * MutexLock 互斥锁的加/解锁类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MutexLockGuard</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数自动加锁</span></span><br><span class="line">    explicit MutexLockGuard(MutexLock &amp;mutex) : mutex_(mutex)</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_.lock();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 脱离作用域的时候自动解锁</span></span><br><span class="line">    ~MutexLockGuard()</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_.unlock();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 下面的宏防止出现诸如 MutexLockGuard(mutex) 的定义</span></span><br><span class="line"><span class="comment"> * 正规做法是 MutexLockGuard lock(mutex)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MutexLockGuard(x) static_assert(false, <span class="meta-string">"missing mutex guarg var name!"</span>)</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// MUTEX_H_</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MutexLock.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MutexLock.h"</span></span></span><br><span class="line"> </span><br><span class="line">MutexLock::MutexLock()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">pthread_mutexattr_t</span> attr;</span><br><span class="line">    </span><br><span class="line">    pthread_mutexattr_init(&amp;attr);</span><br><span class="line">    <span class="comment">/// 初始化互斥锁类型为 PTHREAD_MUTEX_NORMAL</span></span><br><span class="line">    pthread_mutexattr_settype(&amp;attr, PTHREAD_MUTEX_NORMAL);</span><br><span class="line">    pthread_mutex_init(&amp;mutex_, &amp;attr);</span><br><span class="line">    pthread_mutexattr_destroy(&amp;attr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">MutexLock::~MutexLock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_destroy(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> MutexLock::lock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_lock(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> MutexLock::unlock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_unlock(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">pthread_mutex_t</span> *MutexLock::getPthreadMutex()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;mutex_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>条件变量（condition variable）用于一个或者多个线程等待某个布尔表达式为真，即等待别的线程“唤醒”它，条件变量的学名叫管程（monitor）。对于wait端：</p>
+<ul>
+<li>条件变量必须与mutex一起使用，该布尔表达式的读写需受此mutex保护。</li>
+<li>在mutex已经上锁的时候才能调用wait()。</li>
+<li>把判断布尔条件和wait()放到while循环里（避免虚假唤醒（suprious wakeup））。</li>
+<li>对于signal/broadcast端</li>
+<li>不一定要再mutex已经上锁的情况下调用signal（理论上）。</li>
+<li>在signal之前一定要修改布尔表达式。修改布尔表达式的时候需用mutex保护。</li>
+<li>注意区分signal和broadcast。</li>
+</ul>
+</li>
+<li><p>Linux下condition封装的一个实例：</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Condition.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> CONDITION_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CONDITION_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"noncopyable.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MutexLock.h"</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 条件变量的封装类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Condition</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数</span></span><br><span class="line">    explicit Condition(MutexLock &amp;mutex) : mutex_(mutex)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_cond_init(&amp;pcond_, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 析构函数</span></span><br><span class="line">    ~Condition()</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_cond_destroy(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 等待该条件变量</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">wait</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_wait(&amp;pcond_, mutex_.getPthreadMutex);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知一个等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">notify</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_signal(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知所有等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">notifyAll</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_broadcast(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">    <span class="keyword">pthread_cond_t</span> pcond_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// CONDITION_H_</span></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>真正影响性能的不是锁，而是锁争用（lock contention）。</p>
+</li>
+<li><p>必须用单线程的场合：</p>
+<ul>
+<li>程序有可能会fork(2)；</li>
+<li>限制程序的CPU使用率。</li>
+</ul>
+</li>
+<li><p>多线程的适用场景是：提高响应速度，让IO和“计算”相互重叠，降低latency。虽然多线程不能提高绝对性能，但能提高平均响应性能。</p>
+</li>
+</ul>
+  
+	</div>
+
+    <div>
+        <img src="http://www.0xffffff.org/img/alipay.png" style="width:200px; height:200px; display:block; margin:0 auto;">
+        <div class="post" style="text-align:center">赏杯咖啡鼓励下~</div>
+        <br>
+    </div>
+
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/读书笔迹/">读书笔迹</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/多线程/">多线程</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/" data-title="《Linux多线程服务端编程》总结备忘 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/01/17/28-golang/" title="Go语言简明教程">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Go语言简明教程</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/01/06/26-x86-cache/"  title="浅析x86架构中cache的组织结构">
+ <strong>下一篇：</strong><br/> 
+ <span>浅析x86架构中cache的组织结构
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>
+
+
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

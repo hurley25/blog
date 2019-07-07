@@ -1,0 +1,673 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  
+    <title>TCP连接建立的三次握手过程可以携带数据吗？ | 浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="前几天实验室的群里扔出了这样一个问题：TCP连接建立的三次握手过程可以携带数据吗？突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供">
+<meta name="keywords" content="tcp,linux,协议栈,网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP连接建立的三次握手过程可以携带数据吗？">
+<meta property="og:url" content="http://www.0xffffff.org/2015/04/15/36-The-TCP-three-way-handshake-with-data/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="前几天实验室的群里扔出了这样一个问题：TCP连接建立的三次握手过程可以携带数据吗？突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/1.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/2.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/3.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/4.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/5.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/6.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/7.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/8.png">
+<meta property="og:image" content="http://www.0xffffff.org/images/36/9.png">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.273Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP连接建立的三次握手过程可以携带数据吗？">
+<meta name="twitter:description" content="前几天实验室的群里扔出了这样一个问题：TCP连接建立的三次握手过程可以携带数据吗？突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供">
+<meta name="twitter:image" content="http://www.0xffffff.org/images/36/1.png">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/04/15/36-The-TCP-three-way-handshake-with-data/" title="TCP连接建立的三次握手过程可以携带数据吗？" itemprop="url">TCP连接建立的三次握手过程可以携带数据吗？</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2015-04-15T08:38:00.000Z" itemprop="datePublished"> 发表于 2015-04-15</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<p>前几天实验室的群里扔出了这样一个问题：<strong>TCP连接建立的三次握手过程可以携带数据吗？</strong>突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供后来者参考。</p>
+<p>先来张三次握手的图（下面这张图来自网络，若侵犯了作者权利，请联系我删除）：</p>
+<p><img src="/images/36/1.png" alt></p>
+<p>RFC793文档里带有SYN标志的过程包是不可以携带数据的，也就是说三次握手的前两次是不可以携带数据的（逻辑上看，连接还没建立，携带数据好像也有点说不过去）。重点就是第三次握手可不可以携带数据。</p>
+<p>先说结论：TCP协议建立连接的三次握手过程中的<strong>第三次握手允许携带数据</strong>。</p>
+<a id="more"></a>
+<p><img src="/images/36/2.png" alt></p>
+<p>对照着上边的TCP状态变化图的连接建立部分，我们看下RFC793文档的说法。RFC793文档给出的说法如下（省略不重要的部分）：</p>
+<p><img src="/images/36/3.png" alt></p>
+<p>重点是这句 “Data or controls which were queued for transmission may be included”，也就是说标准表示，第三次握手的ACK包是可以携带数据。那么Linux的内核协议栈是怎么做的呢？侯捷先生说过，“源码面前，了无秘密”。最近恰逢Kernel 4.0正式版发布，那就追查下这个版本的内核协议栈的源码吧。</p>
+<p>在探索源码前，我们假定读者对Linux的基本socket编程很熟悉，起码对连接的流程比较熟悉（可以参考这篇文章<a href="http://www.0xffffff.org/2014/11/20/33-servie-program/">《浅谈服务端编程》</a>最前边的socket连接过程图）。至于socket接口和协议栈的挂接，可以参阅<a href="http://rock3.info/blog/2013/10/28/socket%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%86%85%E6%A0%B8%E5%8D%8F%E8%AE%AE%E6%A0%88%E7%9A%84%E6%8C%82%E6%8E%A5" target="_blank" rel="noopener">《socket接口与内核协议栈的挂接》</a> 。</p>
+<p>首先， 第三次握手的包是由连接发起方（以下简称客户端）发给端口监听方（以下简称服务端）的，所以只需要找到内核协议栈在一个连接处于SYN-RECV（图中的SYN_RECEIVED）状态时收到包之后的处理过程即可。经过一番搜索后找到了，位于 net\ipv4目录下tcp_input.c文件中的tcp_rcv_state_process函数处理这个过程。如图：</p>
+<p><img src="/images/36/4.png" alt></p>
+<p>这个函数实际上是个TCP状态机，用于处理TCP连接处于各个状态时收到数据包的处理工作。这里有几个并列的switch语句，因为函数很长，所以比较容易看错层次关系。下图是精简了无需关注的代码之后SYN-RECV状态的处理过程：</p>
+<p><img src="/images/36/5.png" alt></p>
+<p>一定要注意这两个switch语句是并列的。所以当TCP_SYN_RECV状态收到合法规范的二次握手包之后，就会立即把socket状态设置为TCP_ESTABLISHED状态，执行到下面的TCP_ESTABLISHED状态的case时，会继续处理其包含的数据（如果有）。</p>
+<p>上面表明了，当客户端发过来的第三次握手的ACK包含有数据时，服务端是可以正常处理的。那么客户端那边呢？那看看客户端处于SYN-SEND状态时，怎么发送第三次ACK包吧。如图：</p>
+<p><img src="/images/36/6.png" alt></p>
+<p>tcp_rcv_synsent_state_process函数的实现比较长，这里直接贴出最后的关键点：</p>
+<p><img src="/images/36/7.png" alt></p>
+<p>一目了然吧？if 条件不满足直接回复单独的ACK包，如果任意条件满足的话则使用inet_csk_reset_xmit_timer函数设置定时器等待短暂的时间。这段时间如果有数据，随着数据发送ACK，没有数据回复ACK。</p>
+<p>之前的疑问算是解决了。</p>
+<p>但是，那三个条件是什么？什么情况会导致第三次握手包可能携带数据呢？或者说，想抓到一个第三次握手带有数据的包，需要怎么做？别急，本博客向来喜欢刨根问底，且听下文一一道来。</p>
+<p><strong>条件1：sk-&gt;sk_write_pending != 0</strong></p>
+<p>这个值默认是0的，那什么情况会导致不为0呢？答案是协议栈发送数据的函数遇到socket状态不是ESTABLISHED的时候，会对这个变量做++操作，并等待一小会时间尝试发送数据。看图：</p>
+<p><img src="/images/36/8.png" alt></p>
+<p>net/core/stream.c里的sk_stream_wait_connect函数做了如下操作：</p>
+<p><img src="/images/36/9.png" alt></p>
+<p>sk-&gt;sk_write_pending递增，并且等待socket连接到达ESTABLISHED状态后发出数据。这就解释清楚了。</p>
+<p>Linux socket的默认工作方式是阻塞的，也就是说，客户端的connect调用在默认情况下会阻塞，等待三次握手过程结束之后或者遇到错误才会返回。那么nc这种完全用阻塞套接字实现的且没有对默认socket参数进行修改的命令行小程序会乖乖等待connect返回成功或者失败才会发送数据的，这就是我们抓不到第三次握手的包带有数据的原因。</p>
+<p>那么设置非阻塞套接字，connect后立即send数据，连接过程不是瞬间连接成功的话，也许有机会看到第三次握手包带数据。不过开源的网络库即便是非阻塞socket，也是监听该套接字的可写事件，再次确认连接成功才会写数据。为了节省这点几乎可以忽略不计的性能，真的不如安全可靠的代码更有价值。</p>
+<p><strong>条件2：icsk-&gt;icsk_accept_queue.rskq_defer_accept != 0</strong></p>
+<p>这个条件好奇怪，defer_accept是个socket选项，用于推迟accept，实际上是当接收到第一个数据之后，才会创建连接。tcp_defer_accept这个选项一般是在服务端用的，会影响socket的SYN和ACCEPT队列。默认不设置的话，三次握手完成，socket就进入accept队列，应用层就感知到并ACCEPT相关的连接。当tcp_defer_accept设置后，三次握手完成了，socket也不进入ACCEPT队列，而是直接留在SYN队列（有长度限制，超过内核就拒绝新连接），直到数据真的发过来再放到ACCEPT队列。设置了这个参数的服务端可以accept之后直接read，必然有数据，也节省一次系统调用。</p>
+<p>SYN队列保存SYN_RECV状态的socket，长度由net.ipv4.tcp_max_syn_backlog参数控制，accept队列在listen调用时，backlog参数设置，内核硬限制由 net.core.somaxconn 限制，即实际的值由min(backlog,somaxconn) 来决定。</p>
+<p>有意思的是如果客户端先bind到一个端口和IP，然后setsockopt(TCP_DEFER_ACCEPT），然后connect服务器，这个时候就会出现rskq_defer_accept=1的情况，这时候内核会设置定时器等待数据一起在回复ACK包。我个人从未这么做过，难道只是为了减少一次ACK的空包发送来提高性能？哪位同学知道烦请告知，谢谢。</p>
+<p><strong>条件3：icsk-&gt;icsk_ack.pingpong != 0</strong></p>
+<p>pingpong这个属性实际上也是一个套接字选项，用来表明当前链接是否为交互数据流，如其值为1，则表明为交互数据流，会使用延迟确认机制。</p>
+<p>好了，本文到此就应该结束了，上面各个函数出现的比较没有条理。具体的调用链可以参考这篇文章<a href="http://www.cnblogs.com/mosp/p/3891783.html" target="_blank" rel="noopener">《TCP内核源码分析笔记》</a>，不过因为内核版本的不同，可能会有些许差异。毕竟我没研究过协议栈，就不敢再说什么了。</p>
+  
+	</div>
+
+    <div>
+        <img src="http://www.0xffffff.org/img/alipay.png" style="width:200px; height:200px; display:block; margin:0 auto;">
+        <div class="post" style="text-align:center">赏杯咖啡鼓励下~</div>
+        <br>
+    </div>
+
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/网络/">网络</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/tcp/">tcp</a><a href="/tags/linux/">linux</a><a href="/tags/协议栈/">协议栈</a><a href="/tags/网络/">网络</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://www.0xffffff.org/2015/04/15/36-The-TCP-three-way-handshake-with-data/" data-title="TCP连接建立的三次握手过程可以携带数据吗？ | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/12/06/37-How-to-benchmark-code-execution-times/" title="如何精确测量一段代码的执行时间">
+  <strong>上一篇：</strong><br/>
+  <span>
+  如何精确测量一段代码的执行时间</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/28/35-Tair-mdb-analyse/"  title="Tair mdb 存储引擎的实现">
+ <strong>下一篇：</strong><br/> 
+ <span>Tair mdb 存储引擎的实现
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>
+
+
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
+</div>
+
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>13</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
