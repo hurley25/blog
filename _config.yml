@@ -77,5 +77,5 @@ plugins:
 ## Docs: http://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@git.coding.net:hurley/blog.git
+  repo: git@github.com:hurley25/blog.git
   branch: master
