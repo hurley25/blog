@@ -310,14 +310,18 @@
 </header>
     <div class="article-content">
         
-        <p> 前段时间我在微博上看到了阮一峰的一篇日志《计算机是如何启动的？》才想起来自己之前尝试探索X86架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于BIOS查找“启动顺序”（Boot Sequence）之前，也就是从按下电源到BIOS移交权限之间的这一段。关于MBR分区体系磁盘的分区表，阮一峰描述的很详细，我就不重复造轮子了。</p>
-<p><strong>顺便罗嗦一下，有关“扩展分区”（Extended partition）描述，阮一峰这里是很正确的，而网上有不少说法是错误的。倘若读者真有疑问，不妨用WinHex之类的工具直接以二进制打开磁盘，一看便知。Linux也可以用dd命令拷贝出磁盘的内容到文件，再查看文件内容。比如dd if=/dev/sda of=/tmp/xxx bs=512 count=1什么的。</strong></p>
-<p>言归正传，开始我们的探索之旅吧。不过，我们不会深入到开机电路之类的硬件问题上去，毕竟，我们还是以一个程序员的角度来看待计算机，再者，我也没有能力从硬件角度去探究。<strong>同时，我们假定读者能完全读懂并理解上面我提到的那篇博文并且能理解寻址空间，实模式、保护模式、端口独立编址和端口统一编址等相关术语名词。</strong></p>
+        <p>前段时间我在微博上看到了阮一峰的一篇日志 <a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">《计算机是如何启动的？》</a> 才想起来自己之前也尝试探索<code>x86</code>架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于<code>BIOS</code>查找“启动顺序”<code>（Boot Sequence）</code>之前，也就是从按下电源到<code>BIOS</code>移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。</p>
+<p><strong>顺便罗嗦一下，有关<code>“扩展分区”（Extended partition）的</code>细节，阮一峰这里是正确的，多个扩展分区是“链式”的串起来的。网上有不少说法是错误的。倘若读者质疑，不妨用<code>WinHex</code>之类的工具直接以二进制打开磁盘，一看便知。<code>Linux</code>也可以用<code>dd</code>命令拷贝出磁盘的内容到文件，再查看文件内容。比如<code>dd if=/dev/sda of=/tmp/xxx bs=512 count=1</code>什么的。</strong></p>
+<p>言归正传，开始我们的探索之旅吧。不过，我们不会深入到开机电路之类的硬件问题上去，毕竟，我们还是以一个程序员的角度来看待计算机。<strong>同时，我们假定读者能完全读懂并理解上面我提到的那篇阮一峰的博文并且能理解寻址空间，实模式、保护模式、端口独立编址和端口统一编址等相关术语名词。</strong></p>
 <p>我们从按下电源开始。</p>
-<p>首先，是CPU Reset。<strong>主板加电之后在电压尚未稳定之前，其北桥控制芯片会向CPU发出重置信号（Reset），此时CPU进行初始化。当电压稳定后，控制芯片会撤销Reset信号，CPU开始工作。</strong>我们要探讨的第一个问题就是CPU执行的第一条指令的位置。</p>
-<p>现在网上流传的资料基本上是8086 CPU的资料，给出的说法一般是这样：CS寄存器初始化为0xF000，IP寄存器初始化为0xFFF0，所以按照CPU实模式地址计算法则，CPU执行的第一条指令地址是CS*10h+IP，即0xFFFF0处。也许8086CPU确实如此，但我们的问题是，80386及其以上的CPU怎么处理呢？其计算地址法则还是如此吗？当然不是，否则我说这些废话做什么。如果读者之前对实模式和保护模式寻址以及地址计算的理念根深蒂固的话，那么请先暂时忘却以前的认知，因为我下文说的也许有些惊世骇俗（我指的是相对于国产的教材来说）。</p>
-<p><strong>第一点，80386及其以上的现代CPU（以下简称CPU）加电Reset之后并不是直接进入实模式；</strong></p>
-<p><strong>第二点，CPU在合成地址的时候不区分实模式和保护模式。</strong></p>
+<p>首先，是<code>CPU Reset</code>。<strong>主板加电之后在电压尚未稳定之前，北桥控制芯片会向<code>CPU</code>发出重置信号<code>Reset</code>，此时<code>CPU</code>进行初始化。当电压稳定后，控制芯片会撤销<code>Reset</code>信号，<code>CPU</code>开始工作。</strong>我们要探讨的第一个问题就是<code>CPU</code>执行的第一条指令的位置。</p>
+<p>现在网上流传的资料基本上是<code>8086 CPU</code>的资料，给出的说法一般是这样：</p>
+<blockquote>
+<p><code>CS</code>寄存器初始化为<code>0xF000</code>，<code>IP</code>寄存器初始化为<code>0xFFF0</code>，所以按照<code>CPU</code>实模式地址计算法则，<code>CPU</code>执行的第一条指令地址是<code>CS*10h+IP</code>，即<code>0xFFFF0</code>这里。</p>
+</blockquote>
+<p><code>8086 CPU</code>确实如此，但我们的问题是，<code>80386</code>及其以上的<code>CPU</code>怎么处理呢？其计算地址法则还是如此吗？当然不是，否则我说这些废话做什么。如果读者之前对实模式和保护模式寻址以及地址计算的理念根深蒂固的话，那么请先暂时忘却以前的认知，因为我下文说的也许有些惊世骇俗（我指的是相对于国产的某些教材来说）。</p>
+<p><strong>第一点，<code>80386</code>及其以上的现代<code>CPU</code>（以下<code>CPU</code>说的都是指<code>80386</code>以上的）加电<code>Reset</code>之后并不是直接进入<code>实模式</code>；</strong></p>
+<p><strong>第二点，<code>CPU</code>在合成地址的时候并不区分实模式和保护模式。</strong></p>
         
         
         <p class="article-more-link">
@@ -507,11 +511,11 @@
 			
 		
 			
-				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -519,7 +523,7 @@
 			
 		
 			
-				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
 			
 		
 			
