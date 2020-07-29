@@ -28,7 +28,7 @@
 <meta property="og:image" content="http://www.0xffffff.org/images/36/7.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/36/8.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/36/9.png">
-<meta property="og:updated_time" content="2019-07-07T09:14:01.347Z">
+<meta property="og:updated_time" content="2020-07-29T12:20:06.026Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TCP 连接建立的三次握手过程可以携带数据吗？">
 <meta name="twitter:description" content="前几天实验室的群里扔出了这样一个问题：TCP连接建立的三次握手过程可以携带数据吗？突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供">
@@ -352,11 +352,11 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
 			
 		
 			
@@ -476,10 +476,10 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2020
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
-		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		
 		</p>
 </div>
 </footer>

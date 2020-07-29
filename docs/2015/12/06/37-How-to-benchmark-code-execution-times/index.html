@@ -19,7 +19,7 @@
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="最近在工作中遇到了需要精确测量一段C代码执行时间的需求，大家给出的方案有以下三种：  gettimeofday(2) rdtsc/rdtscp clock_gettime(2)  下面我们就逐一介绍下这三种方案的用法和限制，主要的关注点是准确性、精度和调用成本，讨论环境是运行在Intel x86上的Linux x86_64系统，内核的版本号高于2.6.32。   gettimeofday(2)首先">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.273Z">
+<meta property="og:updated_time" content="2020-07-29T12:20:06.026Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="如何精确测量一段代码的执行时间">
 <meta name="twitter:description" content="最近在工作中遇到了需要精确测量一段C代码执行时间的需求，大家给出的方案有以下三种：  gettimeofday(2) rdtsc/rdtscp clock_gettime(2)  下面我们就逐一介绍下这三种方案的用法和限制，主要的关注点是准确性、精度和调用成本，讨论环境是运行在Intel x86上的Linux x86_64系统，内核的版本号高于2.6.32。   gettimeofday(2)首先">
@@ -113,7 +113,7 @@
 <p></p>
 
 <h4 id="rdtsc-rdtscp"><a href="#rdtsc-rdtscp" class="headerlink" title="rdtsc/rdtscp"></a>rdtsc/rdtscp</h4><p>接下来是rdtsc这个CPU指令。这个指令的含义是read tsc寄存器，即time stamp counter寄存器的值。从Pentium处理器开始，Intel的很多80x86微处理器都引入64bit的TSC寄存器，用于时间戳计数器。该寄存器在每个时钟信号到来时加1。那么这个数值的递增就和CPU的主频相关了，主频为1M Hz的处理器这个寄存器每秒就递增1,000,000次。而rdtsc指令把tsc寄存器的数值读出来，数值的低32位存放在eax寄存器中，高32位存放在edx寄存器中。那么很容易就能用gcc的内联汇编写出来读取这个数值的代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span> <span class="keyword">cycles_t</span>;</span><br><span class="line"><span class="function"><span class="keyword">inline</span> cycles_t <span class="title">currentcycles</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">cycles_t</span> result;</span><br><span class="line">    __asm__ __volatile__(<span class="string">"rdtsc"</span> : <span class="string">"=A"</span> (result));</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">long</span> <span class="keyword">cycles_t</span>;</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">cycles_t</span> <span class="title">currentcycles</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">cycles_t</span> result;</span><br><span class="line">    __asm__ __volatile__(<span class="string">"rdtsc"</span> : <span class="string">"=A"</span> (result));</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>但是这个计时方式在网上很容易找到一些反对的说法，常见的说法有以下几种：</p>
 <ol>
 <li>从Pentium Pro开始引入的CPU乱序执行使得指令重排序会影响。</li>
@@ -345,11 +345,11 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
 			
 		
 			
@@ -469,10 +469,10 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2020
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
-		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		
 		</p>
 </div>
 </footer>

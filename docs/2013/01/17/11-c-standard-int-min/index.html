@@ -22,7 +22,7 @@
 <meta property="og:image" content="http://www.0xffffff.org/images/11/1.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/11/2.png">
 <meta property="og:image" content="http://www.0xffffff.org/images/11/3.png">
-<meta property="og:updated_time" content="2019-07-07T09:16:05.796Z">
+<meta property="og:updated_time" content="2020-07-29T12:20:06.015Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义">
 <meta name="twitter:description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
@@ -331,11 +331,11 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
 			
 		
 			
@@ -455,10 +455,10 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2020
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
-		 Hosted by <a href="https://pages.coding.me" style="font-weight: bold">Coding Pages</a>
+		
 		</p>
 </div>
 </footer>
