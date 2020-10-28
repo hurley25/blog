@@ -15,25 +15,25 @@
 <meta name="keywords" content="内存屏障,CPU,架构">
 <meta property="og:type" content="article">
 <meta property="og:title" content="聊聊原子变量、锁、内存屏障那点事">
-<meta property="og:url" content="http://0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/index.html">
+<meta property="og:url" content="https://0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="突然想聊聊这个话题，是因为知乎上的一个问题多次出现在了我的Timeline里：请问，多个线程可以读一个变量，只有一个线程可以对这个变量进行写，到底要不要加锁？可惜的是很多高票答案语焉不详，甚至有所错漏。所以我想在这篇文章里斗胆聊聊这个水挺深的问题。受限于个人水平，文章若有错漏，还望读者不吝赐教。 首先约定，由于CPU的架构和设计浩如烟海，本文站在工程师的角度，只谈IA32/AMD64(x86-64">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://0xffffff.org/images/40/guaranteed_atomic_operations.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/cpu_cache.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/cache_sync.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/cpu.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/memory_consistency_models.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/memory_consistency_models_old.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/memory_ordering.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/intra-processor_forwarding_is_allowed.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/memory_barrier.png">
-<meta property="og:image" content="http://0xffffff.org/images/40/rep_sort.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/guaranteed_atomic_operations.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/cpu_cache.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/cache_sync.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/cpu.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/memory_consistency_models.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/memory_consistency_models_old.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/memory_ordering.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/intra-processor_forwarding_is_allowed.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/memory_barrier.png">
+<meta property="og:image" content="https://0xffffff.org/images/40/rep_sort.png">
 <meta property="og:updated_time" content="2019-07-07T08:12:41.274Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="聊聊原子变量、锁、内存屏障那点事">
 <meta name="twitter:description" content="突然想聊聊这个话题，是因为知乎上的一个问题多次出现在了我的Timeline里：请问，多个线程可以读一个变量，只有一个线程可以对这个变量进行写，到底要不要加锁？可惜的是很多高票答案语焉不详，甚至有所错漏。所以我想在这篇文章里斗胆聊聊这个水挺深的问题。受限于个人水平，文章若有错漏，还望读者不吝赐教。 首先约定，由于CPU的架构和设计浩如烟海，本文站在工程师的角度，只谈IA32/AMD64(x86-64">
-<meta name="twitter:image" content="http://0xffffff.org/images/40/guaranteed_atomic_operations.png">
+<meta name="twitter:image" content="https://0xffffff.org/images/40/guaranteed_atomic_operations.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -292,7 +292,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/" data-title="聊聊原子变量、锁、内存屏障那点事 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2017/02/21/40-atomic-variable-mutex-and-memory-barrier/" data-title="聊聊原子变量、锁、内存屏障那点事 | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>

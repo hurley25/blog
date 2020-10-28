@@ -15,32 +15,32 @@
 <meta name="keywords" content="tair,源码分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Tair MDB 存储引擎的实现">
-<meta property="og:url" content="http://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/index.html">
+<meta property="og:url" content="https://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="Tair是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。 Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://0xffffff.org/images/35/1.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/2.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/3.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/4.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/5.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/6.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/7.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/8.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/9.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/10.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/11.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/12.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/13.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/14.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/15.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/16.png">
-<meta property="og:image" content="http://0xffffff.org/images/35/17.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/1.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/2.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/3.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/4.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/5.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/6.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/7.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/8.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/9.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/10.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/11.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/12.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/13.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/14.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/15.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/16.png">
+<meta property="og:image" content="https://0xffffff.org/images/35/17.png">
 <meta property="og:updated_time" content="2019-07-07T09:13:06.540Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Tair MDB 存储引擎的实现">
 <meta name="twitter:description" content="Tair是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。 Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有">
-<meta name="twitter:image" content="http://0xffffff.org/images/35/1.png">
+<meta name="twitter:image" content="https://0xffffff.org/images/35/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -196,7 +196,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/" data-title="Tair MDB 存储引擎的实现 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/" data-title="Tair MDB 存储引擎的实现 | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>

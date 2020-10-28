@@ -15,23 +15,23 @@
 <meta name="keywords" content="基础知识,内存管理">
 <meta property="og:type" content="article">
 <meta property="og:title" content="聊聊内存管理">
-<meta property="og:url" content="http://0xffffff.org/2014/10/31/32-memory-management/index.html">
+<meta property="og:url" content="https://0xffffff.org/2014/10/31/32-memory-management/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="这篇文章我们聊聊内存管理。 本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对 x86  Linux 下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。 物理地址空间首先，什么是物理地址空间？我们知道 CPU 与外部进行信息传递的公用通道就是总线，一般而言，CPU 有三大总线：控制总线、数据总">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://0xffffff.org/images/32/1.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/2.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/3.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/4.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/5.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/6.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/7.png">
-<meta property="og:image" content="http://0xffffff.org/images/32/8.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/1.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/2.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/3.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/4.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/5.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/6.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/7.png">
+<meta property="og:image" content="https://0xffffff.org/images/32/8.png">
 <meta property="og:updated_time" content="2019-07-17T12:26:49.281Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="聊聊内存管理">
 <meta name="twitter:description" content="这篇文章我们聊聊内存管理。 本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对 x86  Linux 下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。 物理地址空间首先，什么是物理地址空间？我们知道 CPU 与外部进行信息传递的公用通道就是总线，一般而言，CPU 有三大总线：控制总线、数据总">
-<meta name="twitter:image" content="http://0xffffff.org/images/32/1.png">
+<meta name="twitter:image" content="https://0xffffff.org/images/32/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -202,7 +202,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://0xffffff.org/2014/10/31/32-memory-management/" data-title="聊聊内存管理 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2014/10/31/32-memory-management/" data-title="聊聊内存管理 | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
