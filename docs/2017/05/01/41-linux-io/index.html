@@ -15,19 +15,19 @@
 <meta name="keywords" content="Linux,IO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="聊聊 Linux IO">
-<meta property="og:url" content="http://www.0xffffff.org/2017/05/01/41-linux-io/index.html">
+<meta property="og:url" content="http://0xffffff.org/2017/05/01/41-linux-io/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？ 单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？ write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？   write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEND">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://www.0xffffff.org/images/41/storage-arch.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/41/cache.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/41/Linux-storage-stack.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/41/linux-io.png">
-<meta property="og:updated_time" content="2020-07-29T12:20:06.029Z">
+<meta property="og:image" content="http://0xffffff.org/images/41/storage-arch.png">
+<meta property="og:image" content="http://0xffffff.org/images/41/cache.png">
+<meta property="og:image" content="http://0xffffff.org/images/41/Linux-storage-stack.png">
+<meta property="og:image" content="http://0xffffff.org/images/41/linux-io.png">
+<meta property="og:updated_time" content="2019-07-07T09:13:31.966Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="聊聊 Linux IO">
 <meta name="twitter:description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？ 单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？ write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？   write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEND">
-<meta name="twitter:image" content="http://www.0xffffff.org/images/41/storage-arch.png">
+<meta name="twitter:image" content="http://0xffffff.org/images/41/storage-arch.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -193,7 +193,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2017/05/01/41-linux-io/" data-title="聊聊 Linux IO | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://0xffffff.org/2017/05/01/41-linux-io/" data-title="聊聊 Linux IO | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -236,12 +236,6 @@
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
-</div>
-
 
   
   <div class="archiveslist">
@@ -349,11 +343,11 @@
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
@@ -369,7 +363,7 @@
 			
 		
 			
-				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -381,7 +375,7 @@
 			
 		
 			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
 			
 		
 			
@@ -389,19 +383,19 @@
 			
 		
 			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
 			
 		
 			
@@ -464,8 +458,6 @@
 	</section>
 	 
 	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
 		
 		
 		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>

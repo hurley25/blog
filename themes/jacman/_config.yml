@@ -7,7 +7,6 @@ menu:
 
 #### Widgets
 widgets:
-- weibo
 - archive
 - category
 - tag
@@ -52,9 +51,9 @@ creative_commons: by-nc-nd
 author:
   intro_line1: "Hello, I'm Qianmo."
   intro_line2: "This is my blog, believe it or not."
-  weibo: toqianmo
-  weibo_verifier: 43ce7f75
-  tsina: 1702810323
+  weibo:
+  weibo_verifier:
+  tsina:
   zhihu: qian-mo-32-16
   email: root@0xffffff.org
   twitter: hurleyhades

@@ -14,7 +14,7 @@
     <meta name="description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="浅墨的部落格">
-<meta property="og:url" content="http://www.0xffffff.org/index.html">
+<meta property="og:url" content="http://0xffffff.org/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
 <meta property="og:locale" content="zh-CN">
@@ -98,9 +98,9 @@
         <h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>本文主要分析 Linux 系统内存统计的一些指标以及进程角度内存使用监控的一些方法。</p>
 <p>开始阅读这篇文章前，请先简单阅读下面的几篇文章。</p>
 <ul>
-<li><a href="http://0xffffff.org/2013/05/23/18-linux-process-address-space/" target="_blank" rel="noopener">《进程眼中的线性地址空间》</a></li>
-<li><a href="http://0xffffff.org/2013/08/02/20-linux-thread-address-space/" target="_blank" rel="noopener">《线程眼中的线性地址空间》</a></li>
-<li><a href="http://0xffffff.org/2014/10/31/32-memory-management/" target="_blank" rel="noopener">《聊聊内存管理》</a></li>
+<li><a href="http://0xffffff.org/2013/05/23/18-linux-process-address-space/">《进程眼中的线性地址空间》</a></li>
+<li><a href="http://0xffffff.org/2013/08/02/20-linux-thread-address-space/">《线程眼中的线性地址空间》</a></li>
+<li><a href="http://0xffffff.org/2014/10/31/32-memory-management/">《聊聊内存管理》</a></li>
 </ul>
 <p>想必这几篇文章过后，基本概念就不需要再赘述了。所以下文直接就找一台 Intel x86_64 架构下安装了 64bit Linux 系统的服务器作为例进行相关的实验和结果分析。Linux 的内存管理从物理内存管理到虚拟内存管理涉及的概念和统计项实在太多，本文从实用和系统运维的角度出发，只列举一些最实用的统计。</p>
         
@@ -299,7 +299,7 @@
 </header>
     <div class="article-content">
         
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>很久以前写过一篇调试内存错误的文章<a href="http://0xffffff.org/2012/11/20/1-gdb-coredump/" target="_blank" rel="noopener">《用gdb配合内核转储文件瞬间定位段错误》</a>，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>很久以前写过一篇调试内存错误的文章<a href="http://0xffffff.org/2012/11/20/1-gdb-coredump/">《用gdb配合内核转储文件瞬间定位段错误》</a>，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。</p>
 <p>但是在具体实践中，往往会有一些复杂的内存访问错误，尤其是多线程环境下的C/C++程序。因为其内存的分配、释放与访问经常会牵扯到多个线程，容易引入复杂而难以定位的内存错误，导致程序在执行过程中错误的访问内存而被操作系统结束掉。</p>
 <p>这篇文章介绍一些常见的内存错误和调试的步骤和方法，以及一些多线程程序避免内存问题的实践经验。</p>
 <h2 id="常见的内存错误举例"><a href="#常见的内存错误举例" class="headerlink" title="常见的内存错误举例"></a>常见的内存错误举例</h2><p>C/C++程序被称之为系统编程语言，往往编译成操作系统直接支持的可执行文件格式。C/C++语言本身没有垃圾回收机制，内存的动态分配与释放需要程序自行控制，对内存的访问也没有语言级别的校验和保护。出现内存访问错误后，进程多半会直接被操作系统结束掉。少部分情况因为访存地址合法，会对数据造成破坏（悬垂指针或者野指针），一般会在运行一段时间后才因为异常退出。这时候触发错误导致进程退出的代码位置往往不是”案发的第一现场“，给调试工作带来了更大的难度。</p>
@@ -355,12 +355,6 @@
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
-</div>
-
 
   
   <div class="archiveslist">
@@ -468,11 +462,11 @@
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
@@ -488,7 +482,7 @@
 			
 		
 			
-				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -500,7 +494,7 @@
 			
 		
 			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
 			
 		
 			
@@ -508,19 +502,19 @@
 			
 		
 			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
 			
 		
 			
@@ -583,8 +577,6 @@
 	</section>
 	 
 	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
 		
 		
 		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>

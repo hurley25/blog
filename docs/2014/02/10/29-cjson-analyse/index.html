@@ -15,18 +15,18 @@
 <meta name="keywords" content="Linux,源码分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="cJSON 库源码分析">
-<meta property="og:url" content="http://www.0xffffff.org/2014/02/10/29-cjson-analyse/index.html">
+<meta property="og:url" content="http://0xffffff.org/2014/02/10/29-cjson-analyse/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="cJSON是一个超轻巧，携带方便，单文件，简单的可以作为ANSI-C标准的Json格式解析库。 那什么是Json格式？这里照搬度娘百科的说法：  Json(JavaScript Object Notation) 是一种轻量级的数据交换格式。它基于JavaScript（Standard ECMA-262 3rd Edition – December 1999）的一个子集。JSON采用完全独立于语言的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://www.0xffffff.org/images/29/1.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/29/2.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/29/3.png">
-<meta property="og:updated_time" content="2020-07-29T12:20:06.024Z">
+<meta property="og:image" content="http://0xffffff.org/images/29/1.png">
+<meta property="og:image" content="http://0xffffff.org/images/29/2.png">
+<meta property="og:image" content="http://0xffffff.org/images/29/3.png">
+<meta property="og:updated_time" content="2019-07-07T09:14:38.720Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="cJSON 库源码分析">
 <meta name="twitter:description" content="cJSON是一个超轻巧，携带方便，单文件，简单的可以作为ANSI-C标准的Json格式解析库。 那什么是Json格式？这里照搬度娘百科的说法：  Json(JavaScript Object Notation) 是一种轻量级的数据交换格式。它基于JavaScript（Standard ECMA-262 3rd Edition – December 1999）的一个子集。JSON采用完全独立于语言的">
-<meta name="twitter:image" content="http://www.0xffffff.org/images/29/1.png">
+<meta name="twitter:image" content="http://0xffffff.org/images/29/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -139,7 +139,7 @@
 <p>继续用之前构造的Json格式来进行解析，之前分析构造函数的时候，我们只是简单的分析了几个cJSON结构的构造过程，并没有涉及到各种类型的数组等构造。因为我觉得理解了一般的构造过程，更复杂的类型自己再简单看看源码，画画图就很容易理解。</p>
 <p><strong>学习一个事物一定要先抓住主线，先掌握一个事物最常用的那50%，其他的边边角角完全可以留给实践去零敲碎打（孟岩语）。</strong></p>
 <p>闲话打住，先上一段解析使用的代码：</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line">　　</span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"cJSON.h"</span></span></span><br><span class="line">　　</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">　　<span class="keyword">char</span> *<span class="built_in">text</span> = <span class="string">"&#123;\"name\": \"Jack (\\\"Bee\\\") Nimble\", "</span></span><br><span class="line">　　          <span class="string">"\"format\": &#123;\"type\": \"rect\", "</span></span><br><span class="line">　　          <span class="string">"\"width\": 1920, \"interlace\": false&#125;&#125;"</span>;</span><br><span class="line">　　</span><br><span class="line">　　cJSON *root = cJSON_Parse(<span class="built_in">text</span>);</span><br><span class="line">　　<span class="keyword">if</span> (!root) &#123;</span><br><span class="line">　　　　<span class="built_in">printf</span>(<span class="string">"Error before: [%s]\n"</span>, cJSON_GetErrorPtr());</span><br><span class="line">　　　　<span class="keyword">return</span> EXIT_FAILURE;</span><br><span class="line">　　&#125;</span><br><span class="line">　　</span><br><span class="line">　　<span class="keyword">char</span> *out = cJSON_Print(root);</span><br><span class="line">　　<span class="built_in">printf</span>(<span class="string">"text:\n%s\n\n"</span>, out);</span><br><span class="line">　　<span class="built_in">free</span>(out);</span><br><span class="line">　　</span><br><span class="line">　　<span class="keyword">char</span> *name = cJSON_GetObjectItem(root, <span class="string">"name"</span>)-&gt;valuestring;</span><br><span class="line">　　<span class="built_in">printf</span>(<span class="string">"name : %s\n"</span>, name);</span><br><span class="line">　　cJSON *format = cJSON_GetObjectItem(root, <span class="string">"format"</span>);</span><br><span class="line">　　<span class="keyword">int</span> <span class="built_in">width</span> = cJSON_GetObjectItem(format, <span class="string">"width"</span>)-&gt;valueint;</span><br><span class="line">　　<span class="built_in">printf</span>(<span class="string">"width : %d\n"</span>, <span class="built_in">width</span>);</span><br><span class="line">　　</span><br><span class="line">　　cJSON_Delete(root);</span><br><span class="line">　　</span><br><span class="line">　　<span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line">　　</span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"cJSON.h"</span></span></span><br><span class="line">　　</span><br><span class="line">int main(int argc, char *argv[])</span><br><span class="line">&#123;</span><br><span class="line">　　char *<span class="built_in">text</span> = <span class="string">"&#123;\"</span><span class="built_in">name</span>\<span class="string">": \"</span>Jack (\\\<span class="string">"Bee\\\"</span>) Nimble\<span class="string">", "</span></span><br><span class="line">　　          <span class="string">"\"</span><span class="built_in">format</span>\<span class="string">": &#123;\"</span><span class="built_in">type</span>\<span class="string">": \"</span>rect\<span class="string">", "</span></span><br><span class="line">　　          <span class="string">"\"</span>width\<span class="string">": 1920, \"</span>interlace\<span class="string">": false&#125;&#125;"</span>;</span><br><span class="line">　　</span><br><span class="line">　　cJSON *root = cJSON_Parse(<span class="built_in">text</span>);</span><br><span class="line">　　<span class="keyword">if</span> (!root) &#123;</span><br><span class="line">　　　　printf(<span class="string">"Error before: [%s]\n"</span>, cJSON_GetErrorPtr());</span><br><span class="line">　　　　return EXIT_FAILURE;</span><br><span class="line">　　&#125;</span><br><span class="line">　　</span><br><span class="line">　　char *out = cJSON_Print(root);</span><br><span class="line">　　printf(<span class="string">"text:\n%s\n\n"</span>, out);</span><br><span class="line">　　free(out);</span><br><span class="line">　　</span><br><span class="line">　　char *<span class="built_in">name</span> = cJSON_GetObjectItem(root, <span class="string">"name"</span>)-&gt;valuestring;</span><br><span class="line">　　printf(<span class="string">"name : %s\n"</span>, <span class="built_in">name</span>);</span><br><span class="line">　　cJSON *<span class="built_in">format</span> = cJSON_GetObjectItem(root, <span class="string">"format"</span>);</span><br><span class="line">　　int width = cJSON_GetObjectItem(<span class="built_in">format</span>, <span class="string">"width"</span>)-&gt;valueint;</span><br><span class="line">　　printf(<span class="string">"width : %d\n"</span>, width);</span><br><span class="line">　　</span><br><span class="line">　　cJSON_Delete(root);</span><br><span class="line">　　</span><br><span class="line">　　return EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>程序运行输出：</p>
 <figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">text:</span><br><span class="line">&#123;</span><br><span class="line">　　<span class="string">"name"</span>: <span class="string">"Jack (\"</span>Bee\<span class="string">") Nimble"</span>,</span><br><span class="line">　　<span class="string">"format"</span>:&#123;</span><br><span class="line">　　　　<span class="string">"type"</span>: <span class="string">"rect"</span>,</span><br><span class="line">　　　　<span class="string">"width"</span>: <span class="number">1920</span>,</span><br><span class="line">　　　　<span class="string">"interlace"</span>: <span class="literal">false</span></span><br><span class="line">　　&#125;</span><br><span class="line">&#125;</span><br><span class="line">　　</span><br><span class="line">name : <span class="type">Jack</span> (<span class="string">"Bee"</span>) Nimble</span><br><span class="line">width : 1920</span><br></pre></td></tr></table></figure>
 <p>从这段代码中可以看到，解析过程就cJSON_Parse()一个接口，调用成功返回cJSON结构体的指针，错误返回NULL，此时调用cJSON_GetErrorPtr()可以得要错误原因的描述字符串。查看cJSON_GetErrorPtr()的源码可以得知，其实错误信息就保存在全局字符串指针ep里。关键就是对cJSON_Parse()过程的分析了，我们带参数-g重新编译代码并下断点开始调试跟踪。</p>
@@ -179,7 +179,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2014/02/10/29-cjson-analyse/" data-title="cJSON 库源码分析 | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://0xffffff.org/2014/02/10/29-cjson-analyse/" data-title="cJSON 库源码分析 | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -222,12 +222,6 @@
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
-</div>
-
 
   
   <div class="archiveslist">
@@ -335,11 +329,11 @@
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
@@ -355,7 +349,7 @@
 			
 		
 			
-				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -367,7 +361,7 @@
 			
 		
 			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
 			
 		
 			
@@ -375,19 +369,19 @@
 			
 		
 			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
 			
 		
 			
@@ -450,8 +444,6 @@
 	</section>
 	 
 	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
 		
 		
 		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>

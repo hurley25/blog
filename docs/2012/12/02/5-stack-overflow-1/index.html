@@ -15,19 +15,19 @@
 <meta name="keywords" content="Linux,基础知识">
 <meta property="og:type" content="article">
 <meta property="og:title" content="浅谈缓冲区溢出之栈溢出&lt;上&gt;">
-<meta property="og:url" content="http://www.0xffffff.org/2012/12/02/5-stack-overflow-1/index.html">
+<meta property="og:url" content="http://0xffffff.org/2012/12/02/5-stack-overflow-1/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="有段时间没有用windows了，刚一开机又是系统补丁更新。匆匆瞥了一眼看到了“内核缓冲区溢出漏洞补丁”几个字眼。靠，又是内核补丁。打完这个补丁后MD的内核符号文件又得更新了。于是抱怨了几句，一旁的兄弟问什么是缓冲区溢出。这个…三两句话还真说不清楚。解释这个问题用C语言比较方便，但是单从C代码是看不出来什么的，具体原理要分析机器级代码才能说清楚。既然是浅谈原理，那就从最基本的开始吧。 本文的定位是对">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://www.0xffffff.org/images/5/1.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/5/2.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/5/3.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/5/4.png">
-<meta property="og:updated_time" content="2020-07-29T12:20:06.030Z">
+<meta property="og:image" content="http://0xffffff.org/images/5/1.png">
+<meta property="og:image" content="http://0xffffff.org/images/5/2.png">
+<meta property="og:image" content="http://0xffffff.org/images/5/3.png">
+<meta property="og:image" content="http://0xffffff.org/images/5/4.png">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.274Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="浅谈缓冲区溢出之栈溢出&lt;上&gt;">
 <meta name="twitter:description" content="有段时间没有用windows了，刚一开机又是系统补丁更新。匆匆瞥了一眼看到了“内核缓冲区溢出漏洞补丁”几个字眼。靠，又是内核补丁。打完这个补丁后MD的内核符号文件又得更新了。于是抱怨了几句，一旁的兄弟问什么是缓冲区溢出。这个…三两句话还真说不清楚。解释这个问题用C语言比较方便，但是单从C代码是看不出来什么的，具体原理要分析机器级代码才能说清楚。既然是浅谈原理，那就从最基本的开始吧。 本文的定位是对">
-<meta name="twitter:image" content="http://www.0xffffff.org/images/5/1.png">
+<meta name="twitter:image" content="http://0xffffff.org/images/5/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -158,7 +158,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2012/12/02/5-stack-overflow-1/" data-title="浅谈缓冲区溢出之栈溢出&lt;上&gt; | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://0xffffff.org/2012/12/02/5-stack-overflow-1/" data-title="浅谈缓冲区溢出之栈溢出&lt;上&gt; | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -201,12 +201,6 @@
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
-</div>
-
 
   
   <div class="archiveslist">
@@ -314,11 +308,11 @@
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
@@ -334,7 +328,7 @@
 			
 		
 			
-				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -346,7 +340,7 @@
 			
 		
 			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
 			
 		
 			
@@ -354,19 +348,19 @@
 			
 		
 			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
 			
 		
 			
@@ -429,8 +423,6 @@
 	</section>
 	 
 	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
 		
 		
 		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>

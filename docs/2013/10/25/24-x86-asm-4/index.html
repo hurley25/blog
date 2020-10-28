@@ -15,17 +15,17 @@
 <meta name="keywords" content="x86,汇编">
 <meta property="og:type" content="article">
 <meta property="og:title" content="保护模式汇编系列之四 - 段页式内存管理（二）">
-<meta property="og:url" content="http://www.0xffffff.org/2013/10/25/24-x86-asm-4/index.html">
+<meta property="og:url" content="http://0xffffff.org/2013/10/25/24-x86-asm-4/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="我们这次接着内存分页继续说。稍微插一句，虽然本系列的名字叫做保护模式汇编，可是到现在颇有些挂羊头卖狗肉的意味。我们只是在一个劲的谈理论，就连仅有的一点代码也是用C语言描述的，而不是汇编。不过我觉得这不是关键，我觉得只要我们掌握了理论就好，至于用什么语言描述都是次要的，你说呢？ 言归正传，我们开始说分页机制。长时间以来，随着计算机技术的发展，存储器的容量在不断的高速增加着。但是说起内存(这里指RAM">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://www.0xffffff.org/images/24/1.png">
-<meta property="og:image" content="http://www.0xffffff.org/images/24/2.png">
-<meta property="og:updated_time" content="2020-07-29T12:20:06.019Z">
+<meta property="og:image" content="http://0xffffff.org/images/24/1.png">
+<meta property="og:image" content="http://0xffffff.org/images/24/2.png">
+<meta property="og:updated_time" content="2019-07-07T08:12:41.271Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="保护模式汇编系列之四 - 段页式内存管理（二）">
 <meta name="twitter:description" content="我们这次接着内存分页继续说。稍微插一句，虽然本系列的名字叫做保护模式汇编，可是到现在颇有些挂羊头卖狗肉的意味。我们只是在一个劲的谈理论，就连仅有的一点代码也是用C语言描述的，而不是汇编。不过我觉得这不是关键，我觉得只要我们掌握了理论就好，至于用什么语言描述都是次要的，你说呢？ 言归正传，我们开始说分页机制。长时间以来，随着计算机技术的发展，存储器的容量在不断的高速增加着。但是说起内存(这里指RAM">
-<meta name="twitter:image" content="http://www.0xffffff.org/images/24/1.png">
+<meta name="twitter:image" content="http://0xffffff.org/images/24/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -146,7 +146,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="http://www.0xffffff.org/2013/10/25/24-x86-asm-4/" data-title="保护模式汇编系列之四 - 段页式内存管理（二） | 浅墨的部落格" data-tsina="1702810323" class="share clearfix">
+	  <div data-url="http://0xffffff.org/2013/10/25/24-x86-asm-4/" data-title="保护模式汇编系列之四 - 段页式内存管理（二） | 浅墨的部落格" data-tsina="null" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -189,12 +189,6 @@
 <div id="asidepart">
 <div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
 <aside class="clearfix">
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=1702810323&verifier=43ce7f75&dpc=1"></iframe>
-</div>
-
 
   
   <div class="archiveslist">
@@ -302,11 +296,11 @@
 			
 		
 			
-				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
 			
 		
 			
@@ -322,7 +316,7 @@
 			
 		
 			
-				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
 			
 		
 			
@@ -334,7 +328,7 @@
 			
 		
 			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
 			
 		
 			
@@ -342,19 +336,19 @@
 			
 		
 			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/网络/" title="网络">网络<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
 			
 		
 			
@@ -417,8 +411,6 @@
 	</section>
 	 
 	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/toqianmo" target="_blank" class="icon-weibo" title="微博"></a>
 		
 		
 		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
