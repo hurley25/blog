@@ -82,139 +82,6 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2012/12/09/6-stack-overflow-2/" title="浅谈缓冲区溢出之栈溢出&lt;下&gt;" itemprop="url">浅谈缓冲区溢出之栈溢出&lt;下&gt;</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2012-12-09T02:02:00.000Z" itemprop="datePublished"> 发表于 2012-12-09</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>上回我们简单的介绍了缓冲区溢出的基本原理和机器级代码的解释，对此类问题的分析和研究都必须建立在对程序的机器级表示有一定的了解的基础上。记得有句话是这样说的，“真正了不起的程序员是对自己代码的每一个字节都了如指掌的程序员。”我们也许做不到每一字节，但至少得明晰机器级程序的组成结构和执行流程。</p>
-<p>言归正传，我们今天在上回的基础上继续探索缓冲区溢出。之前的例子都是简单的通过越界访问来实现对程序执行流程的变动，而且执行的函数都是编译前写入的，那么如何对一个发行版的可执行程序进行缓冲区溢出呢？ 首先，这个程序必须存在缓冲区溢出漏洞（这不是废话么），一般来说C语言中容易引起缓冲区溢出的函数有strcpy，strcat之类的不顾及缓冲区大小的内存操作函数以及scanf，gets之类的IO函数。如果你使用vs2010以及vs2012附带的C编译器cl.exe编译使用了这些函数的C代码，编译器一般会给出一个编号为4996的警告，大致的意思是这类函数如scanf不安全，请使用它们的安全版本scanf_s什么的。其实也就是给这些函数加上一个描述缓冲器大小的参数，以防止缓冲区溢出。</p>
-<p>我们就以一个相对简单的函数gets开始研究吧。gets函数的实现想必大家都比较清楚吧，gets不考虑缓冲区大小，将输入缓冲中的内容逐一复制到内存指定位置，遇’\n’结束并且自动将’\n’替换为’\0’。</p>
-<p><img src="/images/6/1.png" alt></p>
-<p>编译后我们同objdump反汇编，命令是 objdump -d -M intel overflow （overflow是可执行文件名字），同理，我们只要 main函数的实现：</p>
-<p><img src="/images/6/2.png" alt></p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2012/12/09/6-stack-overflow-2/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2012/12/02/5-stack-overflow-1/" title="浅谈缓冲区溢出之栈溢出&lt;上&gt;" itemprop="url">浅谈缓冲区溢出之栈溢出&lt;上&gt;</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2012-12-02T03:02:00.000Z" itemprop="datePublished"> 发表于 2012-12-02</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>有段时间没有用windows了，刚一开机又是系统补丁更新。匆匆瞥了一眼看到了“内核缓冲区溢出漏洞补丁”几个字眼。靠，又是内核补丁。打完这个补丁后MD的内核符号文件又得更新了。于是抱怨了几句，一旁的兄弟问什么是缓冲区溢出。这个…三两句话还真说不清楚。解释这个问题用C语言比较方便，但是单从C代码是看不出来什么的，具体原理要分析机器级代码才能说清楚。既然是浅谈原理，那就从最基本的开始吧。</p>
-<p>本文的定位是对此方面一无所知的读者，所以大牛们可以直接飘过…</p>
-<p>缓冲区溢出这个名词想必大家并不陌生吧，在微软的系统漏洞补丁里经常可以看到这个词（微软这算是普及计算机知识么？ – -）。从C语言来分析的话，最简单的一种溢出就是向数组中写入数据时超出了预定义的大小，比如定义了长度为10的数组，偏偏写入了10+个数据。C标准告诉我们这种做会产生不可预料的结果，而在信息安全领域看来，缓冲区溢出的艺术就是要让这种“不可预料的结果”变成攻击者想达成的结果。比如远程攻击服务器上的程序，使其返回一个具有管理员权限的shell什么的。千万别觉得这是天方夜谭，印象中微软历史上爆出过不少这样的漏洞，前段时间不就有覆盖微软全版本的MS12-020么（新的也有，但是我没关注 – -）。虽然网上广为流传的只是一个远程让服务器死机的shellcode，但是让远程服务器执行任意代码理论上是可行的。关于漏洞利用这块的东西我不怎么擅长，所以就不敢再多说了。</p>
-<p>一般来说关于缓冲区溢出漏洞，官方的描述都是诸如“攻击者通过提交一个精心构造的字符串使得缓冲区溢出从而执行任意代码”之类的。这里的重点词是两个，“精心构造”和“字符串”。精心构造可以理解，那“字符串”呢？我们都知道，一段二进制代码是什么东西取决于机器对其的解释，如果把这段代码当作变量，当作整型是一个值，当作浮点型又是一个值，如果把它当成可执行代码的话，又会是另外一种解释。所以这里的字符串实际上就是一段可执行代码的字符串表现形式。接下来我们的重点就是如何“精心构造”这个“字符串”和如何让机器把我们构造的字符串（也就是数据）当作可执行代码来执行。</p>
-<p>必须说明的是，真正意义上的shellcode要解决诸如函数地址重定位，汇编级系统调用，以及应对编译器抵抗此类缓冲区溢出攻击的“栈随机化”等技术，这些东西对于我们这篇“科普性质”的文章来说显然过于艰深，加之作者本人也是一个水货，故不会提及。我们只研究最浅显的原理。</p>
-<p>我们先来看一段代码：</p>
-<p><img src="/images/5/1.png" alt></p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2012/12/02/5-stack-overflow-1/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
       <a href="/2012/12/01/4-generics-bubble-sort/" title="一个泛型冒泡排序的实现" itemprop="url">一个泛型冒泡排序的实现</a>
   </h1>
   <p class="article-author">By
@@ -331,9 +198,82 @@
 
 
 
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2012/11/20/1-gdb-coredump/" title="用 gdb 配合内核转储文件瞬间定位段错误" itemprop="url">用 gdb 配合内核转储文件瞬间定位段错误</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2012-11-20T08:02:00.000Z" itemprop="datePublished"> 发表于 2012-11-20</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>前几天在写一个使用Huffman算法的文本压缩程序时被“段错误”折磨了好长时间。因为自己向来对内存的使用保持着“克勤克俭”的作风，所以总是被此类错误折磨的焦头难额。C语言的内存管理本来就是一个繁琐的工作，写代码时略有不慎便会出现诸如“段错误（吐核）”的运行时崩溃。</p>
+<p>其实段错误是操作系统的一个内存保护机制，一般情况下某程序尝试访问其许可范围之外的内存空间时便会触发内核的“一般保护性异常”，内核便会向程序发送一个SIGSEGV（11）信号（无效的内存引用），而SIGSEGV信号默认handler的动作便是在终端上打印出名为“段错误”的出错信息，并产生Core（内核转储）文件，最后结束掉当前犯错的程序。</p>
+<p>段错误的成因大致有以下几种：</p>
+<blockquote>
+<ol>
+<li>程序访问了系统数据区，尤其是往系统保护的内存地址写数据。比如尝试对NULL指针进行解引用或者对其指向的内存写入数据（但是不见得所有的指针越界都会触发“段错误”）;</li>
+<li>内存访问越界（数组越界等）；</li>
+<li>无限的递归（导致栈溢出）；</li>
+<li>对malloc / calloc申请的堆内存二次释放（可能与glibc库版本有关）；</li>
+<li>由于操作系统的段保护机制，如果由于缓冲区溢出等错误导致对某段内存的非法访问也会触发；</li>
+</ol>
+</blockquote>
+<p>另外还有一些大家平时不大注意的地方会导致段错误，例如使用标准库函数fclose对一个打开的文件关闭了多次也会导致段错误，同时终端可能会输出很多关于运行时库错误的信息。因为对使用malloc族函数申请的堆内存释放第二次的时候会触发段错误，所以我猜测fclose触发段错误的原因可能是对文件指针FILE *指向的内存二次释放时触发的段错误。而Valgrind检测的结果基本上证明了我的猜测，fclose引发了堆异常，错误被定位到了free函数。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2012/11/20/1-gdb-coredump/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/9/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/11/">Next<span></span></a>
+    <a class="extend prev" rel="prev" href="/page/9/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span>
   </nav>
 
 </div>
@@ -346,7 +286,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">3</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -384,15 +324,11 @@
 		  
 		
 		  
-			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>18</sup></a></li>
 		  
 		
 		  
 			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
-		  
-		
-		  
-			<li><a href="/categories/开发工具/" title="开发工具">开发工具<sup>1</sup></a></li>
 		  
 		
 		  
@@ -401,10 +337,6 @@
 		
 		  
 			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
-		  
-		
-		  
-			<li><a href="/categories/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
 		  
 		
 		  
@@ -429,7 +361,7 @@
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>20</sup></a></li>
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
 			
 		
 			
@@ -469,35 +401,7 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/windows/" title="windows">windows<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/病毒分析/" title="病毒分析">病毒分析<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
 			
 		
 			
@@ -505,7 +409,35 @@
 			
 		
 			
-				<li><a href="/tags/vim/" title="vim">vim<sup>1</sup></a></li>
+				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -595,7 +527,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2020
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		
