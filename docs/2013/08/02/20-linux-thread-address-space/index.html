@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>线程眼中的线性地址空间 | 浅墨的部落格</title>
@@ -12,21 +12,22 @@
 
     
     <meta name="description" content="以前写过一篇《进程眼中的线性地址空间》，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章《Linux线程的前世今生》作为前期的辅助资料。 如果读者已经看过这两篇文章，那么我们就可以继续往下说了。 我简单列出上述文章中的几个要点：  32位操作系统下的每个进程拥有4GB的线性地址空间。  从Linux内核的角度来说，它并没有线程这个概念。在内核中">
-<meta name="keywords" content="Linux,基础知识">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线程眼中的线性地址空间">
 <meta property="og:url" content="https://0xffffff.org/2013/08/02/20-linux-thread-address-space/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="以前写过一篇《进程眼中的线性地址空间》，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章《Linux线程的前世今生》作为前期的辅助资料。 如果读者已经看过这两篇文章，那么我们就可以继续往下说了。 我简单列出上述文章中的几个要点：  32位操作系统下的每个进程拥有4GB的线性地址空间。  从Linux内核的角度来说，它并没有线程这个概念。在内核中">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/20/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/20/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/20/3.png">
 <meta property="og:image" content="https://0xffffff.org/images/20/4.png">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.270Z">
+<meta property="article:published_time" content="2013-08-02T11:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T08:12:41.270Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="线程眼中的线性地址空间">
-<meta name="twitter:description" content="以前写过一篇《进程眼中的线性地址空间》，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章《Linux线程的前世今生》作为前期的辅助资料。 如果读者已经看过这两篇文章，那么我们就可以继续往下说了。 我简单列出上述文章中的几个要点：  32位操作系统下的每个进程拥有4GB的线性地址空间。  从Linux内核的角度来说，它并没有线程这个概念。在内核中">
 <meta name="twitter:image" content="https://0xffffff.org/images/20/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -40,9 +41,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -100,7 +103,7 @@
 </header>
 	<div class="article-content">
 		
-		<p>以前写过一篇<a href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/" target="_blank" rel="noopener">《进程眼中的线性地址空间》</a>，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章<a href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/" target="_blank" rel="noopener">《Linux线程的前世今生》</a>作为前期的辅助资料。</p>
+		<p>以前写过一篇<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">《进程眼中的线性地址空间》</a>，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/">《Linux线程的前世今生》</a>作为前期的辅助资料。</p>
 <p>如果读者已经看过这两篇文章，那么我们就可以继续往下说了。</p>
 <p>我简单列出上述文章中的几个要点：</p>
 <ol>
@@ -110,24 +113,26 @@
 </li>
 </ol>
 <p>暂时有这两点就可以了。我们直接就能从第二点中看出来，一个进程创建的所有线程实际上是都是在它的线性地址空间里运行的。也就是说，一个进程所创建的所有线程没有创建新的地址空间，而是共享着进程所拥有的4G的线性空间罢了。除了地址空间还共享什么呢？大致还有文件系统资源、文件描述符、信号处理程序以及被阻断的信号等内容。不过即便是共享地址空间，但是每个线程还是有自己的私有数据的，比如线程的运行时栈。</p>
-<a id="more"></a>
+<span id="more"></span>
+
 <p>线程真的是共享这4G的地址空间吗？口说无凭，咱们来给出实证。我们给出验证代码1：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">thread_func</span><span class="params">(<span class="keyword">void</span> *args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"tid: %u pid: %u thread id: %un"</span>, getpid(), syscall(<span class="number">224</span>), pthread_self());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        sleep(<span class="number">10</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pthread_t</span> thread;</span><br><span class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (pthread_create(&amp;thread, <span class="literal">NULL</span>, thread_func, <span class="literal">NULL</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    perror(<span class="string">"Create Error:"</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Max Count:%dn"</span>, count);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">thread_func</span><span class="params">(<span class="type">void</span> *args)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;tid: %u pid: %u thread id: %un&quot;</span>, getpid(), syscall(<span class="number">224</span>), pthread_self());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        sleep(<span class="number">10</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_t</span> thread;</span><br><span class="line">    <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (pthread_create(&amp;thread, <span class="literal">NULL</span>, thread_func, <span class="literal">NULL</span>) == <span class="number">0</span>) &#123;</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    perror(<span class="string">&quot;Create Error:&quot;</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Max Count:%dn&quot;</span>, count);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>从代码中我们能看出主线程每休眠一秒就创建一个新的线程，子线程始终睡眠不会退出。</p>
-<p><img src="/images/20/1.png" alt></p>
-<p>我们在其创建了10来个线程后在终端按下Ctrl+Z键将其放到后台休眠，然后进入/proc目录下用这个进程PID命令的目录，查看maps文件。</p>
-<p><img src="/images/20/2.png" alt></p>
+<p><img src="/images/20/1.png"></p>
+<p>我们在其创建了10来个线程后在终端按下Ctrl+Z键将其放到后台休眠，然后进入&#x2F;proc目录下用这个进程PID命令的目录，查看maps文件。</p>
+<p><img src="/images/20/2.png"></p>
 <p>这里只是部分输出，我们看到，子线程创建的所有的私有栈(stack:后面的即是线程在内核中拥有的实际PID值)就在其所属进程所拥有的这4G的线性地址空间里。</p>
 <p>也许你已经猜到，倘若我们注释掉代码中主函数的sleep()函数，这个程序终将输出32位Linux在默认情况下一个进程所能创建出的线程的总数。注意不要注释掉线程中的sleep()函数，因为我们需要子线程一直存在而且不要占用太多的CPU资源。我们修改代码然后编译执行，结果如下：</p>
-<p><img src="/images/20/3.png" alt></p>
+<p><img src="/images/20/3.png"></p>
 <p>我们看到，最后因为内存资源不足无法再创建线程了，总数是381(不过在我的机器上偶尔也会是380)，再加上主线程就是382个。我们在《进程眼中的线性地址空间》中就知道一个线程默认的栈大小是8MB，8MB*382就是3056MB，因为其它诸如代码和全局数据也会占据一些空间，抛开内核占据的1GB，所以这些差不多就是用户空间所有的内存了。</p>
 <p>P.S. 如果你要问，线程的私有栈在进程的地址空间里在何处分配？如何分配？我的答案是，请自行研究……maps里指明了地址范围的数值，结合进程的地址空间可以分析出来。另外在《Linux线程的前世今生》这篇文章的最后，我给出了NPTL库的两位作者写的文档，你可以参考阅读其中的章节。</p>
 <p>上文中我们提到32位Linux默认线程创建的数量是382左右，那么我们想尝试创建更多的线程怎么办呢？修改默认栈大小就可以，我们既可以在代码中设置线程创建时的属性来设置，也可以在终端下使用ulimit命令来设置。</p>
 <p>好了，我们继续。既然所有的线程在一个地址空间里，那….A线程在栈里创建的变量能否被B线程修改呢？答案是能，我们看代码：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> *p_num;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">thread_1</span><span class="params">(<span class="keyword">void</span> *args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> test_num = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"test_num: %dn"</span>, test_num);</span><br><span class="line"></span><br><span class="line">    p_num = &amp;test_num;</span><br><span class="line"></span><br><span class="line">    sleep(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"test_num: %dn"</span>, test_num);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> *<span class="title">thread_2</span><span class="params">(<span class="keyword">void</span> *args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (p_num != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        *p_num = <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pthread_t</span> thread1, thread2;</span><br><span class="line"></span><br><span class="line">    pthread_create(&amp;thread1, <span class="literal">NULL</span>, thread_1, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_create(&amp;thread2, <span class="literal">NULL</span>, thread_2, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    pthread_join(thread1, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_join(thread2, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *p_num;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">thread_1</span><span class="params">(<span class="type">void</span> *args)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> test_num = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;test_num: %dn&quot;</span>, test_num);</span><br><span class="line"></span><br><span class="line">    p_num = &amp;test_num;</span><br><span class="line"></span><br><span class="line">    sleep(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;test_num: %dn&quot;</span>, test_num);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *<span class="title function_">thread_2</span><span class="params">(<span class="type">void</span> *args)</span></span><br><span class="line">&#123;</span><br><span class="line">    sleep(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (p_num != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        *p_num = <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_t</span> thread1, thread2;</span><br><span class="line"></span><br><span class="line">    pthread_create(&amp;thread1, <span class="literal">NULL</span>, thread_1, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_create(&amp;thread2, <span class="literal">NULL</span>, thread_2, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    pthread_join(thread1, <span class="literal">NULL</span>);</span><br><span class="line">    pthread_join(thread2, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>简单起见我没有使用什么条件变量之类的同步手段而是简单的采用sleep()函数来演示，大家明白就好。</p>
 <p>编译运行，结果如我们所料。</p>
-<p><img src="/images/20/4.png" alt></p>
+<p><img src="/images/20/4.png"></p>
 <p>其实站在共享的角度看，这篇到这里就差不多了，因为在《进程眼中的线性地址空间》中，其他的东西已经有了。虽然我觉得还是没多少干货，但确实也不知道再说些什么了。姑且先发布，以后有补充的再说。</p>
   
 	</div>
@@ -143,7 +148,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -158,7 +163,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/08/02/20-linux-thread-address-space/" data-title="线程眼中的线性地址空间 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/08/02/20-linux-thread-address-space/" data-title="线程眼中的线性地址空间 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -205,7 +210,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -223,7 +228,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -284,7 +289,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -308,10 +313,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -320,31 +321,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -352,11 +329,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -446,7 +451,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

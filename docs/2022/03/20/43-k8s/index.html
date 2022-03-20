@@ -1,0 +1,863 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>一文理解 K8s 容器网络虚拟化 | 浅墨的部落格</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="浅墨">
+    
+
+    
+    <meta name="description" content="写在前面本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 v4.19.215 版本为准。 内核网络包接收流程从网卡到内核协议栈">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文理解 K8s 容器网络虚拟化">
+<meta property="og:url" content="https://0xffffff.org/2022/03/20/43-k8s/index.html">
+<meta property="og:site_name" content="浅墨的部落格">
+<meta property="og:description" content="写在前面本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 v4.19.215 版本为准。 内核网络包接收流程从网卡到内核协议栈">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://0xffffff.org/images/43/1.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/2.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/3.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/4.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/5.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/6.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/7.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/8.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/9.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/10.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/11.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/12.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/13.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/14.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/15.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/16.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/17.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/18.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/19.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/20.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/21.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/22.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/23.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/24.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/25.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/26.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/27.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/28.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/29.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/30.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/31.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/32.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/33.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/34.png">
+<meta property="og:image" content="https://0xffffff.org/images/43/35.png">
+<meta property="article:published_time" content="2022-03-20T13:00:00.000Z">
+<meta property="article:modified_time" content="2022-03-20T14:03:44.095Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://0xffffff.org/images/43/1.png">
+<meta name="twitter:creator" content="@hurleyhades">
+
+    
+    <link rel="alternative" href="/atom.xml" title="浅墨的部落格" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="浅墨的部落格" title="浅墨的部落格"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="浅墨的部落格">浅墨的部落格</a></h1>
+				<h2 class="blog-motto">纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">主页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+ 					
+						<form class="search" action="http://zhannei.baidu.com/cse/search" target="_blank">
+							<label>Search</label>
+						<input name="s" type="hidden" value= 4310368124779342000 ><input type="text" name="q" size="30" placeholder="搜索"><br>
+						</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2022/03/20/43-k8s/" title="一文理解 K8s 容器网络虚拟化" itemprop="url">一文理解 K8s 容器网络虚拟化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2022-03-20T13:00:00.000Z" itemprop="datePublished"> 发表于 2022-03-20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 <code>v4.19.215</code> 版本为准。</p>
+<h1 id="内核网络包接收流程"><a href="#内核网络包接收流程" class="headerlink" title="内核网络包接收流程"></a>内核网络包接收流程</h1><h2 id="从网卡到内核协议栈"><a href="#从网卡到内核协议栈" class="headerlink" title="从网卡到内核协议栈"></a>从网卡到内核协议栈</h2><p><img src="/images/43/1.png"></p>
+<span id="more"></span>
+
+<p>如图[1]，网络包到达 NC（Network Computer，本文指物理机）时，由 NIC（Network Interface Controller，网络接口控制器，俗称网卡）设备处理，NIC 以中断的方式向内核传递消息。Linux 内核的中断处理分为上半部（<code>Top Half</code>）和下半部（<code>Bottom Half</code>）。上半部需要尽快处理掉和硬件相关的工作并返回，下半部由上半部激活来处理后续比较耗时的工作。</p>
+<p>具体到 NIC 的处理流程如下：当 NIC 收到数据时，会以 DMA 方式将数据拷贝到 Ring Buffer (接收队列) 里描述符指向的映射内存区域，拷贝完成后会触发中断通知 CPU 进行处理。这里可以使用 <code>ethtool -g &#123;设备名，如eth0&#125;</code> 命令查看 <code>RX/TX</code> （接收&#x2F;发送）队列的大小。CPU 识别到中断后跳转到 NIC 的中断处理函数开始执行。此时要区分 NIC 的工作模式，在早先的非 NAPI（New API）[2]模式下，中断上半部更新相关的寄存器信息，查看接收队列并分配 <code>sk_buff</code> 结构指向接收到的数据，最后调用 <code>netif_rx()</code> 把 <code>sk_buff</code> 递交给内核处理。在 <code>netif_rx()</code> 的函数的流程中，这个分配的 <code>sk_buff</code> 结构被放入 <code>input_pkt_queue</code> 队列后，会把一个虚拟设备加入<code>poll_list</code> 轮询队列并触发软中断 <code>NET_RX_SOFTIRQ</code> 激活中断下半部。此时中断上半部就结束了，详细的处理流程可以参见 <a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v4.19.215/source/net/core/dev.c">net&#x2F;core&#x2F;dev.c</a> 的 <code>netif_rx()</code> -&gt; <code>netif_rx_internal()</code> -&gt; <code>enqueue_to_backlog()</code> 过程。下半部 <code>NET_RX_SOFTIRQ</code> 软中断对应的处理函数是 <code>net_rx_action()</code>，这个函数会调用设备注册的 <code>poll()</code> 函数进行处理。非 NAPI 的情况下这个虚拟设备的 <code>poll()</code> 函数固定指向 <code>process_backlog()</code> 函数。这个函数将 <code>sk_buff</code> 从 <code>input_pkt_queue</code> 移动到 <code>process_queue</code> 中，调用 <code>__netif_receive_skb()</code> 函数将其投递给协议栈，最后协议栈相关代码会根据协议类型调用相应的接口进行后续的处理。特别地，这里的 <code>enqueue_to_backlog()</code> 以及 <code>process_backlog()</code> 函数也用于和启用了 RPS 机制后的相关逻辑。</p>
+<p><img src="/images/43/2.png"></p>
+<p>非 NAPI（New API）模式下每个网络包的到达都会触发一次中断处理流程，这么做降低了整体的处理能力，已经过时了。现在大多数 NIC 都支持 NAPI 模式了。NAPI 模式下在首包触发 NIC 中断后，设备就会被加入轮询队列进行轮询操作以提升效率，轮询过程中不会产生新的中断。为了支持 NAPI，每个 CPU 维护了一个叫 <code>softnet_data</code> 的结构，其中有一个 <code>poll_list</code> 字段放置所有的轮询设备。此时中断上半部很简单，只需要更新 NIC 相关的寄存器信息，以及把设备加入<code>poll_list</code> 轮询队列并触发软中断 <code>NET_RX_SOFTIRQ</code> 就结束了。 中断下半部的处理依旧是 <code>net_rx_action()</code> 来调用设备驱动提供的 <code>poll()</code> 函数。只是 <code>poll()</code> 此时指向的就是设备驱动提供的轮询处理函数了（而不是非 NAPI 模式下的内核函数 <code>process_backlog()</code>）。这个设备驱动提供的轮询 <code>poll()</code> 函数最后也会调用 <code>__netif_receive_skb()</code> 函数把 <code>sk_buff</code> 提交给协议栈处理。</p>
+<p>非 NAPI 模式和 NAPI 模式下的流程对比如下（其中灰色底色是设备驱动要实现的，其他都是内核自身的实现）：</p>
+<p> <img src="/images/43/3.png"></p>
+<p>关于 NAPI 模式网络设备驱动的实现以及详细的 NAPI 模式的处理流程，这里提供一篇文章和其译文作为参考[3]（强烈推荐）。这篇文章很详细的描述了 <code>Intel Ethernet Controller I350</code> 这个 NIC 设备的收包和处理细节（其姊妹篇发包处理过程和译文[4]）。另外收包这里还涉及到多网卡的 Bonding 模式（可以在<code>/proc/net/bonding/bond0</code> 里查看模式）、网络多队列（<code>sudo lspci -vvv</code> 查看 <code>Ethernet controller</code> 的 <code>Capabilities</code>信息里有 <code>MSI-X: Enable+ Count=10</code> 字样说明 NIC 支持，可以在 <code>/proc/interrupts</code> 里查看中断绑定情况）等机制。这些本文都不再赘述，有兴趣的话请参阅相关资料[5]。</p>
+<h2 id="内核协议栈网络包处理流程"><a href="#内核协议栈网络包处理流程" class="headerlink" title="内核协议栈网络包处理流程"></a>内核协议栈网络包处理流程</h2><p>前文说到 NIC 收到网络包构造出的 <code>sk_buff</code> 结构最终被 <code>__netif_receive_skb()</code> 提交给了内核协议栈解析处理。这个函数首先进行 RPS[5] 相关的处理，数据包会继续在队列里转一圈（一般开启了 RSS 的网卡不需要开启 RPS）。如果需要分发包到其他 CPU 去处理，则会使用 <code>enqueue_to_backlog()</code> 投递给其他 CPU 的队列，并在 <code>process_backlog()</code>) 中触发 IPI（Inter-Processor Interrupt，处理器间中断，于 APIC 总线上传输，并不通过 IRQ）给其他 CPU 发送通知（<code>net_rps_send_ipi()</code>函数）。</p>
+<p>最终，数据包会由 <code>__netif_receive_skb_core()</code> 进行下一阶段的处理。这个处理函数主要的功能有：</p>
+<ul>
+<li>处理<code>ptype_all</code> 上所有的 <code>packet_type-&gt;func()</code>，典型场景是 <code>tcpdump</code> 等工具的抓包回调（<code>paket_type.type</code> 为 <code>ETH_P_ALL</code>，<code>libcap</code> 使用 <code>AF_PACKET</code> Address Family）</li>
+<li>处理 VLAN（Virtual Local Area Network，虚拟局域网）报文 <code>vlan_do_receive()</code> 以及<strong>处理网桥的相关逻辑（</strong><code>skb-&gt;dev-&gt;rx_handler()</code> 指向了 <code>br_handle_frame()</code><strong>）</strong></li>
+<li>处理 <code>ptype_base</code>上所有的 <code>packet_type-&gt;func()</code> , 将数据包传递给上层协议层处理，例如指向 IP 层的回调 <code>ip_rcv()</code> 函数</li>
+</ul>
+<p>截至目前，数据包仍旧在数据链路层的处理流程中。这里复习下 OSI 七层模型与 TCP&#x2F;IP 五层模型：</p>
+<p><img src="/images/43/4.png"></p>
+<p>在网络分层模型里，后一层即为前一层的数据部分，称之为载荷（Payload）。一个完整的 TCP&#x2F;IP 应用层数据包的格式如下[6]：</p>
+<p><img src="/images/43/5.png"></p>
+<p><code>__netif_receive_skb_core()</code> 的处理逻辑中需要关注的是网桥和接下来 IP 层以及 TCP&#x2F;UDP 层的处理。首先看 IP 层，<code>__netif_receive_skb_core()</code> 调用 <code>deliver_skb()</code>，后者调用具体协议的 <code>.func()</code> 接口。对于 IP 协议，这里指向的是 <code>ip_rcv()</code> 函数（<a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/v4.19.215/source/net/ipv4/ip_input.c#L516">net&#x2F;ipv4&#x2F;ip_input.c</a>）。这个函数做了一些统计和检查之后，就把包转给了 Netfilter [7]框架并指定了函数 <code>ip_rcv_finish()</code> 进行后续的处理（如果包没被 Netfilter 丢弃）。经过路由子系统检查处理后，如果包是属于本机的，那么会调用 <code>ip_local_deliver()</code> 将数据包继续往上层协议转发。这个函数类似之前的逻辑，依旧是呈递给 Netfilter 框架并指定函数 <code>ip_local_deliver_finish()</code> 进行后续的处理，这个函数最终会检查和选择对应的上层协议接口进行处理。</p>
+<p>常见的上层协议比如 TCP 或者 UDP 协议的流程不在本文讨论的范围内，仅 TCP 的流程所需要的篇幅足以超过本文所有的内容。这里给出 TCP 协议（v4）的入口函数 <code>tcp_v4_rcv()</code> 以及 UDP 协议的入口函数 <code>udp_rcv()</code> 作为指引自行研究，也可以阅读其他的资料进行进一步的了解[9]。</p>
+<h2 id="Netfilter-x2F-iptables-与-NAT（网络地址转换）"><a href="#Netfilter-x2F-iptables-与-NAT（网络地址转换）" class="headerlink" title="Netfilter&#x2F;iptables 与 NAT（网络地址转换）"></a>Netfilter&#x2F;iptables 与 NAT（网络地址转换）</h2><p>关于 Netfilter 框架需要稍微着重的强调一下，因为后文要提到的网络策略和很多服务透出的实现都要使用 Netfilter 提供的机制。</p>
+<p>Netfilter 是内核的包过滤框架（Packet Filtering Framework）的实现。简单说就是在协议栈的各个层次的包处理函数中内置了很多的 Hook 点来支持在这些点注册回调函数。</p>
+<p><img src="/images/43/6.png"></p>
+<p>图片来自 Wikimedia，可以点开参考文献[8]查看大图（svg 矢量图，可以调大网页显示百分比继续放大）。</p>
+<p>Linux 上最常用的防火墙 iptables 即是基于 Netfilter 来实现的（nftables 是新一代的防火墙）。iptables 基于表和链（Tables and Chains）的概念来组织规则。注意这里不要被“防火墙”这个词误导了，iptables 所能做的不仅仅是对包的过滤（Filter Table），还支持对包进行网络地址转换（NAT Table）以及修改包的字段（Mangle Table）。在网络虚拟化里，用的最多的便是 NAT 地址转换功能。通常此类功能一般在网关网络设备或是负载均衡设备中很常见。当 NC 需要在内部进行网络相关的虚拟化时，也是一个类似网关以及负载均衡设备了。</p>
+<p>在设置 iptables 的 NAT 规则前，还需要打开内核的包转发功能 <code>echo &quot;1&quot; &gt; /proc/sys/net/ipv4/ip_forward</code> 才可以。另外建议也打开 <code>echo &quot;1&quot; /proc/sys/net/bridge/bridge-nf-call-iptables</code> 开关（可能需要 <code>modprobe br_netfilter</code>）。bridge-nf-call-iptables 从上面的源码分析就能理解，网桥的转发处理是在 Netfilter 规则之前的。所以默认情况下二层网桥的转发是不会受到三层 iptables 的限制的，但是很多虚拟化网络的实现需要 Netfilter 规则生效，所以内核也支持了让网桥的转发逻辑也调用一下 Netfilter 的规则。这个特性默认情况不开启，所以需要检查开关。至于具体的 iptables 命令，可以参考这篇文章和其译文[10]进行了解，本文不再讨论。</p>
+<p>这里强调下，Netfilter 的逻辑运行在内核软中断上下文里。如果 Netfilter 添加了很多规则，必然会造成一定的 CPU 开销。下文在提到虚拟化网络的性能降低时，很大一部分开销便是源自这里。</p>
+<h1 id="虚拟网络设备"><a href="#虚拟网络设备" class="headerlink" title="虚拟网络设备"></a>虚拟网络设备</h1><p>在传统的网络认知里，网络就是由带有一个或多个 NIC 的一组 NC 使用硬件介质和 switch（交换机）、Router（路由器）所组成的一个通信集合（图片来自 [11]，下同）:</p>
+<p><img src="/images/43/7.png"></p>
+<p>网络虚拟化作为 SDN（Software Defined Network，软件定义网络）的一种实现，无非就是虚拟出 vNIC（虚拟网卡）、vSwitch（虚拟交换机）、vRouter（虚拟路由器）等设备，配置相应的数据包流转规则而已。其对外的接口必然也是符合其所在的物理网络协议规范的，比如 Ethernet 和 TCP&#x2F;IP 协议族。</p>
+<p><img src="/images/43/8.png"></p>
+<p>随着 Linux 网络虚拟化技术的演进，有了若干种虚拟化网络设备，在虚拟机和虚拟容器网络中得到了广泛的应用。典型的有 Tap&#x2F;Tun&#x2F;Veth、Bridge 等：</p>
+<ul>
+<li>Tap&#x2F;Tun 是 Linux 内核实现的一对虚拟网络设备，Tap&#x2F;Tun 分别工作在二层&#x2F;三层。Linux 内核通过 Tap&#x2F;Tun 设备和绑定该设备的用户空间之间交换数据。基于 Tap 驱动即可实现虚拟机 vNIC 的功能，Tun 设备做一些其他的转发功能。</li>
+<li>Veth 设备总是成对创建（Veth Pair），一个设备收到内核发送的数据后，会发送到另一个设备上去，可以把 Veth Pair 可以想象成一对用网线连接起来的 vNIC 设备。</li>
+<li>Bridge 是工作在二层的虚拟网桥。传统的网桥<del>只有2个口</del>（@辟拾 同学指出来，传统的有些也是多个口的），但这是虚拟设备，虽然叫网桥，但其实类似 vSwitch 的设计。当 Bridge 配合 Veth 设备使用时，可以将 Veth 设备的一端绑定到一个Bridge 上，相当于真实环境把一个 NIC 接入一个交换机里。</li>
+</ul>
+<p>虚拟机和容器的网络在传输流程上有些区别，前者比如 KVM 一般是使用 Tap 设备将虚拟机的 vNIC 和宿主机的网桥 Bridge 连接起来。而容器的 Bridge 网络模式是将不同 Namespace 里的 Veth Pair 连接网桥 Bridge 来实现通信（其他方式下文讨论）。</p>
+<p>Linux Bridge 配合桥接或者 NAT 模式很容易可以实现同主机或跨主机的虚拟机&#x2F;容器之间通信，而且 Bridge 本身也支持 VLAN 的配置，可以实现一些三层交换机的能力。但是很多厂商都在研发功能更丰富的虚拟交换机，流行的有 Cisco Nexus 1000V、 VMware Virtual Switch 以及广泛使用的开源的 Open vSwitch[12] 等。利用 vSwitch，可以构建出支持更多封装协议、更高级的虚拟网络：</p>
+<p><img src="/images/43/9.png"></p>
+<h2 id="Linux-Bridge-Veth-Pair-转发"><a href="#Linux-Bridge-Veth-Pair-转发" class="headerlink" title="Linux Bridge + Veth Pair 转发"></a>Linux Bridge + Veth Pair 转发</h2><p>VRF（Virtual Routing and Forwarding，虚拟路由转发）在网络领域中是个很常见的术语。上世纪九十年代开始，很多二层交换机上就能创建出 4K 的 VLAN 广播域了。4K 是因为 VLAN 标签的格式遵循 802.1q 标准，其中定义的 VLAN ID 是 12 位的缘故（802.1q in 802.1q 可以做到 4094*4094 个，0 和 4095 保留）。如今 VRF 概念被引入三层，单个物理设备上也可以有多个虚拟路由&#x2F;转发实例了。Linux 的 <a target="_blank" rel="noopener" href="https://lwn.net/Articles/632522/">VRF</a> 实现了对三层的网络协议栈的虚拟，而 Network Namespace（以下简称 netns）虚拟了整个网络栈。一个 netns 的网络栈包括：网卡（Network Interface）、回环设备（Loopback Device）、路由表（Routing Table）和 iptables 规则。本文使用 netns 进行演示（毕竟在讨论容器），下文使用 <code>ip</code>[14] 命令创建和管理  netns  以及 Veth Pair 设备。</p>
+<p>前文说过要开启内核路由转发支持，这里就先开启了，以免影响后面实验：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">确认路由转发开启</span></span><br><span class="line">echo &quot;1&quot; &gt; /proc/sys/net/ipv4/ip_forward</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建、查看、删除-Network-Namespace"><a href="#创建、查看、删除-Network-Namespace" class="headerlink" title="创建、查看、删除 Network Namespace"></a>创建、查看、删除 Network Namespace</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建名为 qianyi-test-1 和 add qianyi-test-2 的命名 netns，可以在 /var/run/netns/ 下查看</span></span><br><span class="line">ip netns add qianyi-test-1</span><br><span class="line">ip netns add qianyi-test-2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看所有的 Network Namespace</span></span><br><span class="line">ip netns list</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除 Network Namespace</span></span><br><span class="line">ip netns del qianyi-test-1</span><br><span class="line">ip netns del qianyi-test-2</span><br></pre></td></tr></table></figure>
+
+<p>执行结果如图（删除先不执行）：</p>
+<p><img src="/images/43/10.png"></p>
+<p>有兴趣的话可以使用 <code>strace</code> 命令跟踪这个创建过程看看 <code>ip</code> 命令是怎么创建的（<code>strace ip netns add qianyi-test-1</code>）。</p>
+<h3 id="在-netns-中执行命令"><a href="#在-netns-中执行命令" class="headerlink" title="在 netns 中执行命令"></a>在 netns 中执行命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">在 qianyi-test-1 这个 netns 中执行 ip addr 命令（甚至可以直接执行 bash 命令得到一个 shell）</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">nsenter 这个命令也很好用，可以 man nsenter 了解</span></span><br><span class="line">ip netns exec qianyi-test-1 ip addr</span><br></pre></td></tr></table></figure>
+
+<p>执行结果如下：</p>
+<p><img src="/images/43/11.png"></p>
+<p>这个新创建的 netns 里一贫如洗，只有一个孤独的 lo 网卡，还是 DOWN 状态的。下面开启它：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">开启 lo 网卡，这个很重要</span></span><br><span class="line">ip netns exec qianyi-test-1 ip link set dev lo up</span><br><span class="line">ip netns exec qianyi-test-2 ip link set dev lo up</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/43/12.png"></p>
+<p>状态变成了 UNKOWN，这是正常的。这个状态是驱动提供的，但是 lo 的驱动没有做这个事情，这里有个修复的<a target="_blank" rel="noopener" href="https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=754987#89">建议</a>，但是貌似还有别的问题。</p>
+<h3 id="创建-Veth-Pair-设备"><a href="#创建-Veth-Pair-设备" class="headerlink" title="创建 Veth Pair 设备"></a>创建 Veth Pair 设备</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">分别创建 2 对名为 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 的 Veth Pair 设备</span></span><br><span class="line">ip link add veth-1-a type veth peer name veth-1-b</span><br><span class="line">ip link add veth-2-a type veth peer name veth-2-b</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>ip addr</code> 命令可以查看：</p>
+<p><img src="/images/43/13.png"></p>
+<p>8-9，10-11 便是上面创建出来的 2 对 Veth Pair 设备，此时它们都没有分配 IP 地址且是 DOWN 状态。</p>
+<h3 id="将-Veth-Pair-设备加入-netns"><a href="#将-Veth-Pair-设备加入-netns" class="headerlink" title="将 Veth Pair 设备加入 netns"></a>将 Veth Pair 设备加入 netns</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-a 设备加入 qianyi-test-1 这个 netns</span></span><br><span class="line">ip link set veth-1-a netns qianyi-test-1</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-b 设备加入 qianyi-test-2 这个 netns</span></span><br><span class="line">ip link set veth-1-b netns qianyi-test-2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为设备添加 IP 地址/子网掩码并开启</span></span><br><span class="line">ip netns exec qianyi-test-1 ip addr add 10.0.0.101/24 dev veth-1-a</span><br><span class="line">ip netns exec qianyi-test-1 ip link set dev veth-1-a up</span><br><span class="line"></span><br><span class="line">ip netns exec qianyi-test-2 ip addr add 10.0.0.102/24 dev veth-1-b</span><br><span class="line">ip netns exec qianyi-test-2 ip link set dev veth-1-b up</span><br></pre></td></tr></table></figure>
+<p>此时我们分别在两个 netns 中执行 <code>ip addr</code> 命令，即可看到设备已经存在，且路由表（<code>route</code> 或 <code>ip route</code> 命令）也被默认创建了：</p>
+<p><img src="/images/43/14.png"></p>
+<p>这里操作和查看设备都必须采用 <code>ip netns exec &#123;...&#125;</code> 的方式进行，如果命令很多，也可以把执行的命令换成 <code>bash</code>，这样可以方便的在这个 shell 里对该 netns 进行操作。</p>
+<p>现在通过 veth-1-a&#x2F;veth-1-b 这对 Veth Pair 联通了 qianyi-test-1 和 qianyi-test-2 这两个 netns，这两个 netns 之间就可以通过这两个 IP 地址相互访问了。</p>
+<p><img src="/images/43/15.png"></p>
+<p>ping 的同时在 101 上抓包的结果如下：</p>
+<p><img src="/images/43/16.png"></p>
+<p>可以很清楚的看到，eth-1-a（10.0.0.101）先通过 ARP （Address Resolution Protocol，地址解析协议）询问 10.0.0.102 的 MAC 地址。得到回应后，就以 ICMP (Internet Control Message Protocol，Internet 报文控制协议) request 和 reply 了，这也正是 ping 使用的协议。</p>
+<p>ARP 解析的缓存信息也可以通过 <code>arp</code> 命令查看：</p>
+<p><img src="/images/43/17.png"></p>
+<p>此时的网络连接模式是这样的：</p>
+<p><img src="/images/43/18.png"></p>
+<p>这种连接模式，就很像是现实中把两个带有 NIC 的设备用网线连接起来，然后配置了相同网段的 IP 后彼此就可以通信了。那如果超过一个设备需要建立互联呢？现实中就需要交换机等网络设备了。还记得前文中说的 Linux 自带的 Bridge 么？接下来就使用 Bridge 机制建立网络。</p>
+<p>进行下面的试验前需要把 veth-1-a&#x2F;veth-1-b 这对 Veth Pair 从 qianyi-test-1 和 qianyi-test-2 移动回宿主机的 netns 里，恢复初始的环境。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">宿主机的 netns <span class="built_in">id</span> 是 1（有些系统可能不是，请查询相关系统的文档）</span></span><br><span class="line">ip netns exec qianyi-test-1 ip link set veth-1-a netns 1</span><br><span class="line">ip netns exec qianyi-test-2 ip link set veth-1-b netns 1</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-Linux-Bridge-并配置网络"><a href="#创建-Linux-Bridge-并配置网络" class="headerlink" title="创建 Linux Bridge 并配置网络"></a>创建 Linux Bridge 并配置网络</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建一个名为 br0 的 bridge 并启动（也可以使用 brctl 命令）</span></span><br><span class="line">ip link add br0 type bridge</span><br><span class="line">ip link set br0 up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 这两对 Veth Pair 的 a 端放入 qianyi-test-1 和 qianyi-test-2</span></span><br><span class="line">ip link set veth-1-a netns qianyi-test-1</span><br><span class="line">ip link set veth-2-a netns qianyi-test-2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为 veth-1-a 和 veth-2-a 配置 IP 并开启</span></span><br><span class="line">ip netns exec qianyi-test-1 ip addr add 10.0.0.101/24 dev veth-1-a</span><br><span class="line">ip netns exec qianyi-test-1 ip link set dev veth-1-a up</span><br><span class="line"></span><br><span class="line">ip netns exec qianyi-test-2 ip addr add 10.0.0.102/24 dev veth-2-a</span><br><span class="line">ip netns exec qianyi-test-2 ip link set dev veth-2-a up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 这两对 Veth Pair 的 b 端接入 br0 网桥并开启接口</span></span><br><span class="line">ip link set veth-1-b master br0</span><br><span class="line">ip link set dev veth-1-b up</span><br><span class="line">ip link set veth-2-b master br0</span><br><span class="line">ip link set dev veth-2-b up</span><br></pre></td></tr></table></figure>
+
+<p>执行完可以查看创建好的网桥和配置好的 IP，实际上 <code>brctl show</code> 命令显示的结果更易懂，可以很清楚的看到 veth-1-b 和 veth-2-b 连接在了网桥的接口上。当 Veth Pair 的一端连接在网桥上时，就会从“网卡”退化成一个“水晶头”。</p>
+<p><img src="/images/43/19.png"></p>
+<p>当下模式抓包的结果并没有什么区别，但网络连接模式不同：</p>
+<p><img src="/images/43/20.png"></p>
+<p>按照这个模式，如果有更多的 Network Namespace 和 Veth Pair 的话，使用相同的方式添加就可以水平扩展了。</p>
+<p>但是尝试从 qianyi-test-1 中 ping 宿主机自然是不通的，因为没有任何网络规则可以访问到宿主机的网络：</p>
+<p><img src="/images/43/21.png"></p>
+<p>上面的截图中有个 docker0 的网桥。当机器上安装了 Docker 之后会被自动设置好这个网桥供 Docker 使用。可能你注意到了，这个名为 docker0 的网桥居然是有 IP 地址的。现实中的网桥自然是没有 IP 的，但是 Linux Bridge 这个虚拟设备是可以设置的。当 Bridge 设置 IP 之后，就可以将其设置成这个内部网络的网关（Gateway），再配合路由规则就可以实现最简单的虚拟网络跨机通信了（类似现实中的三层交换机）。</p>
+<p>下面继续给 br0 网桥创建地址并在 veth-1-a 和 veth-2-a 上设置其为默认的网关地址：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为 br0 设置 IP 地址</span></span><br><span class="line">ip addr add local 10.0.0.1/24 dev br0</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为 veth-1-a 和 veth-2-a 设置默认网关</span></span><br><span class="line">ip netns exec qianyi-test-1 ip route add default via 10.0.0.1</span><br><span class="line">ip netns exec qianyi-test-2 ip route add default via 10.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>此时就能成功的访问宿主机地址了（宿主机上的路由表在 <code>ip link set br0 up</code> 这一步自动创建了）：</p>
+<p><img src="/images/43/22.png"></p>
+<p>网络模型进一步变成了这样：</p>
+<p><img src="/images/43/23.png"></p>
+<p>如果此时，另一台宿主机上也存在另一个网段的网桥和若干个 netns 的话，怎么让他们互通呢？分别在两边宿主机上配置一条到目的宿主机的路由规则就好了。假设另一台宿主机的 IP 地址是 10.97.212.160，子网是 10.0.1.0&#x2F;24 的话，那么需要在当前机器上加一条 <code>10.0.1.0/24 via 10.97.212.160</code> 的规则，10.97.212.160 上加一条 <code>10.0.0.0/24 via 10.97.212.159</code> 的规则就可以了（或者 iptables 配置 SNAT&#x2F;DNAT 规则）。那如果有 N 台呢？那就会是个 N * N 条的规则，会很复杂。这就一个简单的 Underlay 模式的容器通信方案了。缺点也很明显，要求对宿主机底层网络有修改权，且比较难和底层网络解耦。那如果能在物理网络上构建出一个横跨所有宿主机的虚拟网桥，把所有相关的 netns 里面的设备都连接上去，不就可以解耦了么。这就是 Overlay Network（覆盖网络）方案，下文会进行阐述。至于本节其他虚拟网络设备的安装和配置（比如 Open vSwitch）也是比较类似的，这里不再赘述，有兴趣的话可以自行查看文档并测试。</p>
+<h2 id="Overlay-网络方案之-VXLAN"><a href="#Overlay-网络方案之-VXLAN" class="headerlink" title="Overlay 网络方案之 VXLAN"></a>Overlay 网络方案之 VXLAN</h2><p>VXLAN（Virtual eXtensible Local Area Network，虚拟可扩展局域网，RFC7348）[16]，VLAN 的扩展协议，是由 IETF 定义的 NVO3（Network Virtualization over Layer 3）标准技术之一（其他有代表性的还有 NVGRE、STT）。但是 VXLAN 和 VLAN 想要解决的问题是不一样的。VXLAN 本质上是一种隧道封装技术，它将数据链路层（L2）的以太网帧（Ethernet frames）封装成传输层（L4）的 UDP 数据报（Datagrams），然后在网络层（L3）中传输。效果就像数据链路层（L2）的以太网帧在一个广播域中传输一样，即跨越了三层网络却感知不到三层的存在。因为是基于 UDP 封装，只要是 IP 网络路由可达就可以构建出庞大的虚拟二层网络。也因为是基于高层协议再次封装，性能会比传统的网络低 20%~30% 左右（性能数据随着技术发展会有变化，仅代表当前水平）。</p>
+<p>这里简要介绍下 VXLAN 的 2 个重要概念：</p>
+<ul>
+<li>VTEP（VXLAN Tunnel Endpoints，VXLAN 隧道端点），负责 VXLAN 报文的封装和解封，对上层隐藏了链路层帧的转发细节</li>
+<li>VNI（VXLAN Network Identifier，VXLAN 网络标识符），代表不同的租户，属于不同 VNI 的虚拟网络之间不能直接进行二层通信。</li>
+</ul>
+<p>VXLAN 的报文格式如图[17]：</p>
+<p><img src="/images/43/24.png"></p>
+<p>Linux kernel v3.7.0 版本开始支持 VXLAN 网络。但为了稳定性和其他功能，请尽量选择 kernel v3.10.0 及之后的版本。下面我们使用 10.97.212.159 和 11.238.151.74 这两台机器创建一个测试的 VXLAN 网络。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.97.212.159 上操作</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建名为 qianyi-test-1 和 add qianyi-test-2 的命名 netns，可以在 /var/run/netns/ 下查看</span></span><br><span class="line">ip netns add qianyi-test-1</span><br><span class="line">ip netns add qianyi-test-2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">开启 lo 网卡，这个很重要</span></span><br><span class="line">ip netns exec qianyi-test-1 ip link set dev lo up</span><br><span class="line">ip netns exec qianyi-test-2 ip link set dev lo up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建一个名为 br0 的 bridge 并启动（也可以使用 brctl 命令）</span></span><br><span class="line">ip link add br0 type bridge</span><br><span class="line">ip link set br0 up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">分别创建 2 对名为 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 的 Veth Pair 设备</span></span><br><span class="line">ip link add veth-1-a type veth peer name veth-1-b</span><br><span class="line">ip link add veth-2-a type veth peer name veth-2-b</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 这两对 Veth Pair 的 a 端放入 qianyi-test-1 和 qianyi-test-2</span></span><br><span class="line">ip link set veth-1-a netns qianyi-test-1</span><br><span class="line">ip link set veth-2-a netns qianyi-test-2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为 veth-1-a 和 veth-2-a 配置 IP 并开启</span></span><br><span class="line">ip netns exec qianyi-test-1 ip addr add 10.0.0.101/24 dev veth-1-a</span><br><span class="line">ip netns exec qianyi-test-1 ip link set dev veth-1-a up</span><br><span class="line"></span><br><span class="line">ip netns exec qianyi-test-2 ip addr add 10.0.0.102/24 dev veth-2-a</span><br><span class="line">ip netns exec qianyi-test-2 ip link set dev veth-2-a up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-1-a/veth-1-b 和 veth-2-a/veth-2-b 这两对 Veth Pair 的 b 端接入 br0 网桥并开启接口</span></span><br><span class="line">ip link set veth-1-b master br0</span><br><span class="line">ip link set dev veth-1-b up</span><br><span class="line">ip link set veth-2-b master br0</span><br><span class="line">ip link set dev veth-2-b up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">11.238.151.74 上操作</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建名为 qianyi-test-3 和 add qianyi-test-4 的命名 netns，可以在 /var/run/netns/ 下查看</span></span><br><span class="line">ip netns add qianyi-test-3</span><br><span class="line">ip netns add qianyi-test-4</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">开启 lo 网卡，这个很重要</span></span><br><span class="line">ip netns exec qianyi-test-3 ip link set dev lo up</span><br><span class="line">ip netns exec qianyi-test-4 ip link set dev lo up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建一个名为 br0 的 bridge 并启动（也可以使用 brctl 命令）</span></span><br><span class="line">ip link add br0 type bridge</span><br><span class="line">ip link set br0 up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">分别创建 2 对名为 veth-3-a/veth-3-b 和 veth-4-a/veth-4-b 的 Veth Pair 设备</span></span><br><span class="line">ip link add veth-3-a type veth peer name veth-3-b</span><br><span class="line">ip link add veth-4-a type veth peer name veth-4-b</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-3-a/veth-3-b 和 veth-4-a/veth-4-b 这两对 Veth Pair 的 a 端放入 qianyi-test-3 和 qianyi-test-4</span></span><br><span class="line">ip link set veth-3-a netns qianyi-test-3</span><br><span class="line">ip link set veth-4-a netns qianyi-test-4</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为 veth-3-a 和 veth-4-a 配置 IP 并开启</span></span><br><span class="line">ip netns exec qianyi-test-3 ip addr add 10.0.0.103/24 dev veth-3-a</span><br><span class="line">ip netns exec qianyi-test-3 ip link set dev veth-3-a up</span><br><span class="line"></span><br><span class="line">ip netns exec qianyi-test-4 ip addr add 10.0.0.104/24 dev veth-4-a</span><br><span class="line">ip netns exec qianyi-test-4 ip link set dev veth-4-a up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将 veth-3-a/veth-3-b 和 veth-4-a/veth-4-b 这两对 Veth Pair 的 b 端接入 br0 网桥并开启接口</span></span><br><span class="line">ip link set veth-3-b master br0</span><br><span class="line">ip link set dev veth-3-b up</span><br><span class="line">ip link set veth-4-b master br0</span><br><span class="line">ip link set dev veth-4-b up</span><br></pre></td></tr></table></figure>
+
+<p>这一长串的命令和之前的步骤完全一致，构建了一个如下图所示的网络环境：</p>
+<p><img src="/images/43/25.png"></p>
+<p>这个环境里，10.0.0.101 和 10.0.0.102 是通的，10.0.0.103 和 10.0.0.104 也是通的，但是显然 10.0.0.101&#x2F;10.0.0.102 和 10.0.0.103&#x2F;10.0.0.104 是无法通信的。</p>
+<p>接下来配置 VXLAN 环境打通这四个 netns 环境：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.97.212.159 上操作（本机有多个地址时可以用 <span class="built_in">local</span> 10.97.212.159 指定）</span></span><br><span class="line">ip link add vxlan1 type vxlan id 1 remote 11.238.151.74 dstport 9527 dev bond0</span><br><span class="line">ip link set vxlan1 master br0</span><br><span class="line">ip link set vxlan1 up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">11.238.151.74 上操作（本机有多个地址时可以用 <span class="built_in">local</span> 11.238.151.74 指定）</span></span><br><span class="line">ip link add vxlan2 type vxlan id 1 remote 10.97.212.159 dstport 9527 dev bond0</span><br><span class="line">ip link set vxlan2 master br0</span><br><span class="line">ip link set vxlan2 up</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>brctl show br0</code> 命令可以看到两个 VXLAN 设备都连接上去了：</p>
+<p><img src="/images/43/26.png"></p>
+<p>然后从 10.0.0.101 上就可以 ping 通 10.0.0.103 了：</p>
+<p><img src="/images/43/27.png"></p>
+<p>在 10.0.0.101 上抓的包来看，就像是二层互通一样：</p>
+<p><img src="/images/43/28.png"></p>
+<p>直接查看 <code>arp</code> 缓存，也是和二层互通一模一样：</p>
+<p><img src="/images/43/29.png"></p>
+<p>使用 <code>arp -d 10.0.0.103</code> 删掉这个缓存项目，在宿主机上重新抓包并保存文件，然后用 WireShark 打开看看（因为上面设置的不是 VXLAN 默认端口 4789，还需要设置 WireShark 把抓到的 UDP 解析为 VXLAN 协议）：</p>
+<p><img src="/images/43/30.png"></p>
+<p>我们得到了预期的结果。此时的网络架构如图所示：</p>
+<p><img src="/images/43/31.png"></p>
+<p>那么问题来了，这里使用 UDP 协议能实现可靠通信吗？当然可以，可靠性不是这一层考虑的事情，而是里层被包裹的协议需要考虑的。完整的通信原理其实也并不复杂，两台机器上各自有 VTEP（VXLAN Tunnel Endpoints，VXLAN 隧道端点）设备，监听着 9527 端口上发送的 UDP 数据包。在收到数据包后拆解通过 Bridge 传递给指定的设备。那 VETP 这个虚拟设备怎么知道类似 10.0.0.3 这样的地址要发送给哪台机器上的 VETP 设备呢？这可是虚拟的二层网络，底层网络上可不认识这个地址。事实上在 Linux Bridge 上维护着一个名为 FDB（Forwarding Database entry）的二层转发表，用于保存远端虚拟机&#x2F;容器的 MAC 地址、远端 VTEP 的 IP，以及 VNI 的映射关系，可以通过 <code>bridge fdb</code> 命令来对 FDB 表进行操作：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">新增条目</span></span><br><span class="line">bridge fdb add &lt;remote_host_mac_addr&gt; dev &lt;vxlan_interface&gt; dst &lt;remote_host_ip_addr&gt;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除条目</span></span><br><span class="line">bridge fdb del &lt;remote_host_mac_addr&gt; dev &lt;vxlan_interface&gt;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">替换条目</span></span><br><span class="line">bridge fdb replace &lt;remote_host_mac_addr&gt; dev &lt;vxlan_interface&gt; dst &lt;remote_host_ip_addr&gt;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">显示条目</span></span><br><span class="line">bridge fdb show</span><br></pre></td></tr></table></figure>
+
+<p>上面这个简单的实验就 2 台机器，使用了命令的方式直接指定了彼此的 VTEP 地址，当 fdb 表查不到信息时发给对方就行了，这是最简单的互联模式。大规模 VXLAN 网络下，就需要考虑如何发现网络中其他的 VETP 地址了。解决这个问题一般有 2 种方式：一是使用组播&#x2F;多播（ IGMP, Internet Group Management Protocol），把节点组成一个虚拟的整体，包不清楚发给谁的话就广播给整个组了（上述实验中的创建 VETH 设备的命令修改为组播&#x2F;多播地址比如 <code>224.1.1.1</code> 就行，<code>remote</code> 关键字也要改成 <code>group</code>，具体请参阅其他资料）；二是通过外部的分布式控制中心来收集 FDB 信息并分发给同一个 VXLAN 网络的所有节点。组播&#x2F;多播受限于底层网络的支持情况和大规模下的的性能问题，比如很多云网络上不一定允许这么做。所以下文在讨论和研究 K8s 的网络方案时会看到很多网络插件的实现采用的都是类似后者的实现方式。</p>
+<p>这节就介绍到这里了。当然 Overlay 网络方案也不止 VXLAN 这一种方式，只是目前很多主流的方案都采用了这种方式。其他的 Overlay 模式看上去眼花缭乱，其实说白了，无非就是 L2 over L4，L2 over L3，L3 over L3 等等各种包装方式罢了，懂了基本原理之后都没什么大不了的。网络虚拟化的设备和机制也有很多[18]，细说的话一天都说不完，但是基本的网络原理掌握之后，无非是各种协议包的流转罢了。</p>
+<h1 id="K8s-的网络虚拟化实现"><a href="#K8s-的网络虚拟化实现" class="headerlink" title="K8s 的网络虚拟化实现"></a>K8s 的网络虚拟化实现</h1><h2 id="K8s-的网络模型"><a href="#K8s-的网络模型" class="headerlink" title="K8s 的网络模型"></a>K8s 的网络模型</h2><blockquote>
+<p>每一个 Pod 都有它自己的 IP 地址，这就意味着你不需要显式地在每个 Pod 之间创建链接， 你几乎不需要处理容器端口到主机端口之间的映射。 这将创建一个干净的、向后兼容的模型，在这个模型里，从端口分配、命名、服务发现、 负载均衡、应用配置和迁移的角度来看，Pod 可以被视作虚拟机或者物理主机。</p>
+<p>Kubernetes 对所有网络设施的实施，都需要满足以下的基本要求（除非有设置一些特定的网络分段策略）：</p>
+<ul>
+<li>节点上的 Pod 可以不通过 NAT 和其他任何节点上的 Pod 通信</li>
+<li>节点上的代理（比如：系统守护进程、kubelet）可以和节点上的所有 Pod 通信</li>
+</ul>
+</blockquote>
+<p>备注：仅针对那些支持 Pods 在主机网络中运行的平台（比如：Linux）：</p>
+<blockquote>
+<ul>
+<li>那些运行在节点的主机网络里的 Pod 可以不通过 NAT 和所有节点上的 Pod 通信</li>
+</ul>
+<p>这个模型不仅不复杂，而且还和 Kubernetes 的实现廉价的从虚拟机向容器迁移的初衷相兼容， 如果你的工作开始是在虚拟机中运行的，你的虚拟机有一个 IP，这样就可以和其他的虚拟机进行通信，这是基本相同的模型。</p>
+<p>Kubernetes 的 IP 地址存在于 Pod 范围内 - 容器共享它们的网络命名空间 - 包括它们的 IP 地址和 MAC 地址。 这就意味着 Pod 内的容器都可以通过 localhost 到达各个端口。 这也意味着 Pod 内的容器都需要相互协调端口的使用，但是这和虚拟机中的进程似乎没有什么不同， 这也被称为“一个 Pod 一个 IP”模型。</p>
+</blockquote>
+<p>这几段话引用自 K8s 的官方文档[19]，简单概括下就是一个 Pod 一个独立的 IP 地址，所有的 Pod 之间可以不通过 NAT 通信。这个模型把一个 Pod 的网络环境近似等同于一个 VM 的网络环境。</p>
+<h2 id="K8s-的主流网络插件实现原理"><a href="#K8s-的主流网络插件实现原理" class="headerlink" title="K8s 的主流网络插件实现原理"></a>K8s 的主流网络插件实现原理</h2><p>K8s 中的网络是通过插件方式实现的，其网络插件有 2 种类型：</p>
+<ul>
+<li>CNI 插件：遵守 CNI（Container Network Interface，容器网络接口）规范，其设计上偏重互操作性</li>
+<li>Kubenet 插件：使用 bridge 和 host-local CNI 插件实现了基本的 cbr0</li>
+</ul>
+<p><img src="/images/43/32.png"></p>
+<p>图片来自[20]，本文只关注 CNI 接口插件。主流的 K8s 网络插件有这些[21]，本文选出 github star 数在千以上的几个项目分析下：</p>
+<ul>
+<li>Flannel：<a target="_blank" rel="noopener" href="https://github.com/flannel-io/flannel">https://github.com/flannel-io/flannel</a></li>
+<li>Calico：<a target="_blank" rel="noopener" href="https://github.com/projectcalico/calico">https://github.com/projectcalico/calico</a></li>
+<li>Cilium：<a target="_blank" rel="noopener" href="https://github.com/cilium/cilium">https://github.com/cilium/cilium</a></li>
+</ul>
+<h3 id="Flannel"><a href="#Flannel" class="headerlink" title="Flannel"></a>Flannel</h3><p>CNI 是由 CoreOS 提出的规范，那就先看下 CoreOS 自己的 Flannel 项目的设计。Flannel 会在每台机宿主机上部署一个名为 <code>flanneld</code> 的代理进程，网段相关的数据使用 Kubernetes API&#x2F;Etcd 存储。Flannel 项目本身是一个框架，真正为我们提供容器网络功能的，是 Flannel 的后端实现。</p>
+<p>目前的 Flannel 有下面几种后端实现：VXLAN、host-gw、UDP 以及亚马逊、谷歌、阿里云、腾讯云四家的支持后端（云厂商都是实验性支持），还有诸如 IPIP、IPSec 等一些隧道通信的实验性支持。按照官方文档的建议是优先使用 VXLAN 模式，host-gw 推荐给经验丰富且想要进一步提升性能的用户（云环境通常不能用，原因后面说），UDP 是 Flannel 最早支持的一种性能比较差的方案，基本上已经弃用了。</p>
+<p>下文分别对这三种模式进行分析。</p>
+<h4 id="VXLAN"><a href="#VXLAN" class="headerlink" title="VXLAN"></a>VXLAN</h4><p>使用 Linux 内核 VXLAN 封装数据包的方式和原理上文已经介绍过了，Flannel 创建了一个名为 flannel.1 的 VETH 设备。因为 <code>flanneld</code> 进程的存在，所以注册和更新新的 VETH 设备关系的任务就依靠这个进程了。所以好像也没什么需要说的了，就是每个新的 K8s Node 都会创建 <code>flanneld</code> 这个 DeamonSet 模式的守护进程。然后注册、更新新的 VETH 设备就变得非常自然了，全局的数据自然也是保存在 Etcd 里了。这种方式图已经画过了，无非是设备名字不一样（VETH 叫 flannel.1，网桥叫 cni0）而已。</p>
+<h4 id="host-gw"><a href="#host-gw" class="headerlink" title="host-gw"></a>host-gw</h4><p>顾名思义，host-gw 就是把宿主机 Host 当做 Gateway 网关来处理协议包的流动。这个方式上文其实也演示过了，至于节点的变化和路由表的增删也是依靠 <code>flanneld</code> 在做的。这个方案优缺点都很明显，最大的优点自然是性能，实打实的直接转发（性能整体比宿主机层面的通信低 10%，VXLAN 可是20% 起步，甚至 30%）。缺点也很明显，这种方式要求宿主机之间是二层连通的，还需要对基础设施有掌控权（编辑路由表），这个在云服务环境一般较难实现，另外规模越来越大时候的路由表规模也会随之增大。这种方式原理上比较简单，图不画了。</p>
+<h4 id="UDP"><a href="#UDP" class="headerlink" title="UDP"></a>UDP</h4><p>每台宿主机上的 <code>flanneld</code> 进程会创建一个默认名为 flannel0 的 Tun 设备。Tun 设备的功能非常简单，用于在内核和用户应用程序之间传递 IP 包。内核将一个 IP 包发送给 Tun 设备之后，这个包就会交给创建这个设备的应用程序。而进程向 Tun 设备发送了一个 IP 包，那么这个 IP 包就会出现在宿主机的网络栈中，然后根据路由表进行下一跳的处理。在由 Flannel 管理的容器网络里，一台宿主机上的所有容器都属于该宿主机被分配的一个“子网”。这个子网的范围信息，所属的宿主机 IP 地址都保存在 Etcd 里。<code>flanneld</code> 进程均监听着宿主机上的 UDP 8285 端口，相互之间通过 UDP 协议包装 IP 包给目的主机完成通信。之前说过这个模式性能差，差在哪里？这个方案就是一个在应用层模拟实现的 Overlay 网络似得（像不像一个用户态实现的 VETH 设备？），数据包相比内核原生支持的 VXLAN 协议在用户态多了一次进出（<code>flanneld</code> 进程封包&#x2F;拆包过程），所以性能上损失要大一些。</p>
+<p><img src="/images/43/33.png"></p>
+<h3 id="Calico"><a href="#Calico" class="headerlink" title="Calico"></a>Calico</h3><p>Calico 是个挺有意思的项目，基本思想是把宿主机完全当成路由器，不使用隧道或 NAT 来实现转发，把所有二三层流量转换成三层流量，并通过宿主机上的路由配置完成包的转发。</p>
+<p>Calico 和之前说的 Flannel 的 host-gw 模式区别是什么？首先 Calico 不使用网桥，而是通过路由规则在不同的 vNiC 间转发数据。另外路由表也不是靠 Etcd 存储和通知更新，而是像现实环境一样直接用 BGP（Border Gateway Protocol, 边界网关协议）进行路由表数据交换。BGP 挺复杂的，详细的阐述这个协议有点费劲（而且我也不是很懂），在本文里只需要知道这个协议使得路由设备可以相互发送和学习对方的路由信息来充实自己就可以了，有兴趣的话请查阅其他资料进一步了解。回到 Calico，宿主机上依旧有个名为 <code>Felix</code> 的守护进程和一个名为 <code>BIRD</code>的 BGP 客户端。</p>
+<p>上文说过，Flannel 的 host-gw 模式要求宿主机二层是互通的（在一个子网），在 Calico 这里依然有这个要求。但是 Calico 为不在一个子网的环境提供了 IPIP 模式的支持。开启这个模式之后，宿主机上会创建一个 Tun 设备以 IP 隧道（IP tunnel）的方式通信。当然用了这个模式之后，包又是L3 over L3 的 Overlay 网络模式了，性能也和 VXLAN 模式相当。</p>
+<p>全路由表的通信方式也没有额外组件，配置好 IP 路由转发规则后全靠内核路由模块的流转来做。 IPIP 的架构图也是大同小异的，也不画了。</p>
+<h3 id="Cilium"><a href="#Cilium" class="headerlink" title="Cilium"></a>Cilium</h3><blockquote>
+<p>eBPF-based Networking, Security, and Observability</p>
+</blockquote>
+<p>光从这个介绍上就看出来 Cilium 散发出的那种与众不同的气息。这个项目目前的 Github Star 数字快过万了，直接力压前面两位。Cilium 部署后会在宿主机上创建一个名为 cilium-agent 的守护进程，这个进程的作用就是维护和部署 eBPF 脚本来实现所有的流量转发、过滤、诊断的事情（都不依赖 Netfilter 机制，kenel &gt; v4.19 版本）。从原理图的角度画出来的架构图很简单（配图来自 github 主页）：</p>
+<p><img src="/images/43/34.png"></p>
+<p>Cilium 除了支持基本的网络连通、隔离与服务透出之外，依托 eBPF 所以对宿主机网络有更好的观测性和故障排查能力。这个话题也很大，本文就此收住。这里给两几篇写的很好的文章何其译文可以进一步了解[22][23。</p>
+<h2 id="K8s-容器内访问隔离"><a href="#K8s-容器内访问隔离" class="headerlink" title="K8s 容器内访问隔离"></a>K8s 容器内访问隔离</h2><p>上文介绍了网络插件的机制和实现原理，最终可以构建出一个二层&#x2F;三层连通的虚拟网络。默认情况下 Pod 间的任何网络访问都是不受限的，但是内部网络中经常还是需要设置一些访问规则（防火墙）的。</p>
+<p>针对这个需求，K8s 抽象了一个名为 NetworkPolicy 的机制来支持这个功能。网络策略通过网络插件来实现，要使用网络策略就必须使用支持 NetworkPolicy 的网络解决方案。为什么这么说？因为不是所有的网络插件都支持 NetworkPolicy 机制，比如 Flannel 就不支持。至于 NetworkPolicy 的底层原理，自然是使用 iptables 配置 netfilter 规则来实现对包的过滤的。NetworkPolicy 配置的方法和 iptables&#x2F;Netfilter 的原理细节不在本文范围内，请参阅其他资料进行了解[24][25]。</p>
+<h2 id="K8s-容器内服务透出"><a href="#K8s-容器内服务透出" class="headerlink" title="K8s 容器内服务透出"></a>K8s 容器内服务透出</h2><p>在一个 K8s 集群内部，在网络插件的帮助下，所有的容器&#x2F;进程可以相互进行通信。但是作为服务提供方这是不够的，因为很多时候，服务的使用方不会在同一个 K8s 集群内的。那么就需要一种机制将这个集群内的服务对外透出。K8s 使用 Service 这个对象来完成这个能力的抽象。Service 在 K8s 里是个很重要的对象，即使在 K8s 内部进行访问，往往也是需要 Service 包装的（一来 Pod 地址不是永远固定的，二来总是会有负载均衡的需求）。</p>
+<p>一句话概括 Service 的原理就是：<strong>Service &#x3D; kube-proxy + iptables 规则</strong>。当一个 Service 创建时，K8s 会为其分配一个 Cluster IP 地址。这个地址其实是个 VIP，并没有一个真实的网络对象存在。这个 IP 只会存在于 iptables 规则里，对这个 VIP:VPort 的访问使用 iptables 的随机模式规则指向了一个或者多个真实存在的 Pod 地址（DNAT），这个是 Service 最基本的工作原理。那 kube-proxy 做什么？kube-proxy 监听 Pod 的变化，负责在宿主机上生成这些 NAT 规则。这个模式下 kube-proxy 不转发流量，kube-proxy 只是负责疏通管道。</p>
+<p>K8s 官方文档比较好的介绍了 kube-proxy 支持的多种模式和基本的原理[26]。早先的 userspace 模式基本上弃用了，上面所述的 iptables 随机规则的做法在大规模下也不推荐使用了（想想为什么）。现在最推荐的当属 IPVS 模式了，相对于前两种在大规模下的性能更好。如果说 IPVS 这个词比较陌生的话，LVS 这个词恐怕是我们耳熟能详的。在这个模式下，kube-proxy 会在宿主机上创建一个名为 kube-ipvs0 的虚拟网卡，然后分配 Service VIP 作为其 IP 地址。最后 kube-proxy 使用内核的 IPVS 模块为这个地址设置后端 POD 的地址（<code>ipvsadm</code> 命令可以查看）。其实 IPVS 在内核中的实现也是用了 Netfilter 的 NAT 机制。不同的是，IPVS 不会为每一个地址设置 NAT 规则，而是把这些规则的处理放到了内核态，保证了 iptables 规则的数量基本上恒定，比较好的解决了之前的问题。</p>
+<p>上面说的只是解决了负载均衡的问题，还没提到服务透出。K8s 服务透出的方式主要有 NodePort、LoadBalancer 类型的 Service（会调用 CloudProvider 在公有云上为你创建一个负载均衡服务）以及 ExternalName（kube-dns 里添加 CNAME）的方式。对于第二种类型，当 Service 繁多但是又流量很小的情况下，也可以使用 Ingress 这个 Service 的 Service 来收敛掉[27]。Ingress 目前只支持七层 HTTP(S) 转发（Service 目前只支持四层转发），从这个角度猜猜 Ingress 怎么实现的？来张图看看吧[28]（当然还有很多其他的 Controller[29]）：</p>
+<p><img src="/images/43/35.png"></p>
+<p>对于这部分，本文不再进行详细阐述了，无非就是 NAT，NAT 多了就想办法收敛 NAT 条目。按照惯例，这里给出一篇特别好的 kube-proxy 原理阐述的文章供进一步了解[30]（本来想自己写，但是看到这一篇，顿时觉得自己不可能写的更好了）。</p>
+<h1 id="写在后面"><a href="#写在后面" class="headerlink" title="写在后面"></a>写在后面</h1><p>网络虚拟化是个很大的话题，很难在一篇文章中完全讲清楚。尽管这篇文章尽量想把重要的知识节点编织清楚，但受限于作者本人的精力以及认知上的限制，可能存在疏忽甚至错漏。如有此类问题，欢迎在评论区讨论&#x2F;指正。另外文中凡是引用的图片均已注明出处，凡是未注明的均为作者本人原创，允许随意使用但请注明原始出处。参考文献里给出了很多不错的资料值得进一步去学习，在这里对原作者的付出表示感谢（部分地址受限于网络环境，可能需要<strong>特定的方式</strong>才能访问）。</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.semanticscholar.org/paper/TCP-Implementation-in-Linux-%3A-A-Brief-Tutorial-Bhuiyan-McGinley/f505e259fb0cd8cf3f75582d46cd209fd9cb1d1a">TCP Implementation in Linux: A Brief Tutorial</a>, Helali Bhuiyan, Mark McGinley, Tao Li, Malathi Veeraraghavan, University of Virginia</li>
+<li>NAPI, linuxfoundation, <a target="_blank" rel="noopener" href="https://wiki.linuxfoundation.org/networking/napi">https://wiki.linuxfoundation.org/networking/napi</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/">Monitoring and Tuning the Linux Networking Stack: Receiving Data</a>, Joe Damato，译文：<a target="_blank" rel="noopener" href="http://arthurchiao.art/blog/tuning-stack-rx-zh/">Linux 网络栈监控和调优：接收数据（2016）</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.packagecloud.io/eng/2017/02/06/monitoring-tuning-linux-networking-stack-sending-data/">Monitoring and Tuning the Linux Networking Stack: Sending Data</a>, Joe Damato, 译文：<a target="_blank" rel="noopener" href="http://arthurchiao.art/blog/tuning-stack-tx-zh/">Linux 网络栈监控和调优：发送数据（2017）</a></li>
+<li>Scaling in the Linux Networking Stack, <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/Documentation/networking/scaling.rst">https://github.com/torvalds/linux/blob/master/Documentation/networking/scaling.rst</a></li>
+<li><a target="_blank" rel="noopener" href="https://codeburst.io/understanding-tcp-internals-step-by-step-for-software-engineers-system-designers-part-1-df0c10b86449">Understanding TCP internals step by step for Software Engineers and System Designers</a>, Kousik Nath</li>
+<li>Netfilter, <a target="_blank" rel="noopener" href="https://www.netfilter.org/">https://www.netfilter.org/</a></li>
+<li>Netfilter-packet-flow, <a target="_blank" rel="noopener" href="https://upload.wikimedia.org/wikipedia/commons/3/37/Netfilter-packet-flow.svg">https://upload.wikimedia.org/wikipedia/commons/3/37/Netfilter-packet-flow.svg</a></li>
+<li>Analysis TCP in Linux, <a target="_blank" rel="noopener" href="https://github.com/fzyz999/Analysis_TCP_in_Linux">https://github.com/fzyz999/Analysis_TCP_in_Linux</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.karlrupp.net/en/computer/nat_tutorial">NAT - Network Address Translation</a>,  译文：<a target="_blank" rel="noopener" href="http://arthurchiao.art/blog/nat-zh/">NAT - 网络地址转换（2016）</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.ibm.com/tutorials/l-virtual-networking/">Virtual networking in Linux</a>, By M. Jones, IBM Developer</li>
+<li>Open vSwitch, <a target="_blank" rel="noopener" href="http://www.openvswitch.org/">http://www.openvswitch.org/</a></li>
+<li>Linux Namespace, <a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man7/namespaces.7.html">https://man7.org/linux/man-pages/man7/namespaces.7.html</a></li>
+<li>ip, <a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man8/ip.8.html">https://man7.org/linux/man-pages/man8/ip.8.html</a></li>
+<li>Veth, <a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man4/veth.4.html">https://man7.org/linux/man-pages/man4/veth.4.html</a></li>
+<li>VxLAN, <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Virtual_Extensible_LAN">https://en.wikipedia.org/wiki/Virtual_Extensible_LAN</a></li>
+<li>QinQ vs VLAN vs VXLAN, John, <a target="_blank" rel="noopener" href="https://community.fs.com/blog/qinq-vs-vlan-vs-vxlan.html">https://community.fs.com/blog/qinq-vs-vlan-vs-vxlan.htm</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#">Introduction to Linux interfaces for virtual networking</a>, Hangbin Liu</li>
+<li>Cluster Networking, <a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/concepts/cluster-administration/networking/">英文地址</a>, <a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/concepts/cluster-administration/networking/">中文地址</a></li>
+<li><a target="_blank" rel="noopener" href="https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/">THE CONTAINER NETWORKING LANDSCAPE: CNI FROM COREOS AND CNM FROM DOCKER</a>, Lee Calcote</li>
+<li>CNI - the Container Network Interface, <a target="_blank" rel="noopener" href="https://github.com/containernetworking/cni">https://github.com/containernetworking/cni</a></li>
+<li><a target="_blank" rel="noopener" href="https://linuxplumbersconf.org/event/4/contributions/458/">Making the Kubernetes Service Abstraction Scale using eBPF</a>, [译] <a target="_blank" rel="noopener" href="http://arthurchiao.art/blog/cilium-scale-k8s-service-with-bpf-zh/">利用 eBPF 支撑大规模 K8s Service (LPC, 2019)</a></li>
+<li><a target="_blank" rel="noopener" href="https://linuxplumbersconf.org/event/7/contributions/674/">K8s Service Load Balancing with BPF &amp; XDP</a>, [译] <a target="_blank" rel="noopener" href="http://arthurchiao.art/blog/cilium-k8s-service-lb-zh/">基于 BPF&#x2F;XDP 实现 K8s Service 负载均衡 (LPC, 2020)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/a-deep-dive-into-iptables-and-netfilter-architecture">A Deep Dive into Iptables and Netfilter Architecture</a>, Justin Ellingwood</li>
+<li><a target="_blank" rel="noopener" href="https://www.frozentux.net/iptables-tutorial/iptables-tutorial.html">Iptables Tutorial 1.2.2</a>, Oskar Andreasson</li>
+<li>Virtual IPs and service proxies, <a target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">英文地址</a>, <a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies">中文地址</a></li>
+<li>Ingress, <a target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/services-networking/ingress/">英文地址</a>，<a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/concepts/services-networking/ingress/">中文地址</a> </li>
+<li>NGINX Ingress Controller, <a target="_blank" rel="noopener" href="https://www.nginx.com/products/nginx-ingress-controller/">https://www.nginx.com/products/nginx-ingress-controller/</a></li>
+<li>Ingress Controllers, <a target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/">英文地址</a>，<a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/concepts/services-networking/ingress-controllers/">中文地址</a></li>
+<li><a target="_blank" rel="noopener" href="https://arthurchiao.art/blog/cracking-k8s-node-proxy/">Cracking kubernetes node proxy (aka kube-proxy)</a>, [译] <a target="_blank" rel="noopener" href="https://cloudnative.to/blog/k8s-node-proxy/">深入理解 Kubernetes 网络模型：自己实现 Kube-Proxy 的功能</a></li>
+</ol>
+  
+	</div>
+
+    <div>
+        <img src="http://www.0xffffff.org/img/alipay.png" style="width:200px; height:200px; display:block; margin:0 auto;">
+        <div class="post" style="text-align:center">赏杯咖啡鼓励下~</div>
+        <br>
+    </div>
+
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Linux/">Linux</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/k8s/">k8s</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="https://0xffffff.org/2022/03/20/43-k8s/" data-title="一文理解 K8s 容器网络虚拟化 | 浅墨的部落格" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2019/07/17/42-linux-memory-monitor/"  title="聊聊 Linux 的内存统计">
+ <strong>下一篇：</strong><br/> 
+ <span>聊聊 Linux 的内存统计
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>
+
+
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+  <div class="archiveslist">
+    <p class="asidetitle"><a href="/archives">归档</a></p>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+  </div>
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/CPU/" title="CPU">CPU<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/c/" title="c++">c++<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/x86架构/" title="x86架构">x86架构<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/内核/" title="内核">内核<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/基础知识/" title="基础知识">基础知识<sup>18</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/检验总结/" title="检验总结">检验总结<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/编程工具/" title="编程工具">编程工具<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/网络/" title="网络">网络<sup>2</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/读书笔迹/" title="读书笔迹">读书笔迹<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/基础知识/" title="基础知识">基础知识<sup>19</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/x86/" title="x86">x86<sup>9</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/CSAPP/" title="CSAPP">CSAPP<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/汇编/" title="汇编">汇编<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C/" title="C">C<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/源码分析/" title="源码分析">源码分析<sup>3</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/c/" title="c++">c++<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/个人总结/" title="个人总结">个人总结<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://jm.taobao.org/" target="_blank" title="阿里中间件团队">阿里中间件团队</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://preshing.com/" target="_blank" title="Jeff Preshing">Jeff Preshing</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me/" target="_blank" title="Jark Wu">Jark Wu</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://blog.yufeng.info/" target="_blank" title="褚霸">褚霸</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m Qianmo. <br/>
+			This is my blog, believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/hurley25" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		<a href="https://twitter.com/hurleyhades" target="_blank" class="icon-twitter" title="twitter"></a>
+		
+		
+		<a href="https://www.facebook.com/hurleyhades" target="_blank" class="icon-facebook" title="facebook"></a>
+		
+		
+		
+		
+		<a href="http://www.zhihu.com/people/qian-mo-32-16" target="_blank" class="icon-zhihu" title="知乎"></a>
+		
+		
+		
+		<a href="mailto:root@0xffffff.org" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+				<div class="cc-license">
+          <a href="http://creativecommons.org/licenses/by-nc-nd/4.0" class="cc-opacity" target="_blank">
+            <img src="/img/cc-by-nc-nd.svg" alt="Creative Commons" />
+          </a>
+        </div>
+    
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
+		
+		<a href="/about" target="_blank" title="浅墨">浅墨</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1261167282'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s23.cnzz.com/z_stat.php%3Fid%3D1261167282' type='text/javascript'%3E%3C/script%3E"));</script>
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

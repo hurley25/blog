@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>聊聊 Linux IO | 浅墨的部落格</title>
@@ -11,22 +11,23 @@
     
 
     
-    <meta name="description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？ 单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？ write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？   write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEND">
-<meta name="keywords" content="Linux,IO">
+    <meta name="description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？  单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？  write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？  write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEN">
 <meta property="og:type" content="article">
 <meta property="og:title" content="聊聊 Linux IO">
 <meta property="og:url" content="https://0xffffff.org/2017/05/01/41-linux-io/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
-<meta property="og:description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？ 单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？ write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？   write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEND">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？  单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？  write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？  write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/41/storage-arch.png">
 <meta property="og:image" content="https://0xffffff.org/images/41/cache.png">
 <meta property="og:image" content="https://0xffffff.org/images/41/Linux-storage-stack.png">
 <meta property="og:image" content="https://0xffffff.org/images/41/linux-io.png">
-<meta property="og:updated_time" content="2019-07-07T09:13:31.966Z">
+<meta property="article:published_time" content="2017-05-01T10:54:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:13:31.966Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="IO">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="聊聊 Linux IO">
-<meta name="twitter:description" content="写在前面在开始正式的讨论前，我先抛出几个问题：  谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？ 单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？ write(2)函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？   write(2)调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如O_APPEND">
 <meta name="twitter:image" content="https://0xffffff.org/images/41/storage-arch.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -40,9 +41,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -102,27 +105,31 @@
 		
 		<h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>在开始正式的讨论前，我先抛出几个问题：</p>
 <ul>
-<li>谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？</li>
-<li>单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？</li>
-<li><code>write(2)</code>函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？</li>
-</ul>
-<ul>
-<li><code>write(2)</code>调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如<code>O_APPEND</code>方式？</li>
-<li>坊间传闻，<code>mmap(2)</code>的方式读文件比传统的方式要快，因为少一次拷贝。真是这样吗？为什么少一次拷贝？</li>
+<li><p>谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？</p>
+</li>
+<li><p>单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？</p>
+</li>
+<li><p><code>write(2)</code>函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？</p>
+</li>
+<li><p><code>write(2)</code>调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如<code>O_APPEND</code>方式？</p>
+</li>
+<li><p>坊间传闻，<code>mmap(2)</code>的方式读文件比传统的方式要快，因为少一次拷贝。真是这样吗？为什么少一次拷贝？</p>
+</li>
 </ul>
 <p>如果你觉得这些问题都很简单，都能很明确的回答上来。那么很遗憾这篇文章不是为你准备的，你可以关掉网页去做其他更有意义的事情了。如果你觉得无法明确的回答这些问题，那么就耐心地读完这篇文章，相信不会浪费你的时间。受限于个人时间和文章篇幅，部分议题如果我不能给出更好的解释或者已有专业和严谨的资料，就只会给出相关的参考文献的链接，请读者自行参阅。</p>
 <p>言归正传，我们的讨论从存储器的层次结构开始。</p>
-<a id="more"></a>
-<h3 id="存储器的金字塔结构"><a href="#存储器的金字塔结构" class="headerlink" title="存储器的金字塔结构"></a>存储器的金字塔结构</h3><p><img src="/images/41/storage-arch.png" alt></p>
+<span id="more"></span>
+
+<h3 id="存储器的金字塔结构"><a href="#存储器的金字塔结构" class="headerlink" title="存储器的金字塔结构"></a>存储器的金字塔结构</h3><p><img src="/images/41/storage-arch.png"></p>
 <p>受限于存储介质的存取速率和成本，现代计算机的存储结构呈现为金字塔型[1]。越往塔顶，存取效率越高、但成本也越高，所以容量也就越小。得益于程序访问的局部性原理[2]，这种节省成本的做法也能取得不俗的运行效率。从存储器的层次结构以及计算机对数据的处理方式来看，上层一般作为下层的Cache层来使用（广义上的Cache）。比如寄存器缓存CPU Cache的数据，CPU Cache L1~L3层视具体实现彼此缓存或直接缓存内存的数据，而内存往往缓存来自本地磁盘的数据。</p>
 <p>本文主要讨论磁盘IO操作，故只聚焦于Local Disk的访问特性和其与DRAM之间的数据交互。</p>
-<h3 id="无处不在的缓存"><a href="#无处不在的缓存" class="headerlink" title="无处不在的缓存"></a>无处不在的缓存</h3><p><img src="/images/41/cache.png" alt></p>
+<h3 id="无处不在的缓存"><a href="#无处不在的缓存" class="headerlink" title="无处不在的缓存"></a>无处不在的缓存</h3><p><img src="/images/41/cache.png"></p>
 <p>如图，当程序调用各类文件操作函数后，用户数据（User Data）到达磁盘（Disk）的流程如图所示[3]。图中描述了Linux下文件操作函数的层级关系和内存缓存层的存在位置。中间的黑色实线是用户态和内核态的分界线。</p>
 <p>从上往下分析这张图，首先是C语言<code>stdio</code>库定义的相关文件操作函数，这些都是用户态实现的跨平台封装函数。<code>stdio</code>中实现的文件操作函数有自己的<code>stdio buffer</code>，这是在用户态实现的缓存。此处使用缓存的原因很简单——系统调用总是昂贵的。如果用户代码以较小的size不断的读或写文件的话，<code>stdio</code>库将多次的读或者写操作通过buffer进行聚合是可以提高程序运行效率的。<code>stdio</code>库同时也支持<code>fflush(3)</code>函数来主动的刷新buffer，主动的调用底层的系统调用立即更新buffer里的数据。特别地，<code>setbuf(3)</code>函数可以对<code>stdio</code>库的用户态buffer进行设置，甚至取消buffer的使用。</p>
 <p>系统调用的<code>read(2)/write(2)</code>和真实的磁盘读写之间也存在一层buffer，这里用术语<code>Kernel buffer cache</code>来指代这一层缓存。在Linux下，文件的缓存习惯性的称之为<code>Page Cache</code>，而更低一级的设备的缓存称之为<code>Buffer Cache</code>. 这两个概念很容易混淆，这里简单的介绍下概念上的区别：<code>Page Cache</code>用于缓存文件的内容，和文件系统比较相关。文件的内容需要映射到实际的物理磁盘，这种映射关系由文件系统来完成；<code>Buffer Cache</code>用于缓存存储设备块（比如磁盘扇区）的数据，而不关心是否有文件系统的存在（文件系统的元数据缓存在<code>Buffer Cache</code>中）。</p>
 <p>综上，既然讨论Linux下的IO操作，自然是跳过<code>stdio</code>库的用户态这一堆东西，直接讨论系统调用层面的概念了。对<code>stdio</code>库的IO层有兴趣的同学可以自行去了解。从上文的描述中也介绍了文件的内核级缓存是保存在文件系统的<code>Page Cache</code>中的。所以后面的讨论基本上是讨论IO相关的系统调用和文件系统<code>Page Cache</code>的一些机制。</p>
 <h3 id="Linux内核中的IO栈"><a href="#Linux内核中的IO栈" class="headerlink" title="Linux内核中的IO栈"></a>Linux内核中的IO栈</h3><p>这一小节来看Linux内核的IO栈的结构。先上一张全貌图[4]：</p>
-<p><img src="/images/41/Linux-storage-stack.png" alt></p>
+<p><img src="/images/41/Linux-storage-stack.png"></p>
 <p>由图可见，从系统调用的接口再往下，Linux下的IO栈致大致有三个层次：</p>
 <ol>
 <li>文件系统层，以 <code>write(2)</code> 为例，内核拷贝了<code>write(2)</code>参数指定的用户态数据到文件系统Cache中，并适时向下层同步</li>
@@ -130,7 +137,7 @@
 <li>设备层，通过DMA与内存直接交互，完成数据和具体设备之间的交互</li>
 </ol>
 <p>结合这个图，想想Linux系统编程里用到的<code>Buffered IO</code>、<code>mmap(2)</code>、<code>Direct IO</code>，这些机制怎么和Linux IO栈联系起来呢？上面的图有点复杂，我画一幅简图，把这些机制所在的位置添加进去：</p>
-<p><img src="/images/41/linux-io.png" alt></p>
+<p><img src="/images/41/linux-io.png"></p>
 <p>这下一目了然了吧？传统的<code>Buffered IO</code>使用<code>read(2)</code>读取文件的过程什么样的？假设要去读一个冷文件（Cache中不存在），<code>open(2)</code>打开文件内核后建立了一系列的数据结构，接下来调用<code>read(2)</code>，到达文件系统这一层，发现<code>Page Cache</code>中不存在该位置的磁盘映射，然后创建相应的<code>Page Cache</code>并和相关的扇区关联。然后请求继续到达块设备层，在IO队列里排队，接受一系列的调度后到达设备驱动层，此时一般使用DMA方式读取相应的磁盘扇区到Cache中，然后<code>read(2)</code>拷贝数据到用户提供的用户态buffer中去（<code>read(2)</code>的参数指出的）。</p>
 <p>整个过程有几次拷贝？从磁盘到<code>Page Cache</code>算第一次的话，从<code>Page Cache</code>到用户态buffer就是第二次了。而<code>mmap(2)</code>做了什么？<code>mmap(2)</code>直接把<code>Page Cache</code>映射到了用户态的地址空间里了，所以<code>mmap(2)</code>的方式读文件是没有第二次拷贝过程的。那<code>Direct IO</code>做了什么？这个机制更狠，直接让用户态和块IO层对接，直接放弃<code>Page Cache</code>，从磁盘直接和用户态拷贝数据。好处是什么？写操作直接映射进程的buffer到磁盘扇区，以DMA的方式传输数据，减少了原本需要到<code>Page Cache</code>层的一次拷贝，提升了写的效率。对于读而言，第一次肯定也是快于传统的方式的，但是之后的读就不如传统方式了（当然也可以在用户态自己做Cache，有些商用数据库就是这么做的）。</p>
 <p>除了传统的<code>Buffered IO</code>可以比较自由的用偏移+长度的方式读写文件之外，<code>mmap(2)</code>和<code>Direct IO</code>均有数据按页对齐的要求，<code>Direct IO</code>还限制读写必须是底层存储设备块大小的整数倍（甚至Linux 2.4还要求是文件系统逻辑块的整数倍）。所以接口越来越底层，换来表面上的效率提升的背后，需要在应用程序这一层做更多的事情。所以想用好这些高级特性，除了深刻理解其背后的机制之外，也要在系统设计上下一番功夫。</p>
@@ -141,28 +148,30 @@
 <li>当脏页在内存中驻留时间超过一个特定的阈值时，内核必须将超时的脏页写回磁盘。</li>
 <li>用户进程调用<code>sync(2)</code>、<code>fsync(2)</code>、<code>fdatasync(2)</code>系统调用时，内核会执行相应的写回操作。</li>
 </ul>
-<p>刷新策略由以下几个参数决定（数值单位均为1/100秒）：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> flush每隔5秒执行一次</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_writeback_centisecs</span><br><span class="line">vm.dirty_writeback_centisecs = 500</span><br><span class="line"><span class="meta">#</span><span class="bash"> 内存中驻留30秒以上的脏数据将由flush在下一次执行时写入磁盘</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_expire_centisecs</span><br><span class="line">vm.dirty_expire_centisecs = 3000</span><br><span class="line"><span class="meta">#</span><span class="bash"> 若脏页占总物理内存10％以上，则触发flush把脏数据写回磁盘</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_background_ratio</span><br><span class="line">vm.dirty_background_ratio = 10</span><br></pre></td></tr></table></figure>
+<p>刷新策略由以下几个参数决定（数值单位均为1&#x2F;100秒）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">flush每隔5秒执行一次</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_writeback_centisecs</span><br><span class="line">vm.dirty_writeback_centisecs = 500</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">内存中驻留30秒以上的脏数据将由flush在下一次执行时写入磁盘</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_expire_centisecs</span><br><span class="line">vm.dirty_expire_centisecs = 3000</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">若脏页占总物理内存10％以上，则触发flush把脏数据写回磁盘</span></span><br><span class="line">root@082caa3dfb1d / $ sysctl vm.dirty_background_ratio</span><br><span class="line">vm.dirty_background_ratio = 10</span><br></pre></td></tr></table></figure>
+
 <p>默认是写回方式，如果想指定某个文件是写穿方式呢？即写操作的可靠性压倒效率的时候，能否做到呢？当然能，除了之前提到的<code>fsync(2)</code>之类的系统调用外，在<code>open(2)</code>打开文件时，传入<code>O_SYNC</code>这个flag即可实现。这里给篇参考文章[5]，不再赘述（更好的选择是去读TLPI相关章节）。</p>
 <p>文件读写遭遇断电时，数据还安全吗？相信你有自己的答案了。使用<code>O_SYNC</code>或者<code>fsync(2)</code>刷新文件就能保证安全吗？现代磁盘一般都内置了缓存，代码层面上也只能讲数据刷新到磁盘的缓存了。当数据已经进入到磁盘的高速缓存时断电了会怎么样？这个恐怕不能一概而论了。不过可以使用<code>hdparm -W0</code>命令关掉这个缓存，相应的，磁盘性能必然会降低。</p>
-<h3 id="文件操作与锁"><a href="#文件操作与锁" class="headerlink" title="文件操作与锁"></a>文件操作与锁</h3><p>当多个进程/线程对同一个文件发生写操作的时候会发生什么？如果写的是文件的同一个位置呢？这个问题讨论起来有点复杂了。首先<code>write(2)</code>调用不是原子操作，不要被TLPI的中文版5.2章节的第一句话误导了（英文版也是有歧义的，作者在<a href="http://www.man7.org/tlpi/errata/index.html" target="_blank" rel="noopener">这里</a>给出了勘误信息）。当多个<code>write(2)</code>操作对一个文件的同一部分发起写操作的时候，情况实际上和多个线程访问共享的变量没有什么区别。按照不同的逻辑执行流，会有很多种可能的结果。也许大多数情况下符合预期，但是本质上这样的代码是不可靠的。</p>
+<h3 id="文件操作与锁"><a href="#文件操作与锁" class="headerlink" title="文件操作与锁"></a>文件操作与锁</h3><p>当多个进程&#x2F;线程对同一个文件发生写操作的时候会发生什么？如果写的是文件的同一个位置呢？这个问题讨论起来有点复杂了。首先<code>write(2)</code>调用不是原子操作，不要被TLPI的中文版5.2章节的第一句话误导了（英文版也是有歧义的，作者在<a target="_blank" rel="noopener" href="http://www.man7.org/tlpi/errata/index.html">这里</a>给出了勘误信息）。当多个<code>write(2)</code>操作对一个文件的同一部分发起写操作的时候，情况实际上和多个线程访问共享的变量没有什么区别。按照不同的逻辑执行流，会有很多种可能的结果。也许大多数情况下符合预期，但是本质上这样的代码是不可靠的。</p>
 <p>特别的，文件操作中有两个操作是内核保证原子的。分别是<code>open(2)</code>调用的<code>O_CREAT</code>和<code>O_APPEND</code>这两个flag属性。前者是文件不存在就创建，后者是每次写文件时把文件游标移动到文件最后追加写（NFS等文件系统不保证这个flag）。有意思的问题来了，以<code>O_APPEND</code>方式打开的文件<code>write(2)</code>操作是不是原子的？文件游标的移动和调用写操作是原子的，那写操作本身会不会发生改变呢？有的开源软件比如apache写日志就是这样写的，这是可靠安全的吗？坦白讲我也不清楚，有人说<code>Then O_APPEND is atomic and write-in-full for all reasonably-sized&gt; writes to regular files.</code>但是我也没有找到很权威的说法。这里给出一个邮件列表上的讨论，可以参考下[6]。今天先放过去，后面有时间的话专门研究下这个问题。如果你能给出很明确的说法和证明，还望不吝赐教。</p>
 <p>Linux下的文件锁有两种，分别是<code>flock(2)</code>的方式和<code>fcntl(2)</code>的方式，前者源于BSD，后者源于System V，各有限制和应用场景。老规矩，TLPI上讲的很清楚的这里不赘述。我个人是没有用过文件锁的，系统设计的时候一般会避免多个执行流写一个文件的情况，或者在代码逻辑上以mutex加锁，而不是直接加锁文件本身。数据库场景下这样的操作可能会多一些（这个纯属臆测），这就不是我了解的范畴了。</p>
-<h3 id="磁盘的性能测试"><a href="#磁盘的性能测试" class="headerlink" title="磁盘的性能测试"></a>磁盘的性能测试</h3><p>在具体的机器上跑服务程序，如果涉及大量IO的话，首先要对机器本身的磁盘性能有明确的了解，包括不限于IOPS、IO Depth等等。这些数据不仅能指导系统设计，也能帮助资源规划以及定位系统瓶颈。比如我们知道机械磁盘的连续读写性能一般不会超过120M/s，而普通的SSD磁盘随意就能超过机械盘几倍（商用SSD的连续读写速率达到2G+/s不是什么新鲜事）。另外由于磁盘的工作原理不同，机械磁盘需要旋转来寻找数据存放的磁道，所以其随机存取的效率受到了“寻道时间”的严重影响，远远小于连续存取的效率；而SSD磁盘读写任意扇区可以认为是相同的时间，随机存取的性能远远超过机械盘。所以呢，在机械磁盘作为底层存储时，如果一个线程写文件很慢的话，多个线程分别去写这个文件的各个部分能否加速呢？不见得吧？如果这个文件很大，各个部分的寻道时间带来极大的时间消耗的话，效率就很低了（先不考虑<code>Page Cache</code>）。SSD呢？可以明确，设计合理的话，SSD多线程读写文件的效率会高于单线程。当前的SSD盘很多都以高并发的读取为卖点的，一个线程压根就喂不饱一块SSD盘。一般SSD的IO Depth都在32甚至更高，使用32或者64个线程才能跑满一个SSD磁盘的带宽（同步IO情况下）。</p>
+<h3 id="磁盘的性能测试"><a href="#磁盘的性能测试" class="headerlink" title="磁盘的性能测试"></a>磁盘的性能测试</h3><p>在具体的机器上跑服务程序，如果涉及大量IO的话，首先要对机器本身的磁盘性能有明确的了解，包括不限于IOPS、IO Depth等等。这些数据不仅能指导系统设计，也能帮助资源规划以及定位系统瓶颈。比如我们知道机械磁盘的连续读写性能一般不会超过120M&#x2F;s，而普通的SSD磁盘随意就能超过机械盘几倍（商用SSD的连续读写速率达到2G+&#x2F;s不是什么新鲜事）。另外由于磁盘的工作原理不同，机械磁盘需要旋转来寻找数据存放的磁道，所以其随机存取的效率受到了“寻道时间”的严重影响，远远小于连续存取的效率；而SSD磁盘读写任意扇区可以认为是相同的时间，随机存取的性能远远超过机械盘。所以呢，在机械磁盘作为底层存储时，如果一个线程写文件很慢的话，多个线程分别去写这个文件的各个部分能否加速呢？不见得吧？如果这个文件很大，各个部分的寻道时间带来极大的时间消耗的话，效率就很低了（先不考虑<code>Page Cache</code>）。SSD呢？可以明确，设计合理的话，SSD多线程读写文件的效率会高于单线程。当前的SSD盘很多都以高并发的读取为卖点的，一个线程压根就喂不饱一块SSD盘。一般SSD的IO Depth都在32甚至更高，使用32或者64个线程才能跑满一个SSD磁盘的带宽（同步IO情况下）。</p>
 <p>具体的SSD原理不在本文计划内，这里给出一篇详细的参考文章[7]。有时候一些文章中所谓的SATA磁盘一般说的就是机械盘（虽然SATA本身只是一个总线接口）。接口会影响存储设备的最大速率，基本上是<code>SATA -&gt; PCI-E -&gt; NVMe</code>的发展路径，具体请自行Google了解。</p>
 <p>具体的设备一般使用<code>fio</code>工具[8]来测试相关磁盘的读写性能。fio的介绍和使用教程有很多[9]，不再赘述。这里不想贴性能数据的原因是存储介质的发展实在太快了，一方面不想贴某些很快就过时的数据以免让初学者留下不恰当的第一印象，另一方面也希望读写自己实践下fio命令。</p>
 <p>前文提到存储介质的原理会影响程序设计，我想稍微的解释下。这里说的“影响”不是说具体的读写能到某个速率，程序中就依赖这个数值，换个工作环境就性能大幅度降低（当然，为专门的机型做过优化的结果很可能有这个副作用）。而是说根据存储介质的特性，程序的设计起码要遵循某个设计套路。举个简单的例子，SATA机械盘的随机存取很慢，那系统设计时，就要尽可能的避免随机的IO出现，尽可能的转换成连续的文件存取来加速运行。比如Google的LevelDB就是转换随机的Key-Value写入为Binlog（连续文件写入）+ 内存插入MemTable（内存随机读写可以认为是O(1)的性能），之后批量dump到磁盘（连续文件写入）。这种<code>LSM-Tree</code>的设计便是合理的利用了存储介质的特性，做到了最大化的性能利用（磁盘换成SSD也依旧能有很好的运行效率）。</p>
 <h3 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h3><p>每天抽出不到半个小时，零零散散地写了一周，这是说是入门都有些谬赞了，只算是对Linux下的IO机制稍微深入的介绍了一点。无论如何，希望学习完Linux系统编程的同学，能继续的往下走一走，尝试理解系统调用背后隐含的机制和原理。探索的结果无所谓，重要的是探索的过程以及相关的学习经验和方法。前文提出的几个问题我并没有刻意去解答所有的，但是读到现在，不知道你自己能回答上几个了？</p>
-<p><br></p>
-<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><p>[1] 图片引自《Computer Systems: A Programmer’s Perspective》Chapter 6 The Memory Hierarchy, 另可参考  <a href="https://zh.wikipedia.org/wiki/%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%B1" target="_blank" rel="noopener">https://zh.wikipedia.org/wiki/%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%B1</a></p>
-<p>[2] Locality of reference，<a href="https://en.wikipedia.org/wiki/Locality_of_reference" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Locality_of_reference</a></p>
-<p>[3] 图片引自《The Linux Programming Interface》Chapter 13 FILE I/O BUFFERING</p>
-<p>[4] Linux Storage Stack Diagram,  <a href="https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram" target="_blank" rel="noopener">https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram</a></p>
-<p>[5] O_DIRECT和O_SYNC详解, <a href="http://www.cnblogs.com/suzhou/p/5381738.html" target="_blank" rel="noopener">http://www.cnblogs.com/suzhou/p/5381738.html</a></p>
-<p>[6] <a href="http://librelist.com/browser/usp.ruby/2013/6/5/o-append-atomicity/" target="_blank" rel="noopener">http://librelist.com/browser/usp.ruby/2013/6/5/o-append-atomicity/</a></p>
-<p>[7] Coding for SSD,  <a href="https://dirtysalt.github.io/coding-for-ssd.html" target="_blank" rel="noopener">https://dirtysalt.github.io/coding-for-ssd.html</a></p>
-<p>[8] fio作者Jens Axboe是Linux内核IO部分的maintainer，工具主页 <a href="http://freecode.com/projects/fio/" target="_blank" rel="noopener">http://freecode.com/projects/fio/</a></p>
-<p>[9] How to benchmark disk, <a href="https://www.binarylane.com.au/support/solutions/articles/1000055889-how-to-benchmark-disk-i-o" target="_blank" rel="noopener">https://www.binarylane.com.au/support/solutions/articles/1000055889-how-to-benchmark-disk-i-o</a></p>
+<br/>
+
+<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><p>[1] 图片引自《Computer Systems: A Programmer’s Perspective》Chapter 6 The Memory Hierarchy, 另可参考  <a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%B1">https://zh.wikipedia.org/wiki/%E5%AD%98%E5%82%A8%E5%99%A8%E5%B1%B1</a></p>
+<p>[2] Locality of reference，<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Locality_of_reference">https://en.wikipedia.org/wiki/Locality_of_reference</a></p>
+<p>[3] 图片引自《The Linux Programming Interface》Chapter 13 FILE I&#x2F;O BUFFERING</p>
+<p>[4] Linux Storage Stack Diagram,  <a target="_blank" rel="noopener" href="https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram">https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram</a></p>
+<p>[5] O_DIRECT和O_SYNC详解, <a target="_blank" rel="noopener" href="http://www.cnblogs.com/suzhou/p/5381738.html">http://www.cnblogs.com/suzhou/p/5381738.html</a></p>
+<p>[6] <a target="_blank" rel="noopener" href="http://librelist.com/browser/usp.ruby/2013/6/5/o-append-atomicity/">http://librelist.com/browser/usp.ruby/2013/6/5/o-append-atomicity/</a></p>
+<p>[7] Coding for SSD,  <a target="_blank" rel="noopener" href="https://dirtysalt.github.io/coding-for-ssd.html">https://dirtysalt.github.io/coding-for-ssd.html</a></p>
+<p>[8] fio作者Jens Axboe是Linux内核IO部分的maintainer，工具主页 <a target="_blank" rel="noopener" href="http://freecode.com/projects/fio/">http://freecode.com/projects/fio/</a></p>
+<p>[9] How to benchmark disk, <a target="_blank" rel="noopener" href="https://www.binarylane.com.au/support/solutions/articles/1000055889-how-to-benchmark-disk-i-o">https://www.binarylane.com.au/support/solutions/articles/1000055889-how-to-benchmark-disk-i-o</a></p>
 <p>[10] 深入Linux内核架构, （德）莫尔勒,  人民邮电出版社</p>
   
 	</div>
@@ -193,7 +202,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2017/05/01/41-linux-io/" data-title="聊聊 Linux IO | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2017/05/01/41-linux-io/" data-title="聊聊 Linux IO | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -240,7 +249,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -258,7 +267,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -319,7 +328,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -343,10 +352,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -355,31 +360,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -387,11 +368,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -481,7 +490,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

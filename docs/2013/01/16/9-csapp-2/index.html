@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;中&gt; | 浅墨的部落格</title>
@@ -12,17 +12,18 @@
 
     
     <meta name="description" content="§第三章 程序的机器级表示 GCC以汇编代码的形式产生输出，汇编代码是机器代码的文本表示，给出程序中的每一条指令。然后GCC调用汇编器和链接器，从而根据汇编代码生成可执行的机器代码。  现代编译器的优化产生的代码至少与一个熟练的汇编语言程序员手工编写的代码一样的高效和简洁。用高级语言编写的程序可以在很多不同的机器上编译和执行，而汇编代码则是与特定机器密切相关的。  程序员学习汇编代码的需求随着时间">
-<meta name="keywords" content="基础知识,CSAPP">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;中&gt;">
 <meta property="og:url" content="https://0xffffff.org/2013/01/16/9-csapp-2/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="§第三章 程序的机器级表示 GCC以汇编代码的形式产生输出，汇编代码是机器代码的文本表示，给出程序中的每一条指令。然后GCC调用汇编器和链接器，从而根据汇编代码生成可执行的机器代码。  现代编译器的优化产生的代码至少与一个熟练的汇编语言程序员手工编写的代码一样的高效和简洁。用高级语言编写的程序可以在很多不同的机器上编译和执行，而汇编代码则是与特定机器密切相关的。  程序员学习汇编代码的需求随着时间">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.275Z">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2013-01-16T02:02:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T08:12:41.275Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;中&gt;">
-<meta name="twitter:description" content="§第三章 程序的机器级表示 GCC以汇编代码的形式产生输出，汇编代码是机器代码的文本表示，给出程序中的每一条指令。然后GCC调用汇编器和链接器，从而根据汇编代码生成可执行的机器代码。  现代编译器的优化产生的代码至少与一个熟练的汇编语言程序员手工编写的代码一样的高效和简洁。用高级语言编写的程序可以在很多不同的机器上编译和执行，而汇编代码则是与特定机器密切相关的。  程序员学习汇编代码的需求随着时间">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -111,7 +114,8 @@
 <li><p>由于是从16位体系结构扩展成32位的，Intel用术语“字”（word）表示16位数据类型。因此，称32位数为“双字”（double words），称64位数为“四字”（quad words）。</p>
 </li>
 </ol>
-<a id="more"></a>
+<span id="more"></span>
+
 <ol start="8">
 <li><p>浮点数有三种格式：单精度（4字节）值，对应于C语言中的float类型；双精度（8字节）值，对应C语言中的double类型；扩展精度（10字节）值，GCC用数据类型long double来表示扩展精度的浮点值。为了提高存储器系统性能，它将这样的浮点数存储为12字节数。</p>
 </li>
@@ -132,7 +136,7 @@
 </li>
 <li><p>对于大多数IA32指令来说，保持数据对齐能够提高效率，但是它不会影响程序的行为。另一方面，如果程序未对齐，有些实现多媒体操作的SEE指令就无法正确的工作。这些指令要求对16字节数据块进行操作，在SEE单元和存储器之间传送数据的指令要求存储器地址必须是16的倍数。任何试图以不满足对齐要求的地址来访问存储器都会导致异常（exception），默认的行为是程序终止。因此IA32的一个惯例是，确保每个栈帧的长度都是16字节的整数倍。编译器就可以在栈帧中以每个块的存储都是16字节对齐的方式来分配存储器。</p>
 </li>
-<li><p>Microsoft Windows对齐的要求更严格——任何K字节基本对象的地址都必须是K的倍数，K=2,4或者8。特别地，它要求一个double或者long long类型的数据的地址应该是8的倍数。这种要求提高了存储器性能，而代价是浪费了一些空间。Linux的惯例是8字节数据在4字节边界上对齐，这可能对i386很好，因为过去存储器十分缺乏，而存储器接口只有4字节宽。对于现代处理器来说，Microsoft的对齐策略就是更好的选择。在Windows和Linux上，数据类型long double都有4字节对齐的要求，为此GCC产生的IA32代码分配12个字节（虽然实际的数据类型只需要10个字节）。</p>
+<li><p>Microsoft Windows对齐的要求更严格——任何K字节基本对象的地址都必须是K的倍数，K&#x3D;2,4或者8。特别地，它要求一个double或者long long类型的数据的地址应该是8的倍数。这种要求提高了存储器性能，而代价是浪费了一些空间。Linux的惯例是8字节数据在4字节边界上对齐，这可能对i386很好，因为过去存储器十分缺乏，而存储器接口只有4字节宽。对于现代处理器来说，Microsoft的对齐策略就是更好的选择。在Windows和Linux上，数据类型long double都有4字节对齐的要求，为此GCC产生的IA32代码分配12个字节（虽然实际的数据类型只需要10个字节）。</p>
 </li>
 </ol>
 <ul>
@@ -165,7 +169,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -180,7 +184,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/01/16/9-csapp-2/" data-title="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;中&gt; | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/01/16/9-csapp-2/" data-title="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;中&gt; | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -227,7 +231,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -245,7 +249,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -306,7 +310,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -330,10 +334,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -342,31 +342,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -374,11 +350,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -468,7 +472,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

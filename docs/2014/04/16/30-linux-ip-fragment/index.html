@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>Linux TCP/IP 协议栈关于 IP 分片重组的实现 | 浅墨的部落格</title>
@@ -12,18 +12,19 @@
 
     
     <meta name="description" content="最近学习网络层协议的时候，注意到了IP协议中数据包分片的问题。下图是IP协议头的数据字段的示意：  如图所示，IP协议理论上允许的最大IP数据报为65535字节（16位来表示包总长）。但是因为协议栈网络层下面的数据链路层一般允许的帧长远远小于这个值，例如以太网的MTU（即Maximum Transmission Unit，最大传输单元）通常在1500字节左右。所以较大的IP数据包会被分片传递给数据">
-<meta name="keywords" content="Linux,TCP&#x2F;IP">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux TCP&#x2F;IP 协议栈关于 IP 分片重组的实现">
 <meta property="og:url" content="https://0xffffff.org/2014/04/16/30-linux-ip-fragment/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="最近学习网络层协议的时候，注意到了IP协议中数据包分片的问题。下图是IP协议头的数据字段的示意：  如图所示，IP协议理论上允许的最大IP数据报为65535字节（16位来表示包总长）。但是因为协议栈网络层下面的数据链路层一般允许的帧长远远小于这个值，例如以太网的MTU（即Maximum Transmission Unit，最大传输单元）通常在1500字节左右。所以较大的IP数据包会被分片传递给数据">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/30/1.png">
-<meta property="og:updated_time" content="2019-07-07T09:14:34.011Z">
+<meta property="article:published_time" content="2014-04-16T04:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:14:34.011Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="TCP&#x2F;IP">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux TCP&#x2F;IP 协议栈关于 IP 分片重组的实现">
-<meta name="twitter:description" content="最近学习网络层协议的时候，注意到了IP协议中数据包分片的问题。下图是IP协议头的数据字段的示意：  如图所示，IP协议理论上允许的最大IP数据报为65535字节（16位来表示包总长）。但是因为协议栈网络层下面的数据链路层一般允许的帧长远远小于这个值，例如以太网的MTU（即Maximum Transmission Unit，最大传输单元）通常在1500字节左右。所以较大的IP数据包会被分片传递给数据">
 <meta name="twitter:image" content="https://0xffffff.org/images/30/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -37,9 +38,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -98,16 +101,17 @@
 	<div class="article-content">
 		
 		<p>最近学习网络层协议的时候，注意到了IP协议中数据包分片的问题。下图是IP协议头的数据字段的示意：</p>
-<p><img src="/images/30/1.png" alt></p>
+<p><img src="/images/30/1.png"></p>
 <p>如图所示，IP协议理论上允许的最大IP数据报为65535字节（16位来表示包总长）。但是因为协议栈网络层下面的数据链路层一般允许的帧长远远小于这个值，例如以太网的MTU（即Maximum Transmission Unit，最大传输单元）通常在1500字节左右。所以较大的IP数据包会被分片传递给数据链路层发送，分片的IP数据报可能会以不同的路径传输到接收主机，接收主机通过一系列的重组，将其还原为一个完整的IP数据报，再提交给上层协议处理。上图中的红色字段便是被设计用来处理IP数据包分片和重组的。</p>
 <p>那么，这三个字段如何实现对分片进行表示呢？</p>
-<a id="more"></a>
+<span id="more"></span>
+
 <ul>
 <li><p>首先是标示符（16位），协议栈应该保证来自同一个数据报的若干分片必须有一样的值。</p>
 </li>
 <li><p>其次是标志位3位分别是R（保留位，未使用）位、DF（Do not Fragment，不允许分段）位和MF（More Fragment）位。MF位为1表示当前数据报还有更多的分片，为0表示当前分片是该数据报最后一个分片。</p>
 </li>
-<li><p>最后是偏移量（13位），表示当前数据报分片数据起始位置在完整数据报的偏移，注意这里一个单位代表8个字节。即这里的值如果是185，则代表该分片在完整数据报的偏移是185*8=1480字节。</p>
+<li><p>最后是偏移量（13位），表示当前数据报分片数据起始位置在完整数据报的偏移，注意这里一个单位代表8个字节。即这里的值如果是185，则代表该分片在完整数据报的偏移是185*8&#x3D;1480字节。</p>
 </li>
 </ul>
 <p><strong>RFC815文档(IP datagram reassembly algorithms）文档定义了IP分片重组的算法。</strong></p>
@@ -116,20 +120,25 @@
 <p>Linux内核协议栈关于IPV4协议的代码都在<code>net/ipv4</code>目录下。从文件名上分析，<code>ip_fragment.c</code>文件显然就是IP分片处理的源代码。（好吧，这种方法很不严谨…）</p>
 <p>我们的目的是找到IP数据报组合的过程，至于分片什么的大家有兴趣的话可以自己去研究，理论上分片要比重组容易一些。</p>
 <p>一番周折后我们找到了IP数据报重组的函数：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ip_defrag</span><span class="params">(struct sk_buff *skb, u32 user)</span></span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">ip_defrag</span><span class="params">(<span class="keyword">struct</span> sk_buff *skb, u32 user)</span>;</span><br></pre></td></tr></table></figure>
+
 <p>我怎么知道这个函数是碎片重组的？因为defrag这个单词就是碎片重组的意思……咳咳，看来良好的函数命名还是很重要的。开个玩笑，函数前面的注释说明了这个函数的任务是处理IP分片组合：Process an incoming IP datagram fragment.</p>
 <p>这个函数参数是<code>struct sk_buff</code>结构的指针，而网络数据包在内核协议栈中就是以<code>struct sk_buff</code>结构进行传送的。这个函数的作用就是尝试组合数据报，成功组合的话返回一个<code>struct sk_buff</code>结构的指针。</p>
 <p>函数代码如下（Linux-3.12.6）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Process an incoming IP datagram fragment. */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ip_defrag</span><span class="params">(struct sk_buff *skb, u32 user)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ipq</span> *<span class="title">qp</span>;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">net</span> *<span class="title">net</span>;</span></span><br><span class="line"></span><br><span class="line">        net = skb-&gt;dev ? dev_net(skb-&gt;dev) : dev_net(skb_dst(skb)-&gt;dev);</span><br><span class="line">        IP_INC_STATS_BH(net, IPSTATS_MIB_REASMREQDS);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Start by cleaning up the memory. */</span></span><br><span class="line">        ip_evictor(net);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Lookup (or create) queue header */</span></span><br><span class="line">        <span class="keyword">if</span> ((qp = ip_find(net, ip_hdr(skb), user)) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">                <span class="keyword">int</span> ret;</span><br><span class="line"></span><br><span class="line">                spin_lock(&amp;qp-&gt;q.lock);</span><br><span class="line"></span><br><span class="line">                ret = ip_frag_queue(qp, skb);</span><br><span class="line"></span><br><span class="line">                spin_unlock(&amp;qp-&gt;q.lock);</span><br><span class="line">                ipq_put(qp);</span><br><span class="line">                <span class="keyword">return</span> ret;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        IP_INC_STATS_BH(net, IPSTATS_MIB_REASMFAILS);</span><br><span class="line">        kfree_skb(skb);</span><br><span class="line">        <span class="keyword">return</span> -ENOMEM;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Process an incoming IP datagram fragment. */</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">ip_defrag</span><span class="params">(<span class="keyword">struct</span> sk_buff *skb, u32 user)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ipq</span> *<span class="title">qp</span>;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">net</span> *<span class="title">net</span>;</span></span><br><span class="line"></span><br><span class="line">        net = skb-&gt;dev ? dev_net(skb-&gt;dev) : dev_net(skb_dst(skb)-&gt;dev);</span><br><span class="line">        IP_INC_STATS_BH(net, IPSTATS_MIB_REASMREQDS);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Start by cleaning up the memory. */</span></span><br><span class="line">        ip_evictor(net);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Lookup (or create) queue header */</span></span><br><span class="line">        <span class="keyword">if</span> ((qp = ip_find(net, ip_hdr(skb), user)) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">                <span class="type">int</span> ret;</span><br><span class="line"></span><br><span class="line">                spin_lock(&amp;qp-&gt;q.lock);</span><br><span class="line"></span><br><span class="line">                ret = ip_frag_queue(qp, skb);</span><br><span class="line"></span><br><span class="line">                spin_unlock(&amp;qp-&gt;q.lock);</span><br><span class="line">                ipq_put(qp);</span><br><span class="line">                <span class="keyword">return</span> ret;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        IP_INC_STATS_BH(net, IPSTATS_MIB_REASMFAILS);</span><br><span class="line">        kfree_skb(skb);</span><br><span class="line">        <span class="keyword">return</span> -ENOMEM;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>ip_evictor对分片处理的内存占用进行统计，超出了使用范围的话会进行内存的释放，避免遭受恶意的网络攻击（比如恶意的制造IP分片，使得目标机器内存大量消耗等等）。这不是我们要分析的重点，跳过它就是ip_find函数了，函数头部的注释告诉我们这个函数的职责是”在不完整的IP数据报队列中寻找当前数据报分片的位置，没有找到的话就为当前分片重新建立一个队列”。</p>
 <p>函数代码如下（Linux-3.12.6）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Find the correct entry in the "incomplete datagrams" queue for</span></span><br><span class="line"><span class="comment"> * this IP datagram, and create new one, if nothing is found.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> struct ipq *<span class="title">ip_find</span><span class="params">(struct net *net, struct iphdr *iph, u32 user)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">inet_frag_queue</span> *<span class="title">q</span>;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ip4_create_arg</span> <span class="title">arg</span>;</span></span><br><span class="line">        <span class="keyword">unsigned</span> <span class="keyword">int</span> hash;</span><br><span class="line"></span><br><span class="line">        arg.iph = iph;</span><br><span class="line">        arg.user = user;</span><br><span class="line"></span><br><span class="line">        read_lock(&amp;ip4_frags.lock);</span><br><span class="line">        hash = ipqhashfn(iph-&gt;id, iph-&gt;saddr, iph-&gt;daddr, iph-&gt;protocol);</span><br><span class="line"></span><br><span class="line">        q = inet_frag_find(&amp;net-&gt;ipv4.frags, &amp;ip4_frags, &amp;arg, hash);</span><br><span class="line">        <span class="keyword">if</span> (q == <span class="literal">NULL</span>)</span><br><span class="line">                <span class="keyword">goto</span> out_nomem;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> container_of(q, struct ipq, q);</span><br><span class="line"></span><br><span class="line">out_nomem:</span><br><span class="line">        LIMIT_NETDEBUG(KERN_ERR <span class="string">"ip_frag_create: no memory left !\n"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Find the correct entry in the &quot;incomplete datagrams&quot; queue for</span></span><br><span class="line"><span class="comment"> * this IP datagram, and create new one, if nothing is found.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="keyword">struct</span> ipq *<span class="title function_">ip_find</span><span class="params">(<span class="keyword">struct</span> net *net, <span class="keyword">struct</span> iphdr *iph, u32 user)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">inet_frag_queue</span> *<span class="title">q</span>;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ip4_create_arg</span> <span class="title">arg</span>;</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">int</span> hash;</span><br><span class="line"></span><br><span class="line">        arg.iph = iph;</span><br><span class="line">        arg.user = user;</span><br><span class="line"></span><br><span class="line">        read_lock(&amp;ip4_frags.lock);</span><br><span class="line">        hash = ipqhashfn(iph-&gt;id, iph-&gt;saddr, iph-&gt;daddr, iph-&gt;protocol);</span><br><span class="line"></span><br><span class="line">        q = inet_frag_find(&amp;net-&gt;ipv4.frags, &amp;ip4_frags, &amp;arg, hash);</span><br><span class="line">        <span class="keyword">if</span> (q == <span class="literal">NULL</span>)</span><br><span class="line">                <span class="keyword">goto</span> out_nomem;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> container_of(q, <span class="keyword">struct</span> ipq, q);</span><br><span class="line"></span><br><span class="line">out_nomem:</span><br><span class="line">        LIMIT_NETDEBUG(KERN_ERR <span class="string">&quot;ip_frag_create: no memory left !\n&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>下面这行代码明确的指出了协议栈判断IP分片的依据：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hash = ipqhashfn(iph-&gt;id, iph-&gt;saddr, iph-&gt;daddr, iph-&gt;protocol);</span><br></pre></td></tr></table></figure>
+
 <p>Ipqhashfn函数<strong>依靠（标示符、源地址、目标地址、协议）这个四元组来唯一的表示一个IP数据报分片</strong>，这就解决了单单依赖表示符无法确定一个数据报的问题。那么这个四元组怎么表示呢？查找的效率问题如何解决呢？答案就在ipqhashfn这个hash函数里，其代码如下（Linux-3.12.6）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="title">ipqhashfn</span><span class="params">(__be16 id, __be32 saddr, __be32 daddr, u8 prot)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> jhash_3words((__force u32)id &lt;&lt; <span class="number">16</span> | prot,</span><br><span class="line">                            (__force u32)saddr, (__force u32)daddr,</span><br><span class="line">                            ip4_frags.rnd) &amp; (INETFRAGS_HASHSZ - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">unsigned</span> <span class="type">int</span> <span class="title function_">ipqhashfn</span><span class="params">(__be16 id, __be32 saddr, __be32 daddr, u8 prot)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">return</span> jhash_3words((__force u32)id &lt;&lt; <span class="number">16</span> | prot,</span><br><span class="line">                            (__force u32)saddr, (__force u32)daddr,</span><br><span class="line">                            ip4_frags.rnd) &amp; (INETFRAGS_HASHSZ - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>jhash_3words函数参数累加求模，实现如下（Linux-3.12.6）：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* A special ultra-optimized versions that knows they are hashing exactly</span></span><br><span class="line"><span class="comment"> * 3, 2 or 1 word(s).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">NOTE:</span> In partilar the "c += length; __jhash_mix(a,b,c);" normally</span></span><br><span class="line"><span class="comment"> *       done at the end is not done here.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> u32 <span class="title">jhash_3words</span><span class="params">(u32 a, u32 b, u32 c, u32 initval)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        a += JHASH_GOLDEN_RATIO;</span><br><span class="line">        b += JHASH_GOLDEN_RATIO;</span><br><span class="line">        c += initval;</span><br><span class="line"></span><br><span class="line">        __jhash_mix(a, b, c);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* A special ultra-optimized versions that knows they are hashing exactly</span></span><br><span class="line"><span class="comment"> * 3, 2 or 1 word(s).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">NOTE:</span> In partilar the &quot;c += length; __jhash_mix(a,b,c);&quot; normally</span></span><br><span class="line"><span class="comment"> *       done at the end is not done here.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> u32 <span class="title function_">jhash_3words</span><span class="params">(u32 a, u32 b, u32 c, u32 initval)</span></span><br><span class="line">&#123;</span><br><span class="line">        a += JHASH_GOLDEN_RATIO;</span><br><span class="line">        b += JHASH_GOLDEN_RATIO;</span><br><span class="line">        c += initval;</span><br><span class="line"></span><br><span class="line">        __jhash_mix(a, b, c);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>OK，问题解决了。有兴趣的同学可以去研究一下IP数据报分片如何实现。最近很忙，就到这里吧～</p>
   
 	</div>
@@ -145,7 +154,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/网络/">网络</a>
+  <a class="article-category-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a>
 </div>
 
 
@@ -160,7 +169,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2014/04/16/30-linux-ip-fragment/" data-title="Linux TCP/IP 协议栈关于 IP 分片重组的实现 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2014/04/16/30-linux-ip-fragment/" data-title="Linux TCP/IP 协议栈关于 IP 分片重组的实现 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -207,7 +216,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -225,7 +234,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -286,7 +295,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -310,10 +319,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -322,31 +327,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -354,11 +335,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -448,7 +457,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>浅墨的部落格</title>
@@ -17,10 +17,9 @@
 <meta property="og:url" content="https://0xffffff.org/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="浅墨">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="浅墨的部落格">
-<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -33,9 +32,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -75,6 +76,68 @@
     </header>
     <div id="container">
       <div id="main">
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2022/03/20/43-k8s/" title="一文理解 K8s 容器网络虚拟化" itemprop="url">一文理解 K8s 容器网络虚拟化</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2022-03-20T13:00:00.000Z" itemprop="datePublished"> 发表于 2022-03-20</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>本文需要读者熟悉 Ethernet（以太网）的基本原理和 Linux 系统的基本网络命令，以及 TCP&#x2F;IP 协议族并了解传统的网络模型和协议包的流转原理。文中涉及到 Linux 内核的具体实现时，均以内核 <code>v4.19.215</code> 版本为准。</p>
+<h1 id="内核网络包接收流程"><a href="#内核网络包接收流程" class="headerlink" title="内核网络包接收流程"></a>内核网络包接收流程</h1><h2 id="从网卡到内核协议栈"><a href="#从网卡到内核协议栈" class="headerlink" title="从网卡到内核协议栈"></a>从网卡到内核协议栈</h2><p><img src="/images/43/1.png"></p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2022/03/20/43-k8s/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Linux/">Linux</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/k8s/">k8s</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
 
    
     
@@ -165,13 +228,16 @@
         
         <h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>在开始正式的讨论前，我先抛出几个问题：</p>
 <ul>
-<li>谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？</li>
-<li>单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？</li>
-<li><code>write(2)</code>函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？</li>
-</ul>
-<ul>
-<li><code>write(2)</code>调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如<code>O_APPEND</code>方式？</li>
-<li>坊间传闻，<code>mmap(2)</code>的方式读文件比传统的方式要快，因为少一次拷贝。真是这样吗？为什么少一次拷贝？</li>
+<li><p>谈到磁盘时，常说的HDD磁盘和SSD磁盘最大的区别是什么？这些差异会影响我们的系统设计吗？</p>
+</li>
+<li><p>单线程写文件有点慢，那多开几个线程一起写是不是可以加速呢？</p>
+</li>
+<li><p><code>write(2)</code>函数成功返回了，数据就已经成功写入磁盘了吗？此时设备断电会有影响吗？会丢失数据吗？</p>
+</li>
+<li><p><code>write(2)</code>调用是原子的吗？多线程写文件是否要对文件加锁？有没有例外，比如<code>O_APPEND</code>方式？</p>
+</li>
+<li><p>坊间传闻，<code>mmap(2)</code>的方式读文件比传统的方式要快，因为少一次拷贝。真是这样吗？为什么少一次拷贝？</p>
+</li>
 </ul>
 <p>如果你觉得这些问题都很简单，都能很明确的回答上来。那么很遗憾这篇文章不是为你准备的，你可以关掉网页去做其他更有意义的事情了。如果你觉得无法明确的回答这些问题，那么就耐心地读完这篇文章，相信不会浪费你的时间。受限于个人时间和文章篇幅，部分议题如果我不能给出更好的解释或者已有专业和严谨的资料，就只会给出相关的参考文献的链接，请读者自行参阅。</p>
 <p>言归正传，我们的讨论从存储器的层次结构开始。</p>
@@ -235,8 +301,8 @@
 </header>
     <div class="article-content">
         
-        <p>突然想聊聊这个话题，是因为知乎上的一个问题多次出现在了我的Timeline里：<a href="https://www.zhihu.com/question/31325454" target="_blank" rel="noopener">请问，多个线程可以读一个变量，只有一个线程可以对这个变量进行写，到底要不要加锁？</a>可惜的是很多高票答案语焉不详，甚至有所错漏。所以我想在这篇文章里斗胆聊聊这个水挺深的问题。受限于个人水平，<strong>文章若有错漏，还望读者不吝赐教</strong>。</p>
-<p>首先约定，由于CPU的架构和设计浩如烟海，本文站在工程师的角度，只谈IA32/AMD64(x86-64)架构，不讨论其他架构的细节和差异。并且文章中主要引用Intel的文档予以佐证，不关注AMD在实现细节上的差异。</p>
+        <p>突然想聊聊这个话题，是因为知乎上的一个问题多次出现在了我的Timeline里：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/31325454">请问，多个线程可以读一个变量，只有一个线程可以对这个变量进行写，到底要不要加锁？</a>可惜的是很多高票答案语焉不详，甚至有所错漏。所以我想在这篇文章里斗胆聊聊这个水挺深的问题。受限于个人水平，<strong>文章若有错漏，还望读者不吝赐教</strong>。</p>
+<p>首先约定，由于CPU的架构和设计浩如烟海，本文站在工程师的角度，只谈IA32&#x2F;AMD64(x86-64)架构，不讨论其他架构的细节和差异。并且文章中主要引用Intel的文档予以佐证，不关注AMD在实现细节上的差异。</p>
 <p>众所周知，当一个执行中的程序的数据被多个执行流并发访问的时候，就会涉及到<strong>同步（Synchronization）</strong>的问题。同步的目的是保证不同执行流对共享数据并发操作的一致性。早在单核时代，使用锁或者原子变量就很容易达成这一目的。甚至因为CPU的一些访存特性，对某些内存对齐数据的读或写也具有原子的特性。</p>
 <p>比如，在《Intel® 64 and IA-32 Architectures Software Developer’s Manual》的第三卷System Programming Guide的Chapter 8 Multiple-Processor Management里，就给出了这样的说明：</p>
         
@@ -280,73 +346,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2017/01/22/39-multi-thread-memory-bug/" title="Linux 环境下多线程 C/C++ 程序的内存问题调试" itemprop="url">Linux 环境下多线程 C/C++ 程序的内存问题调试</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2017-01-22T07:24:00.000Z" itemprop="datePublished"> 发表于 2017-01-22</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>很久以前写过一篇调试内存错误的文章<a href="http://0xffffff.org/2012/11/20/1-gdb-coredump/">《用gdb配合内核转储文件瞬间定位段错误》</a>，这是最基本的C/C++程序内存错误的定位方法。简单的coredump问题一般都是普通的内存访问错误，通过这个方法都很容易定位到相关的代码bug并修复。</p>
-<p>但是在具体实践中，往往会有一些复杂的内存访问错误，尤其是多线程环境下的C/C++程序。因为其内存的分配、释放与访问经常会牵扯到多个线程，容易引入复杂而难以定位的内存错误，导致程序在执行过程中错误的访问内存而被操作系统结束掉。</p>
-<p>这篇文章介绍一些常见的内存错误和调试的步骤和方法，以及一些多线程程序避免内存问题的实践经验。</p>
-<h2 id="常见的内存错误举例"><a href="#常见的内存错误举例" class="headerlink" title="常见的内存错误举例"></a>常见的内存错误举例</h2><p>C/C++程序被称之为系统编程语言，往往编译成操作系统直接支持的可执行文件格式。C/C++语言本身没有垃圾回收机制，内存的动态分配与释放需要程序自行控制，对内存的访问也没有语言级别的校验和保护。出现内存访问错误后，进程多半会直接被操作系统结束掉。少部分情况因为访存地址合法，会对数据造成破坏（悬垂指针或者野指针），一般会在运行一段时间后才因为异常退出。这时候触发错误导致进程退出的代码位置往往不是”案发的第一现场“，给调试工作带来了更大的难度。</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2017/01/22/39-multi-thread-memory-bug/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/多线程/">多线程</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/C/">C++</a><a href="/tags/coredump/">coredump</a><a href="/tags/调试/">调试</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/">Next<span></span></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -359,7 +361,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -377,7 +379,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -438,7 +440,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -462,10 +464,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -474,31 +472,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -506,11 +480,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -600,7 +602,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>浅墨的部落格</title>
@@ -17,10 +17,9 @@
 <meta property="og:url" content="https://0xffffff.org/page/6/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="浅墨">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="浅墨的部落格">
-<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -33,9 +32,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -82,6 +83,72 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2013/10/24/23-x86-asm-3/" title="保护模式汇编系列之三 - 段页式内存管理（一）" itemprop="url">保护模式汇编系列之三 - 段页式内存管理（一）</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-10-24T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-10-24</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>这是本系列第三篇了，我们这次来谈谈x86的段页式内存管理。这篇文章的定位是阐述分段分页的来历和要解决的问题。需要阐述细节的地方，我会贴出相关的文档和代码。</p>
+<p>首先，如果我这个标题让你觉得段页式是一种方式而且密不可分的话，那我先说声抱歉了。其实分段和分页没什么必然联系。只不过Intel从8086开始，其制造的CPU就以段地址+偏移地址的方式来访问内存。后来要兼容以前的CPU，Intel不得不一直保留着这个传统。分段可以说是Intel的CPU一直保持着的一种机制，而分页只是保护模式下的一种内存管理策略。不过想开启分页机制，CPU就必须工作在保护模式，而工作在保护模式时候可以不开启分页。</p>
+<p>关于保护模式的段机制我们在系列一里面已经谈过不少，而且我们也谈过“绕过”分段的平坦模式。那么，我们下文的重点就是谈谈在设置平坦模式的环境之后，进行内存分页管理的问题了。光说不练是假把式，这次我们就贴上来一些代码具体感受一下吧。</p>
+<p>首先是设置全局段描述符表。我们给出全局段描述符表和全局描述符表寄存器的结构体定义：</p>
+<p><img src="/images/23/1.png"></p>
+<p>注意结构体定义后面的那个 <code>__attribute__((packed))</code> 很重要，这是GCC的扩展，用来设置该结构体不进行字节对齐。什么？你不知道什么是字节对齐？那么你先去谷歌一下再回来接着看吧。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/10/24/23-x86-asm-3/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/x86%E6%9E%B6%E6%9E%84/">x86架构</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/汇编/">汇编</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2013/10/23/22-x86-asm-2/" title="保护模式汇编系列之二 - 中断和异常处理" itemprop="url">保护模式汇编系列之二 - 中断和异常处理</a>
   </h1>
   <p class="article-author">By
@@ -95,7 +162,7 @@
 </header>
     <div class="article-content">
         
-        <p>如果你对中断是什么都不清楚的话，还是先Google一下中断的定义和基本概念吧，这里给出一个链接: <a href="http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7" target="_blank" rel="noopener">http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7</a></p>
+        <p>如果你对中断是什么都不清楚的话，还是先Google一下中断的定义和基本概念吧，这里给出一个链接: <a target="_blank" rel="noopener" href="http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7">http://zh.wikipedia.org/zh/%E4%B8%AD%E6%96%B7</a></p>
 <p>好了，看完了这个链接，我想你已经大致明白了什么是中断，还有中断的作用了吧？我们再来总结下，其实简单说中断就是一种通知机制罢了。我们知道操作系统的一个核心任务就是和连接在主板上的所有的硬件设备进行通信，但是CPU和这些外设的速率根本就不在一个数量级上，倘若CPU向某一个设备发出一个请求并且一直等待反馈结果的话，这样带来的性能损失是不可接受的。而且CPU在运行期间需要得知外设所发生的事件，轮询显然是不可取的，那么就迫切需要一种机制来帮助我们解决这个问题。</p>
 <p>肩负着这一伟大使命，中断应运而生。当中断发生时，典型的处理方式就是打断CPU目前正在做的事情，CPU会保留当前的执行现场，转移到该中断事先安排好的中断处理函数去执行，执行结束之后再回来恢复之前的执行现场去执行。</p>
 <p>从物理学的角度看，中断其实就是一种电信号，一般由硬件设备生成并送入中断控制器统一协调（当然需要一个“协调机构”了，试想所有设备不区分轻重缓急的和CPU发送中断信号的恐怖场景…）。中断控制器就是个简单的电子芯片，其作用就是将汇集的多路中断管线，采用复用技术只通过一条中断线和CPU相连接。既然中断控制器这里只有一条线和CPU相链接，那么为了区分各个设备，中断自然就有编号了。</p>
@@ -114,7 +181,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/x86架构/">x86架构</a>
+  <a class="article-category-link" href="/categories/x86%E6%9E%B6%E6%9E%84/">x86架构</a>
 </div>
 
 
@@ -167,7 +234,7 @@
 <p>实模式指的是8086CPU的运行模式，不过这是后来提出的概念，在8086时代只有当时的运行模式，自然也就没有“实模式”这么个提法。如果世界上只有一种性别的人，也就没有男人，女人这种名称了。8086的汇编中，我们对于实模式的各种机制应该算是比较了解了，其大致包括实模式1MB的线性地址空间、内存寻址方法、寄存器、端口读写以及中断处理方法等内容。</p>
 <p>不过到了80386时代，引进了一种沿用至今的CPU运行机制——保护模式(Protected Mode)。保护模式有一些新的特色，用来增强多工和系统稳定度，比如内存保护，分页系统，以及硬件支持的虚拟内存等。大部分现今基于 x86的操作系统都在保护模式下运行，包括Linux、FreeBSD、以及 微软 Windows 2.0 和之后版本 [都指32位操作系统] 。</p>
 <p>虚拟8086模式用于在保护模式下运行原来实模式下的16位程序，我们不关心。</p>
-<p><strong>事实上，现在的64位处理器，拥有三种基本模式（保护模式、实模式、系统管理模式）和一种扩展模式（IA-32e模式（又分兼容模式和64位模式））</strong> <a href="http://baike.baidu.com/view/809.htm" target="_blank" rel="noopener">详见这里</a></p>
+<p><strong>事实上，现在的64位处理器，拥有三种基本模式（保护模式、实模式、系统管理模式）和一种扩展模式（IA-32e模式（又分兼容模式和64位模式））</strong> <a target="_blank" rel="noopener" href="http://baike.baidu.com/view/809.htm">详见这里</a></p>
 <p>我们先来研究保护模式，学校目前基本还处于只讲8086实模式的时代。至于现代CPU的模式……我们有精力再来研究吧。声明下，我不是在吐槽我们的大学教育，真的。</p>
         
         
@@ -182,7 +249,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/x86架构/">x86架构</a>
+  <a class="article-category-link" href="/categories/x86%E6%9E%B6%E6%9E%84/">x86架构</a>
 </div>
 
 
@@ -229,7 +296,7 @@
 </header>
     <div class="article-content">
         
-        <p>以前写过一篇<a href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/" target="_blank" rel="noopener">《进程眼中的线性地址空间》</a>，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章<a href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/" target="_blank" rel="noopener">《Linux线程的前世今生》</a>作为前期的辅助资料。</p>
+        <p>以前写过一篇<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">《进程眼中的线性地址空间》</a>，这是她的姊妹篇线程篇。而且和以前一样我们只谈32位Linux下的实现。另外读者可能还需要之前的一篇文章<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/">《Linux线程的前世今生》</a>作为前期的辅助资料。</p>
 <p>如果读者已经看过这两篇文章，那么我们就可以继续往下说了。</p>
 <p>我简单列出上述文章中的几个要点：</p>
 <ol>
@@ -252,78 +319,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2013/07/30/19-linux-thread-history/" title="Linux 线程的前世今生" itemprop="url">Linux 线程的前世今生</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2013-07-30T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-07-30</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>最近在重新翻阅《Unix环境高级编程》的时候，被书上的一段例程所困扰，那段代码是分别在主线程和子线程中使用 getpid() 函数打印进程标识符PID，书上告诉我们是不同的值，但是测试结果是主线程和子线程中打印出了相同的值。</p>
-<p>在我的印象中《Linux内核设计与实现》这本书曾经谈到线程时如是说：从内核的角度来说，它并没有线程这个概念。Linux内核把所有的线程都当成进程来实现……在内核中，线程看起来就像是一个普通的进程（只是线程和其他一些进程共享某些资源，比如地址空间）。</p>
-<p>《Unix环境高级编程》第二版著书时的测试内核是2.4.22，而《Linux内核设计与实现》这本书是针对2.6.34内核而言的(兼顾2.6.32)，而我的内核是3.9.11，难道是内核发展过程中线程的实现发生了较大的变化？百度一番之后发现资料乱七八糟不成系统，索性翻阅诸多文档和网页，整理如下。如有偏差，烦请大家指正。</p>
-<p>在 Linux 创建的初期，内核一直就没有实现“线程”这个东西。后来因为实际的需求，便逐步产生了LinuxThreads 这个项目，其主要的贡献者是Xavier Leroy。LinuxThreads项目使用了 clone() 这个系统调用对线程进行了模拟，按照《Linux内核设计与实现》的说法，调用 clone() 函数参数是<code>clone(CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND, 0)</code>，即创建一个新的进程，同时让父子进程共享地址空间、文件系统资源、文件描述符、信号处理程序以及被阻断的信号等内容。也就是说，此时的所谓“线程”模型符合以上两本经典巨著的描述，即在内核看来，没有所谓的“线程”，我们所谓的“线程”其实在内核看来不过是和其他进程共享了一些资源的进程罢了。</p>
-<p>通过以上的描述，我们可以得到以下结论：</p>
-<blockquote>
-<ol>
-<li>此时的内核确实不区分进程与线程，内核没有“线程”这个意识。</li>
-<li>在不同的“线程”内调用 getpid() 函数，打印的肯定是不同的值，因为它们在内核的进程链表中有不同的 task_struct 结构体来表示，有各自不同的进程标识符PID。</li>
-</ol>
-</blockquote>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2013/07/30/19-linux-thread-history/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -353,7 +349,7 @@
 
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/5/"><span></span>Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/7/">Next<span></span></a>
+    <a class="extend prev" rel="prev" href="/page/5/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/7/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -366,7 +362,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -384,7 +380,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -445,7 +441,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -469,10 +465,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -481,31 +473,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -513,11 +481,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -607,7 +603,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

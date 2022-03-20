@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>Emmet —— 快速的编写 HTML 和 CSS 代码 | 浅墨的部落格</title>
@@ -12,17 +12,18 @@
 
     
     <meta name="description" content="这学期被自愿的选择了《Web应用程序设计》这门课，还是自学课。好吧，反正基础的HTML和CSS迟早也是要学习的，就提前学吧。 按照我的性子，当学习新的语言以及语法规则的时候，我就又开始折腾编辑器的语法高亮和配置自动补全功能了。其实接触到新的语言时，我个人建议还是不要急着去寻找相关的IDE去使用，还是先用基本的文本编辑器写，尝试自己手工去构建。等到理解了之后再使用IDE提高编码效率也不晚。IDE的方">
-<meta name="keywords" content="基础知识,前端">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Emmet —— 快速的编写 HTML 和 CSS 代码">
 <meta property="og:url" content="https://0xffffff.org/2013/02/25/14-emmet/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="这学期被自愿的选择了《Web应用程序设计》这门课，还是自学课。好吧，反正基础的HTML和CSS迟早也是要学习的，就提前学吧。 按照我的性子，当学习新的语言以及语法规则的时候，我就又开始折腾编辑器的语法高亮和配置自动补全功能了。其实接触到新的语言时，我个人建议还是不要急着去寻找相关的IDE去使用，还是先用基本的文本编辑器写，尝试自己手工去构建。等到理解了之后再使用IDE提高编码效率也不晚。IDE的方">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T09:15:47.354Z">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2013-02-25T07:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:15:47.354Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="前端">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Emmet —— 快速的编写 HTML 和 CSS 代码">
-<meta name="twitter:description" content="这学期被自愿的选择了《Web应用程序设计》这门课，还是自学课。好吧，反正基础的HTML和CSS迟早也是要学习的，就提前学吧。 按照我的性子，当学习新的语言以及语法规则的时候，我就又开始折腾编辑器的语法高亮和配置自动补全功能了。其实接触到新的语言时，我个人建议还是不要急着去寻找相关的IDE去使用，还是先用基本的文本编辑器写，尝试自己手工去构建。等到理解了之后再使用IDE提高编码效率也不晚。IDE的方">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -100,18 +103,21 @@
 <p>另外，个人吐槽下网上到处可见的什么“真正的高手写代码只用记事本”。你确定是notepad？没有++？好吧，个人感觉用记事本写代码如果不是临时找不到替代品之外，除了装逼就再没有什么意义了。即便是不需要IDE的自动补全和错误检测，个人认为代码编辑器的语法高亮和格式调整还是很重要的。手工调整格式很麻烦，而语法高亮除了看起来赏心悦目还能指出来明显的拼写错误。方便的代码编辑器notapad++、Vim，Emacs等等是很好的选择。</p>
 <p>废话少说，言归正传。我们今天给熟悉了HTML和CSS的程序员推荐一款文本编辑器的插件——Emmet。如果你没有听说过Emmet，那你至少听说过大名鼎鼎的Zen coding吧？Emmet就是Zen coding的新名字。什么？你没有听说过？太好了，你可以继续看下去了，否则，也就没有看的必要了……</p>
 <p>简单介绍下Emmet，官方是这么说的“Emmet is a plugin for many popular text editors which greatly improves HTML &amp; CSS workflow”。</p>
-<p>官方主页在 <a href="http://www.emmet.io/" target="_blank" rel="noopener">http://www.emmet.io/</a></p>
-<p>Emmet作为文本编辑器的插件提供给 Eclipse/Aptana，Sublime Text 2，TextMate 1.x，Coda 1.6 and 2.x 等等编辑器作为扩展。我们以我比较喜欢的编辑器 Sublime Text 为例介绍下安装与使用方法吧。（暂时先委屈下Vim，因为Vim的插件自动补全是“Ctrl+Y+逗号/分号”，这个快捷键很不好用，而我还没有找到修改的方法  我暂时在vimrc文件里加入 imap <c-e> <c-y>;  映射到Ctrl+E，官方的重定义方法太麻烦了）</c-y></c-e></p>
-<a id="more"></a>
-<p>P.S. Vim版的Emmet插件代码地址在 <a href="https://github.com/mattn/zencoding-vim" target="_blank" rel="noopener">https://github.com/mattn/zencoding-vim</a></p>
-<p>Sublime Text版的插件地址在 <a href="https://github.com/sergeche/emmet-sublime" target="_blank" rel="noopener">https://github.com/sergeche/emmet-sublime</a> ，项目的说明文件很详细的指出了如何通过Package Control: Install Package功能安装，如果你是Sublime的粉丝，这应该很简单。如果不理解也没关系，直接把代码下载后解压缩到Sublime所在目录下的Packages目录重启Sublime即可使用。</p>
+<p>官方主页在 <a target="_blank" rel="noopener" href="http://www.emmet.io/">http://www.emmet.io/</a></p>
+<p>Emmet作为文本编辑器的插件提供给 Eclipse&#x2F;Aptana，Sublime Text 2，TextMate 1.x，Coda 1.6 and 2.x 等等编辑器作为扩展。我们以我比较喜欢的编辑器 Sublime Text 为例介绍下安装与使用方法吧。（暂时先委屈下Vim，因为Vim的插件自动补全是“Ctrl+Y+逗号&#x2F;分号”，这个快捷键很不好用，而我还没有找到修改的方法  我暂时在vimrc文件里加入 imap <C-e> <C-y>;  映射到Ctrl+E，官方的重定义方法太麻烦了）</p>
+<span id="more"></span>
+
+<p>P.S. Vim版的Emmet插件代码地址在 <a target="_blank" rel="noopener" href="https://github.com/mattn/zencoding-vim">https://github.com/mattn/zencoding-vim</a></p>
+<p>Sublime Text版的插件地址在 <a target="_blank" rel="noopener" href="https://github.com/sergeche/emmet-sublime">https://github.com/sergeche/emmet-sublime</a> ，项目的说明文件很详细的指出了如何通过Package Control: Install Package功能安装，如果你是Sublime的粉丝，这应该很简单。如果不理解也没关系，直接把代码下载后解压缩到Sublime所在目录下的Packages目录重启Sublime即可使用。</p>
 <p>如果你使用其他的编辑器，在官方的主页上也能找到相关的下载和配置方法，我就不详细叙述了。</p>
 <p>配置好后我们来看看如何使用。我们先来看一个基本的HTML文件几乎必写的东西：</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">title</span>&gt;</span><span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
 <p>这个框架我们怎么写呢？一个一个去拼写？姑且不说效率问题，拼写错误也是很麻烦的一件事情。</p>
 <p>我们在Sublime中建立一个html文件，输入以下内容：</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">html&gt;(head&gt;title)+body</span><br></pre></td></tr></table></figure>
-<p>输入完成后按下Tab键（windows用户请使用Ctrl+E键或自行修改快捷键），奇迹发生了，自动生成了我们想要的格式。这就是神奇的Emmet所带来的快速编写HTML和CSS的方法。只是这样吗？当然不是了，在官方提供的帮助文档里我们可以学到更多神奇的语法。地址在：<a href="http://docs.emmet.io/abbreviations/syntax/" target="_blank" rel="noopener">http://docs.emmet.io/abbreviations/syntax/</a></p>
+
+<p>输入完成后按下Tab键（windows用户请使用Ctrl+E键或自行修改快捷键），奇迹发生了，自动生成了我们想要的格式。这就是神奇的Emmet所带来的快速编写HTML和CSS的方法。只是这样吗？当然不是了，在官方提供的帮助文档里我们可以学到更多神奇的语法。地址在：<a target="_blank" rel="noopener" href="http://docs.emmet.io/abbreviations/syntax/">http://docs.emmet.io/abbreviations/syntax/</a></p>
 <p>可以使用的有&gt;，+，^，*，( )，以及适用于CSS的#和$符号。分别表示层次关系，数量和匹配。官方有很详细的文档，甚至有动画予以说明，我就不重复造轮子了。</p>
 <p>最后再说几句废话：插件是为了提高了我们写代码的速度，但是请别过分依赖工具。工具的使用是建立在我们掌握了本质性的东西之后用来降低重复性劳动的东西。千万不能离开了工具就什么也都干不了了，那就得不偿失了。</p>
   
@@ -128,7 +134,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/编程工具/">编程工具</a>
+  <a class="article-category-link" href="/categories/%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7/">编程工具</a>
 </div>
 
 
@@ -143,7 +149,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/02/25/14-emmet/" data-title="Emmet —— 快速的编写 HTML 和 CSS 代码 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/02/25/14-emmet/" data-title="Emmet —— 快速的编写 HTML 和 CSS 代码 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -190,7 +196,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -208,7 +214,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -269,7 +275,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -293,10 +299,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -305,31 +307,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -337,11 +315,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -431,7 +437,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

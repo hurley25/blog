@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>聊聊 Linux 的内存统计 | 浅墨的部落格</title>
@@ -12,23 +12,24 @@
 
     
     <meta name="description" content="写在前面本文主要分析 Linux 系统内存统计的一些指标以及进程角度内存使用监控的一些方法。 开始阅读这篇文章前，请先简单阅读下面的几篇文章。  《进程眼中的线性地址空间》 《线程眼中的线性地址空间》 《聊聊内存管理》  想必这几篇文章过后，基本概念就不需要再赘述了。所以下文直接就找一台 Intel x86_64 架构下安装了 64bit Linux 系统的服务器作为例进行相关的实验和结果分析。L">
-<meta name="keywords" content="Linux,memory">
 <meta property="og:type" content="article">
 <meta property="og:title" content="聊聊 Linux 的内存统计">
 <meta property="og:url" content="https://0xffffff.org/2019/07/17/42-linux-memory-monitor/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="写在前面本文主要分析 Linux 系统内存统计的一些指标以及进程角度内存使用监控的一些方法。 开始阅读这篇文章前，请先简单阅读下面的几篇文章。  《进程眼中的线性地址空间》 《线程眼中的线性地址空间》 《聊聊内存管理》  想必这几篇文章过后，基本概念就不需要再赘述了。所以下文直接就找一台 Intel x86_64 架构下安装了 64bit Linux 系统的服务器作为例进行相关的实验和结果分析。L">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/42/free.png">
 <meta property="og:image" content="https://0xffffff.org/images/42/free-old.png">
 <meta property="og:image" content="https://0xffffff.org/images/42/smaps.png">
 <meta property="og:image" content="https://0xffffff.org/images/42/smaps-pss.png">
 <meta property="og:image" content="https://0xffffff.org/images/42/smaps-ana.png">
 <meta property="og:image" content="https://0xffffff.org/images/42/top.png">
-<meta property="og:updated_time" content="2019-07-17T12:26:49.552Z">
+<meta property="article:published_time" content="2019-07-17T12:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-17T12:26:49.552Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="memory">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="聊聊 Linux 的内存统计">
-<meta name="twitter:description" content="写在前面本文主要分析 Linux 系统内存统计的一些指标以及进程角度内存使用监控的一些方法。 开始阅读这篇文章前，请先简单阅读下面的几篇文章。  《进程眼中的线性地址空间》 《线程眼中的线性地址空间》 《聊聊内存管理》  想必这几篇文章过后，基本概念就不需要再赘述了。所以下文直接就找一台 Intel x86_64 架构下安装了 64bit Linux 系统的服务器作为例进行相关的实验和结果分析。L">
 <meta name="twitter:image" content="https://0xffffff.org/images/42/free.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -42,9 +43,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -110,27 +113,29 @@
 <li><a href="http://0xffffff.org/2014/10/31/32-memory-management/">《聊聊内存管理》</a></li>
 </ul>
 <p>想必这几篇文章过后，基本概念就不需要再赘述了。所以下文直接就找一台 Intel x86_64 架构下安装了 64bit Linux 系统的服务器作为例进行相关的实验和结果分析。Linux 的内存管理从物理内存管理到虚拟内存管理涉及的概念和统计项实在太多，本文从实用和系统运维的角度出发，只列举一些最实用的统计。</p>
-<a id="more"></a>
+<span id="more"></span>
+
 <h2 id="从-free-命令开始"><a href="#从-free-命令开始" class="headerlink" title="从 free 命令开始"></a>从 free 命令开始</h2><p>上面的背景介绍文章把内存相关的基础概念讲的差不多了，这里不再赘述。本文定位是内存统计，所以从最基础的内存统计的命令—<code>free</code>命令开始。执行<code>free</code>命令，可以看到如下的输出：</p>
-<p><img src="/images/42/free.png" alt></p>
+<p><img src="/images/42/free.png"></p>
 <p>纵向是内存和<code>Swap</code>分区，横向是统计项。纵向的含义以及<code>Swap</code>不需要解释，我们看横向的统计项：</p>
 <ul>
 <li>total — 系统总内存（其实就是从 <code>/proc/meminfo</code> 获取的）</li>
 <li>used — 已使用内存</li>
 <li>free — 未使用的内存</li>
 <li>shared — 共享内存的大小，主要是 <code>tmpfs</code></li>
-<li>buff / cache — <code>buffers</code>和<code>cache</code>使用的内存之和</li>
-<li>available — 可用内存，可以简单理解为未使用的内存和可释放的内存之和（buffer、cache 可以释放大部分，所以这里近似等于 free + buffer / cache 的大小）</li>
+<li>buff &#x2F; cache — <code>buffers</code>和<code>cache</code>使用的内存之和</li>
+<li>available — 可用内存，可以简单理解为未使用的内存和可释放的内存之和（buffer、cache 可以释放大部分，所以这里近似等于 free + buffer &#x2F; cache 的大小）</li>
 </ul>
 <p>这台机器的系统和内核稍微新一点，这个输出可能和你看到的不一样，早先的<code>free</code>命令的输出是这样：</p>
-<p><img src="/images/42/free-old.png" alt></p>
+<p><img src="/images/42/free-old.png"></p>
 <p>这里的<code>shared</code>为0，因为这台服务器没用共享内存。这里多解释下 <code>-/+ buffer/cache</code> 这行，字面意思就是<code>used - buffers/cache</code>和<code>used + buffers/cache</code>。前者指的是从应用程序角度系统被用掉了多少内存，后者指的是从应用程序角度看系统还有多少内存能用。听起来很复杂，其实说白了就是因为<code>buffers</code>和<code>cached</code>可以被释放出来，多几个指标看看系统还能用多少内存而已。</p>
 <p>下面用几个公式来解释这个输出：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 内存总量 = 已使用内存 + 空闲内存</span></span><br><span class="line">`total` = `used` + `free`</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 系统被用掉的内存</span></span><br><span class="line">`-buffers/cache` = `used` - `buffers` - `cached`</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 系统还能用的内存</span></span><br><span class="line">`+buffers/cache` = `free` + `buffers` + `cached`</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 所以，其实还有下面的公式</span></span><br><span class="line">`total` = `-buffers/cache` + `+buffers/cache`</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">内存总量 = 已使用内存 + 空闲内存</span></span><br><span class="line">`total` = `used` + `free`</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">系统被用掉的内存</span></span><br><span class="line">`-buffers/cache` = `used` - `buffers` - `cached`</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">系统还能用的内存</span></span><br><span class="line">`+buffers/cache` = `free` + `buffers` + `cached`</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">所以，其实还有下面的公式</span></span><br><span class="line">`total` = `-buffers/cache` + `+buffers/cache`</span><br></pre></td></tr></table></figure>
+
 <p><code>buffers/cached</code>不是100%都能释放出来使用的，上面的“可用内存”其实就是个近似值。最上面新版本系统的输出中有一个<code>available</code>项目表示可用内存，值小于 <code>free + buff/cache</code>，内核 3.14 之后支持该特性（虽然也不是绝对意义上的精确的可用内存大小，囧）。</p>
 <p>这里稍微多说一点<code>buffers</code> 和<code>cached</code>。Linux 2.4.10 内核之前，磁盘的缓存有两种，即 <code>Buffer Cache</code>和 <code>Page Cache</code>。前者缓存管理磁盘文件系统时读取的块，后者存放访问具体文件内容时生成的页。在 2.4.10 之后，<code>Buffer Cache</code>这个概念就不存在了，这些数据被放在<code>Page Cache</code>中（这种 <code>Page</code> 被称为 <code>Buffer Pages</code>）。</p>
-<p>简而言之，现在磁盘的 cache 只有 <code>Page Cache</code> 一种，在<code>Page Cache</code>中，有一种<code>Page</code>叫<code>Buffer Page</code>，这种<code>Page</code>都与一个叫<code>buffer_head</code>的数据结构关联，这些页也就在内存统计中用<code>buffers</code>这个指标来单独统计了。</p>
-<h2 id="proc-meminfo-详解"><a href="#proc-meminfo-详解" class="headerlink" title="/proc/meminfo 详解"></a>/proc/meminfo 详解</h2><p>很多命令的内存统计都是从<code>/proc/meminfo</code>读取的。鉴于 <code>/proc/meminfo</code> 的 man 文档（<code>man proc</code>）写的实在不够清晰，很多条目居然还是<code>To be documented</code>状态，所以这里逐一列举出来常见的统计项解释一下。</p>
+<p>简而言之，现在磁盘的 cache 只有 <code>Page Cache</code> 一种，在<code>Page Cache </code>中，有一种<code>Page</code>叫<code>Buffer Page </code>，这种<code>Page</code>都与一个叫<code>buffer_head</code>的数据结构关联，这些页也就在内存统计中用<code>buffers</code>这个指标来单独统计了。</p>
+<h2 id="x2F-proc-x2F-meminfo-详解"><a href="#x2F-proc-x2F-meminfo-详解" class="headerlink" title="&#x2F;proc&#x2F;meminfo 详解"></a>&#x2F;proc&#x2F;meminfo 详解</h2><p>很多命令的内存统计都是从<code>/proc/meminfo</code>读取的。鉴于 <code>/proc/meminfo</code> 的 man 文档（<code>man proc</code>）写的实在不够清晰，很多条目居然还是<code>To be documented</code>状态，所以这里逐一列举出来常见的统计项解释一下。</p>
 <p>首先明确一点，内核目前并没有绝对精确的统计所有的内存使用量，比如<code>alloc_pages</code>接口申请的内存不一定被统计在内（除非所有调用 <code>alloc_pages</code> 的代码主动进行统计，如果某些不讲究的驱动程序没有主动统计的话统计值就肯定对不上了）。</p>
 <p>先看这三项全局统计：</p>
 <ul>
@@ -172,13 +177,13 @@
 <li>POSIX Shared Memory — <code>shm_open</code></li>
 <li>Shared Anonymous Memory — <code>mmap(MAP_ANONYMOUS | MAP_SHARED)</code></li>
 </ul>
-<p>共享内存在内核中都是 <a href="https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt" target="_blank" rel="noopener">基于tmpf机制实现</a> 的。因为基于文件系统所以就不能算是匿名页，不能计入<code>AnonPages</code>的统计项，而只能计入<code>Cached</code>和<code>Mapped</code>统计项。但是，<code>tmpfs</code> 背后并没有真实的磁盘文件存在，如果想要被临时释放出来，只能通过<code>Swap</code>的方式，所以内存页被链接到了<code>Inactive(anon)</code>和<code>Active(anon)</code>里。</p>
+<p>共享内存在内核中都是 <a target="_blank" rel="noopener" href="https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt">基于tmpf机制实现</a> 的。因为基于文件系统所以就不能算是匿名页，不能计入<code>AnonPages</code>的统计项，而只能计入<code>Cached</code>和<code>Mapped</code>统计项。但是，<code>tmpfs</code> 背后并没有真实的磁盘文件存在，如果想要被临时释放出来，只能通过<code>Swap</code>的方式，所以内存页被链接到了<code>Inactive(anon)</code>和<code>Active(anon)</code>里。</p>
 <p>也就是说，共享内存的页面属于<code>File-backed Pages</code>，但是被放在<code>Inactive(anon)</code>和<code>Active(anon)</code>链表里，统计也不算在<code>AnonPages</code>里，而是算在<code>Cached</code>和<code>Mapped</code>里。特别地，如果这些页被<code>mlock()</code>的话，就放在 <code>Unevictable</code>链里并计算在内。所以从数值上看，<code>Inactive(anon)</code>项 + <code>Active(anon)</code>项 不等于<code>AnonPages</code>项，因为前者包括共享内存的部分。<code>Active(file)</code>项 + <code>Inactive(file)</code>项 也不等于 <code>Mapped</code>项，因为前者中包括<code>Unmapped</code>的内存，后者还包含共享内存的部分（这部分在 <code>Inactive(anon)</code>和<code>Active(anon)</code>里）。</p>
 <p>这里有一个情况要注意，与文件关联的页也有可能是匿名页（<code>MAP_PRIVATE</code> 映射的页面被修改时会产生一个匿名页拷贝），会被算到<code>AnonPages</code>里。</p>
 <p>与此相关的相关的统计项有：</p>
 <ul>
 <li>AnonPages — 匿名页（<code>Anonymous pages</code>）的大小，同时也包含<code>Transparent HugePages (THP)</code>对应的 AnonHugePages</li>
-<li>Mapped — 设备和文件等映射的大小，<code>Mapped</code>统计了<code>Cached</code>中所有的<code>Mapped</code>页面，是<code>Cached</code>的子集（满足<code>Cached</code> - <code>Mapped</code> = <code>Unmapped</code>）。共享内存、可执行程序的文件、动态库、<code>mmap</code>的文件等都统计在这里</li>
+<li>Mapped — 设备和文件等映射的大小，<code>Mapped</code>统计了<code>Cached</code>中所有的<code>Mapped</code>页面，是<code>Cached</code>的子集（满足<code>Cached</code> - <code>Mapped</code> &#x3D; <code>Unmapped</code>）。共享内存、可执行程序的文件、动态库、<code>mmap</code>的文件等都统计在这里</li>
 <li>Shmem — 共享内存的大小，包括<code>Shared Memory</code>、<code>tmpfs</code>和<code>devtmpfs</code></li>
 </ul>
 <blockquote>
@@ -199,7 +204,7 @@
 <li>VmallocChunk — vmalloc 区域最大的 free 连续区块大小 </li>
 <li>HardwareCorrupted — 系统检测到内存的硬件故障的内存大小（问题页会被记录不再使用）</li>
 </ul>
-<p>之前说过，HugePages 是独立统计的，如果进程使用了 <a href="https://www.kernel.org/doc/Documentation/vm/hugetlbpage.txt" target="_blank" rel="noopener">HugePages</a>，是不会计入自身的<code>RSS/PSS</code> 的。注意下面的 <code>AnonHugePages</code> 指的是透明大页（<a href="https://www.kernel.org/doc/Documentation/vm/transhuge.txt" target="_blank" rel="noopener">THP，Transparent HugePages</a>），<code>THP</code>是统计在进程的<code>RSS/PSS</code>里的，要注意区别。下面是相关的统计项：</p>
+<p>之前说过，HugePages 是独立统计的，如果进程使用了 <a target="_blank" rel="noopener" href="https://www.kernel.org/doc/Documentation/vm/hugetlbpage.txt">HugePages</a>，是不会计入自身的<code>RSS/PSS</code> 的。注意下面的 <code>AnonHugePages</code> 指的是透明大页（<a target="_blank" rel="noopener" href="https://www.kernel.org/doc/Documentation/vm/transhuge.txt">THP，Transparent HugePages</a>），<code>THP</code>是统计在进程的<code>RSS/PSS</code>里的，要注意区别。下面是相关的统计项：</p>
 <ul>
 <li>AnonHugePages — 透明大页 THP 使用的大小</li>
 <li>HugePages_Total — 内存大页的总量，对应 <code>/proc/sys/vm/nr_hugepages</code>，可以动态改</li>
@@ -215,8 +220,8 @@
 <li>PSS - <code>Proportional Set Size</code>，实际使用的物理内存，共享库占用的内存按照进程数等比例划分</li>
 <li>USS - <code>Unique Set Size</code>，进程独自占用的物理内存，不包含共享库占用的内存</li>
 </ul>
-<h3 id="proc-pid-smaps-文件"><a href="#proc-pid-smaps-文件" class="headerlink" title="/proc/{pid}/smaps 文件"></a>/proc/{pid}/smaps 文件</h3><p>在<code>/proc/{pid}/smaps</code>文件对应每个进程的详细内存分段统计。截取一部分：</p>
-<p><img src="/images/42/smaps.png" alt></p>
+<h3 id="x2F-proc-x2F-pid-x2F-smaps-文件"><a href="#x2F-proc-x2F-pid-x2F-smaps-文件" class="headerlink" title="&#x2F;proc&#x2F;{pid}&#x2F;smaps 文件"></a>&#x2F;proc&#x2F;{pid}&#x2F;smaps 文件</h3><p>在<code>/proc/&#123;pid&#125;/smaps</code>文件对应每个进程的详细内存分段统计。截取一部分：</p>
+<p><img src="/images/42/smaps.png"></p>
 <p>下面分别解释下含义：</p>
 <ul>
 <li>Size：映射的大小（<code>mapping size</code>）</li>
@@ -240,14 +245,14 @@
 <p>P.S. 最新的内核文档提到了要加<code>smaps_rollup</code>这个统计，支持<code>Pss_Anon</code>、<code>Pss_File</code>和<code>Pss_Shmem</code>三个分类统计，这个在进程级别看，用到内存就很清晰了。</p>
 </blockquote>
 <p>我们可以累加一下这个值看看某进程用到的内存总和：</p>
-<p><img src="/images/42/smaps-pss.png" alt></p>
+<p><img src="/images/42/smaps-pss.png"></p>
 <p>注意单位是KB，所以这里进程用到的内存是 1.17 GB 左右。</p>
 <p>这是个使用共享内存作为存储的服务，所以这是符合预期的。如果想要看排除共享内存的部分，那要看<code>Anonymous</code>部分的总和：</p>
-<p><img src="/images/42/smaps-ana.png" alt></p>
+<p><img src="/images/42/smaps-ana.png"></p>
 <p>所以实际匿名内存使用是 63 MB 左右。</p>
 <h3 id="top-命令"><a href="#top-命令" class="headerlink" title="top 命令"></a>top 命令</h3><p><code>top</code>命令中关于内存使用的统计：</p>
-<p><img src="/images/42/top.png" alt></p>
-<p>内存相关的统计有<code>VIRT</code>、<code>RES</code>、<code>SHR</code>、<code>SWAP</code>、<code>CODE</code>、<code>DATA</code>、<code>USED</code></p>
+<p><img src="/images/42/top.png"></p>
+<p>内存相关的统计有<code>VIRT </code>、<code>RES</code>、<code>SHR</code>、<code>SWAP</code>、<code>CODE</code>、<code>DATA</code>、<code>USED</code></p>
 <ul>
 <li>VIRT — <code>Virtual Memory Size</code>，虚拟内存大小，包括所有代码、数据和共享库，以及已交换的页面和已映射但未使用的内存</li>
 <li>RES — <code>Resident Memory Size</code>，驻留内存大小，共享的内存比如动态库也会计算在内</li>
@@ -258,13 +263,13 @@
 <li>USED — Memory in Use，RES + SWAP 的大小</li>
 </ul>
 <h3 id="其他的内存查看命令"><a href="#其他的内存查看命令" class="headerlink" title="其他的内存查看命令"></a>其他的内存查看命令</h3><p>常用的还有这些：<code>vmstat</code>、<code>sar</code>、<code>slabtop</code>、<code>kmstat</code>、<code>ps</code>、<code>prstat</code>、<code>pmap</code>等等。懒得写了，有问题看<code>man</code>文档得了。</p>
-<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>[1] Understanding the Linux Kernel, Daniel Plerre Bovet / Marco Cesati, 2005-11</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>[1] Understanding the Linux Kernel, Daniel Plerre Bovet &#x2F; Marco Cesati, 2005-11</p>
 <p>[2] Professional Linux Kernel Architecture,  Wolfgang Mauerer, 2008-10-13</p>
 <p>[3] Systems Performance: Enterprise and the Cloud, Brendan Gregg, 2013-10-26</p>
-<p>[4] <a href="https://raw.githubusercontent.com/torvalds/linux/master/Documentation/filesystems/proc.txt" target="_blank" rel="noopener">https://raw.githubusercontent.com/torvalds/linux/master/Documentation/filesystems/proc.txt</a></p>
-<p>[5] <a href="https://en.wikipedia.org/wiki/Resident_set_size" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Resident_set_size</a></p>
-<p>[6] <a href="https://en.wikipedia.org/wiki/Proportional_set_size" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Proportional_set_size</a></p>
-<p>[7] <a href="https://en.wikipedia.org/wiki/Unique_set_size" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Unique_set_size</a></p>
+<p>[4] <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/torvalds/linux/master/Documentation/filesystems/proc.txt">https://raw.githubusercontent.com/torvalds/linux/master/Documentation/filesystems/proc.txt</a></p>
+<p>[5] <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Resident_set_size">https://en.wikipedia.org/wiki/Resident_set_size</a></p>
+<p>[6] <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Proportional_set_size">https://en.wikipedia.org/wiki/Proportional_set_size</a></p>
+<p>[7] <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Unique_set_size">https://en.wikipedia.org/wiki/Unique_set_size</a></p>
   
 	</div>
 
@@ -294,7 +299,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2019/07/17/42-linux-memory-monitor/" data-title="聊聊 Linux 的内存统计 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2019/07/17/42-linux-memory-monitor/" data-title="聊聊 Linux 的内存统计 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -308,6 +313,14 @@
 	
 <nav class="article-nav clearfix">
  
+ <div class="prev" >
+ <a href="/2022/03/20/43-k8s/" title="一文理解 K8s 容器网络虚拟化">
+  <strong>上一篇：</strong><br/>
+  <span>
+  一文理解 K8s 容器网络虚拟化</span>
+</a>
+</div>
+
 
 <div class="next">
 <a href="/2017/05/01/41-linux-io/"  title="聊聊 Linux IO">
@@ -333,7 +346,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -351,7 +364,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -412,7 +425,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -436,10 +449,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -448,31 +457,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -480,11 +465,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -574,7 +587,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

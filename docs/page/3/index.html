@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>浅墨的部落格</title>
@@ -17,10 +17,9 @@
 <meta property="og:url" content="https://0xffffff.org/page/3/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="浅墨">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="浅墨的部落格">
-<meta name="twitter:description" content="纸上得来终觉浅，绝知此事要躬行。行尔方知学不易，藏之青山待后人。">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -33,9 +32,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -82,6 +83,71 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/03/28/35-Tair-mdb-analyse/" title="Tair MDB 存储引擎的实现" itemprop="url">Tair MDB 存储引擎的实现</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2015-03-28T08:00:00.000Z" itemprop="datePublished"> 发表于 2015-03-28</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p><a target="_blank" rel="noopener" href="http://tair.taobao.org/">Tair</a>是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。</p>
+<p>Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有要求的应用建议在后端加持久化数据源（例如MySQL）。本文接下来详细讨论Tair mdb存储引擎的实现。</p>
+<p>Tair的存储引擎接口是<code>src\storage\storage_manager.hpp</code>里的虚基类<code>storage_manager</code>。所有的Tair存储引擎均继承实现了<code>storage_manager</code>这个虚基类。<code>src\dataserver\tair_manager.cpp</code>文件中的<code>tair_manager::initialize</code>函数根据配置文件中<code>storage_engine</code>的设置初始化相应的存储引擎。</p>
+<p><img src="/images/35/1.png"></p>
+<p><img src="/images/35/2.png"></p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2015/03/28/35-Tair-mdb-analyse/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/源码分析/">源码分析</a><a href="/tags/tair/">tair</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/01/14/34-sigslot-code-analyse/" title="sigslot 库源码分析" itemprop="url">sigslot 库源码分析</a>
   </h1>
   <p class="article-author">By
@@ -97,12 +163,12 @@
         
         <p>最近一直在忙毕设的事情，博客都快被遗忘了。最近正好在研究sigslot库，索性晚上写点源码分析的水文充充数。</p>
 <p>言归正传，sigslot是一个用标准C++语法实现的信号与槽机制的函数库，类型和线程安全。提到信号与槽机制，恐怕最容易想到的就是大名鼎鼎的Qt所支持的对象之间通信的模式吧。不过这里的信号与槽虽然在概念上等价与Qt所实现的信号与槽，但是采用的仅仅是标准C++语法，不像Qt采用了扩展C++语言的方式（Qt需要使用moc工具对代码预处理之后，才能由标准的C++编译器进行编译）。</p>
-<p>众所周知，C++是一门特性众多的语言，其支持多种编程范式。虽然C++在一定程度上支持OOP编程，但是C++这种“静态消息机制”的语言一直没有实现对象级别的delegate机制，而C++之父Bjarne主张的“库扩展胜于语言扩展”的做法使得各种解决方案层出不穷。除了信号与槽机制，C++11正式加入的std:bind/std::function组合也提供了优秀的解决方案。这里所说的信号与槽机制也是一种对象间通信的机制，具体的讨论也可以看看sigslot相关介绍中的内容。</p>
+<p>众所周知，C++是一门特性众多的语言，其支持多种编程范式。虽然C++在一定程度上支持OOP编程，但是C++这种“静态消息机制”的语言一直没有实现对象级别的delegate机制，而C++之父Bjarne主张的“库扩展胜于语言扩展”的做法使得各种解决方案层出不穷。除了信号与槽机制，C++11正式加入的std:bind&#x2F;std::function组合也提供了优秀的解决方案。这里所说的信号与槽机制也是一种对象间通信的机制，具体的讨论也可以看看sigslot相关介绍中的内容。</p>
 <blockquote>
-<p>sigslot主页: <a href="http://sigslot.sourceforge.net" target="_blank" rel="noopener">http://sigslot.sourceforge.net</a></p>
+<p>sigslot主页: <a target="_blank" rel="noopener" href="http://sigslot.sourceforge.net/">http://sigslot.sourceforge.net</a></p>
 </blockquote>
 <blockquote>
-<p>sigslot文档: <a href="http://sigslot.sourceforge.net/sigslot.pdf" target="_blank" rel="noopener">http://sigslot.sourceforge.net/sigslot.pdf</a></p>
+<p>sigslot文档: <a target="_blank" rel="noopener" href="http://sigslot.sourceforge.net/sigslot.pdf">http://sigslot.sourceforge.net/sigslot.pdf</a></p>
 </blockquote>
 <p>sigslot库的用法文档中已然很明了了，所以在这里就不赘述了。接下来我们看看这个库的实现。源码分析的方法有很多种，具体到库代码的分析的方法，我喜欢的是先研究库的功能，直到能写出一个demo程序为止。研究一个库的前提是你得会用它，熟悉它的接口。读完文档，很容易就写出了下面的测试代码：</p>
         
@@ -118,7 +184,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/源码分析/">源码分析</a>
+  <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a>
 </div>
 
 
@@ -167,14 +233,15 @@
         
         <blockquote>
 <p><strong>我们假定读者掌握了：</strong></p>
+</blockquote>
 <ol>
-<li>Linux环境下C/C++的系统编程和基本的socket编程方法</li>
+<li>Linux环境下C&#x2F;C++的系统编程和基本的socket编程方法</li>
 <li>操作系统基本概念以及Linux的基本概念和原理</li>
 <li>Linux进程和线程的内存地址空间布局和资源关系</li>
 </ol>
-</blockquote>
 <blockquote>
 <p><strong>我们谈什么，不谈什么：</strong></p>
+</blockquote>
 <ol>
 <li>Linux下的网络程序设计所遵循的规范</li>
 <li>Linux网络程序的工作模型和原理</li>
@@ -182,9 +249,8 @@
 <li>基本上只针对Linux，基本不涉及Windows</li>
 <li>只涉及TCP协议的通信，不谈UDP</li>
 </ol>
-</blockquote>
 <hr>
-<p><strong>可以先行阅读的参考资料：</strong><br><a href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/" target="_blank" rel="noopener">进程眼中的线性地址空间</a><br><a href="http://www.0xffffff.org/2013/08/02/20-linux-thread-address-space/" target="_blank" rel="noopener">线程眼中的线性地址空间</a><br><a href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/" target="_blank" rel="noopener">Linux线程的前世今生</a><br><a href="http://www.0xffffff.org/2014/10/31/32-memory-management/" target="_blank" rel="noopener">聊聊内存管理</a><br><a href="http://blog.sae.sina.com.cn/archives/2200" target="_blank" rel="noopener">Linux系统调用</a><br><a href="http://www.sizeofvoid.net/goroutine-under-the-hood/" target="_blank" rel="noopener">goroutine背后的系统知识</a></p>
+<p><strong>可以先行阅读的参考资料：</strong><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">进程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/08/02/20-linux-thread-address-space/">线程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/">Linux线程的前世今生</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2014/10/31/32-memory-management/">聊聊内存管理</a><br><a target="_blank" rel="noopener" href="http://blog.sae.sina.com.cn/archives/2200">Linux系统调用</a><br><a target="_blank" rel="noopener" href="http://www.sizeofvoid.net/goroutine-under-the-hood/">goroutine背后的系统知识</a></p>
 <hr>
         
         
@@ -199,7 +265,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/检验总结/">检验总结</a>
+  <a class="article-category-link" href="/categories/%E6%A3%80%E9%AA%8C%E6%80%BB%E7%BB%93/">检验总结</a>
 </div>
 
 
@@ -250,7 +316,7 @@
 <p>本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对 x86  Linux 下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。</p>
 <h3 id="物理地址空间"><a href="#物理地址空间" class="headerlink" title="物理地址空间"></a>物理地址空间</h3><p>首先，什么是物理地址空间？我们知道 CPU 与外部进行信息传递的公用通道就是总线，一般而言，CPU 有三大总线：控制总线、数据总线、地址总线。这三类总线在一定程度上决定了 CPU 对外部设备的控制和数据传送能力。其中地址总线决定了 CPU 能向外部输出的地址宽度，也就是 CPU 的寻址能力。</p>
 <p>通过 <code>/proc/cpuinfo</code> 可以查看具体的数据：</p>
-<p><img src="/images/32/1.png" alt></p>
+<p><img src="/images/32/1.png"></p>
         
         
         <p class="article-more-link">
@@ -264,7 +330,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -292,75 +358,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2014/08/09/31-smp-false-sharing/" title="SMP 架构多线程程序的一种性能衰退现象—False Sharing" itemprop="url">SMP 架构多线程程序的一种性能衰退现象—False Sharing</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2014-08-09T02:00:00.000Z" itemprop="datePublished"> 发表于 2014-08-09</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>很久没更新博客了，虽然说一直都在做事情也没虚度，但是内心多少还是有些愧疚的。忙碌好久了，这个周末写篇文章放松下。</p>
-<p>言归正传，这次我们来聊一聊多核CPU运行多线程程序时，可能会产生的一种性能衰退现象——False Sharing. 貌似很高大上？No No No，我相信看完这篇文章之后你会完全理解False Sharing，并且能够在设计和编写多线程程序的时候意识到并完美解决这个问题。</p>
-<p>OK，我们开始吧。</p>
-<p>首先，False Sharing的产生需要几个特定条件：CPU具有多个核心，其上运行着的同一个程序的多个线程分别运行在不同的核心上，而且这些线程在修改同一个cache行的数据。说到这里你可能已经明白了，就是多核心修改同一cache行引起的。没错，因为现代CPU的每个核心都有自己的私有cache块，False Sharing产生的原因就是因为某个核心的线程修改了自己私有cache某行的数据，导致另一个核心的私有cache中映射到同样内存位置的cache行也被标记上脏位而被迫逐出，又一次从内存更新的缘故（保证cache一致性）。</p>
-<p>如果两个核心运行的线程“此起彼伏”的修改邻近内存的数据，就会相互导致对方的私有cache中映射到该内存位置的cache行被频繁的更新。这样的话，cache的效果根本就没有体现出来。原理见下图：</p>
-<p><img src="/images/31/1.png" alt></p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2014/08/09/31-smp-false-sharing/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/并发/">并发</a><a href="/tags/smp/">smp</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/2/"><span></span>Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next<span></span></a>
+    <a class="extend prev" rel="prev" href="/page/2/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -373,7 +373,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -391,7 +391,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -452,7 +452,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -476,10 +476,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -488,31 +484,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -520,11 +492,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -614,7 +614,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

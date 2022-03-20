@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>进程眼中的线性地址空间 | 浅墨的部落格</title>
@@ -12,20 +12,21 @@
 
     
     <meta name="description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
-<meta name="keywords" content="Linux,基础知识">
 <meta property="og:type" content="article">
 <meta property="og:title" content="进程眼中的线性地址空间">
 <meta property="og:url" content="https://0xffffff.org/2013/05/23/18-linux-process-address-space/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/18/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/18/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/18/3.png">
-<meta property="og:updated_time" content="2019-07-15T07:29:40.570Z">
+<meta property="article:published_time" content="2013-05-23T11:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-15T07:29:40.570Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="进程眼中的线性地址空间">
-<meta name="twitter:description" content="从文章的题目我们就知道今天是以一个进程的角度来看待自身的运行环境。我们先提出第一个问题，什么是进程？对于这个问题，各种参考资料上给出的定义都显得过于抽象而难以理解，下面是我自己的定义： 进程是一个动态的概念，它是静态的可执行文件执行过程的描述，其包含了一个静态程序运行时的状态和其所占据的系统资源的总和。 还是很抽象吗？那么，我们可以这样比喻，如果说菜谱是程序代码，厨具是硬件的话，那么炒菜的整个过程">
 <meta name="twitter:image" content="https://0xffffff.org/images/18/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -39,9 +40,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -106,21 +109,24 @@
 <p>比如32位的硬件平台可编址范围就是0x00000000～0xFFFFFFFF，即就是4GB。而64位的硬件平台达到了理论上0x0000000000000000～0xFFFFFFFFFFFFFFFF的寻址空间，即就是17179869184GB的大小（事实上我自己的64位 Intel Core i3 处理器也仅有36位地址总线而已，因为暂时用不到那么大的物理地址范围）。</p>
 <p>为了行文的简单，我就以32位硬件平台来描述吧（事实上我对64位所知甚少，不敢信口开河…），同时指定环境为32位的Linux操作系统。</p>
 <p>可能看到这里你反而更迷惑了，我一直在说一个进程拥有4GB的线性地址空间（以下只讨论32位），可是操作系统上同时在运行着N个进程，难不成每个都有4GB的线性地址空间不成？没错，每个都有。我们一直在使用术语“线性地址空间”而非“主存储器（内存）”，因为线性地址空间并非和主存等价。我们平时只要一提到“地址”这个概念，想必大家自然而然的就想到了主存储器。但事实上并非线性地址就一定指向主存储器的物理地址，如果你对“线性地址空间”不理解的话，我建议你先去看看我的另一篇博文《基于Intel 80×86 CPU的IBM PC及其兼容计算机的启动流程》。</p>
-<a id="more"></a>
+<span id="more"></span>
+
 <p>其实说到线性地址空间，就不得不提到Intel CPU保护模式下的内存分段和分页，但这偏离了文章的主旨。我们暂时只需要知道，之所以进程拥有独立的4GB的虚拟地址，是因为CPU和操作系统提供了一种虚拟地址到实际物理地址的映射机制，在页映射模式下，CPU发出的是虚拟地址，即进程看到的虚拟的地址，经过MMU（Memory Management Unit）部件转换之后就成了物理地址。</p>
 <p>好了，下文中我将假定读者理解了线性地址空间的概念，并认可了每个进程拥有4GB线性地址空间这一事实（物理地址扩展（PAE：Physical Address Extension）技术后面再说）。那么，这4GB的线性地址空间里都有些什么呢？我们画一张图来说明一下。</p>
-<p><img src="/images/18/1.png" alt></p>
-<p>内存高地址区域是被操作系统内核所占据的，Linux操作系统占据了高地址区域的1GB内存（Windows系统默认保留2GB给操作系统，但是可以配置为保留1GB）。如果我们想知道一个进程具体的内存空间布局的话，可以去/proc目录找以进程的pid所命名的目录下一个叫maps的文件，使用cat命令查看即可（需要root权限）。</p>
+<p><img src="/images/18/1.png"></p>
+<p>内存高地址区域是被操作系统内核所占据的，Linux操作系统占据了高地址区域的1GB内存（Windows系统默认保留2GB给操作系统，但是可以配置为保留1GB）。如果我们想知道一个进程具体的内存空间布局的话，可以去&#x2F;proc目录找以进程的pid所命名的目录下一个叫maps的文件，使用cat命令查看即可（需要root权限）。</p>
 <p>我们从图中可以看到，32位Linux系统中，代码段总是从地址0x08048000处开始的。数据段一般是在下一个4KB（分页机制默认选择4KB一个内存页）对齐的地址处开始。运行时堆是在数据段之后又一个4KB对齐处开始的，并通过malloc()函数调用向上增长（Linux下的malloc()一般依靠调用brk()或者mmap()系统调用实现）。再接着跳过动态链接库的区域就是进程的运行时栈了，需要注意的是栈是由高地址向着低地址增长的。栈空间再往上就是操作系统保留区域了，用于驻留内核的代码和数据。即就是在一个进程的眼里，只有它和操作系统在一起。</p>
 <p>也许你会问，那么一个进程如何修改另外一个进程的运行时数据呢？比如所谓的外挂程序。我们想想，一个进程不知道另一个进程，那谁知道所有的进程呢？操作系统呗，没错，操作系统提供了这种抽象，它也就拥有访问所有进程地址空间的能力。答案就是，一个进程倘若要修改不属于自己的进程空间的数据，就需要操作系统提供相关的系统调用（或API函数）的支持来实现。</p>
 <p>我们具体来看看代码段，以C语言为例，程序代码段的入口_start地址处的启动代码（startup code）是在目标文件ctr1.o（属于C运行时库的部分）中定义的，对于特定平台上的C程序都一样。其执行流程如下：</p>
 <figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>x080480c0 &lt;<span class="variable">_start</span>&gt;:</span><br><span class="line"></span><br><span class="line">    调用 <span class="variable">__libc_init_first</span> 函数</span><br><span class="line">    调用 <span class="variable">_init</span> 函数</span><br><span class="line">    调用 atexit 函数</span><br><span class="line">    调用 main 函数</span><br><span class="line">    调用 <span class="variable">_exit</span> 函数</span><br></pre></td></tr></table></figure>
+
 <p>而我们平时写的main函数只是整个C程序运行过程中所调用的一环而已。</p>
 <p>我们给出一段代码来看看一个C语言程序编译链接之后如何安排各个元素的内存位置吧，代码和注释如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">1</span>;              <span class="comment">// 栈区</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> b = <span class="number">2</span>;       <span class="comment">// 全局静态区（读/写段）</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> c = <span class="number">3</span>;        <span class="comment">// 只读段</span></span><br><span class="line">    <span class="keyword">char</span> *str1 = <span class="string">"Hello"</span>;   <span class="comment">// str1指针在栈区，"hello"字符串在只读段</span></span><br><span class="line">    <span class="keyword">char</span> str2[] = <span class="string">"world"</span>;             <span class="comment">// 只在栈区（字符串）</span></span><br><span class="line">    <span class="keyword">char</span> *str3 = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">20</span>);   <span class="comment">// str3变量在栈区，指针指向堆区</span></span><br><span class="line">　　　</span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">1</span>;              <span class="comment">// 栈区</span></span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> b = <span class="number">2</span>;       <span class="comment">// 全局静态区（读/写段）</span></span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> c = <span class="number">3</span>;        <span class="comment">// 只读段</span></span><br><span class="line">    <span class="type">char</span> *str1 = <span class="string">&quot;Hello&quot;</span>;   <span class="comment">// str1指针在栈区，&quot;hello&quot;字符串在只读段</span></span><br><span class="line">    <span class="type">char</span> str2[] = <span class="string">&quot;world&quot;</span>;             <span class="comment">// 只在栈区（字符串）</span></span><br><span class="line">    <span class="type">char</span> *str3 = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">20</span>);   <span class="comment">// str3变量在栈区，指针指向堆区</span></span><br><span class="line">　　　</span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>注释中我们看到了各个元素所在内存段的位置。而编译好的main函数本身是存在于代码区的（一般代码段也是只读段）。我们这个程序运行后如果是动态链接的C语言运行时库的话，动态库会存在图示的动态库映射区。其实无论使用C语言运行时库的程序无论有多少，运行时库的代码在内存里只会有一份。对于不同的程序，进行地址映射即可。</p>
 <p>接下来我们简单说说栈（stack），关于栈的基本概念到处都是，如果大家不明白可以自己去查查。其实这里的栈就是把一段位于用户线性地址空间最高处的一段连续内存以栈的思想来使用罢了。大家不要觉得线性空间有4GB，栈占据了很大。其实栈大小默认就几MB罢了。Linux可以在终端下执行 ulimit -a命令查看限制。如图所示：</p>
-<p><img src="/images/18/2.png" alt></p>
+<p><img src="/images/18/2.png"></p>
 <p>我这里不过也就默认8192KB（8MB）大小，不过可以使用ulimit命令调整（调整只在本次bash执行过程中有效，下次需要重新设置）。</p>
 <p>栈也经常被叫做栈帧（Stack Frame）或者活动记录（Activate Record）。栈里通常存储以下内容：</p>
 <blockquote>
@@ -128,7 +134,7 @@
 </blockquote>
 <p>在i386中，使用esp和ebp寄存器划定范围。esp寄存器始终指向栈顶，随着压栈和出栈操作而改变值。ebp寄存器随着调用过程，暂时的指向一个固定的栈位置，便于寻址操作的进行。</p>
 <p>我们画一张图来看看吧：</p>
-<p><img src="/images/18/3.png" alt></p>
+<p><img src="/images/18/3.png"></p>
 <p>这里照抄网上的函数调用流程：</p>
 <blockquote>
 <ol>
@@ -163,7 +169,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -178,7 +184,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/05/23/18-linux-process-address-space/" data-title="进程眼中的线性地址空间 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/05/23/18-linux-process-address-space/" data-title="进程眼中的线性地址空间 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -225,7 +231,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -243,7 +249,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -304,7 +310,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -328,10 +334,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -340,31 +342,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -372,11 +350,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -466,7 +472,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

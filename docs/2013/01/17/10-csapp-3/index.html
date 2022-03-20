@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;下&gt; | 浅墨的部落格</title>
@@ -12,17 +12,18 @@
 
     
     <meta name="description" content="§第六章 存储器层次结构 在简单模型中，存储器系统是一个线性的字节数组，而CPU能够在一个常数时间内访问每个存储器位置。实际上，存储器系统（memory system）是一个具有不同容量、成本和访问时间的存储器层次结构。CPU寄存器保存着最常用的数据。靠近CPU的小的、快速的高速缓冲存储器（cache memory）作为一部分存储在相对慢速的主存储器（main memory）中的数据和指令的缓冲区">
-<meta name="keywords" content="基础知识,CSAPP">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;下&gt;">
 <meta property="og:url" content="https://0xffffff.org/2013/01/17/10-csapp-3/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="§第六章 存储器层次结构 在简单模型中，存储器系统是一个线性的字节数组，而CPU能够在一个常数时间内访问每个存储器位置。实际上，存储器系统（memory system）是一个具有不同容量、成本和访问时间的存储器层次结构。CPU寄存器保存着最常用的数据。靠近CPU的小的、快速的高速缓冲存储器（cache memory）作为一部分存储在相对慢速的主存储器（main memory）中的数据和指令的缓冲区">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.269Z">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2013-01-17T02:02:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T08:12:41.269Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="CSAPP">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;下&gt;">
-<meta name="twitter:description" content="§第六章 存储器层次结构 在简单模型中，存储器系统是一个线性的字节数组，而CPU能够在一个常数时间内访问每个存储器位置。实际上，存储器系统（memory system）是一个具有不同容量、成本和访问时间的存储器层次结构。CPU寄存器保存着最常用的数据。靠近CPU的小的、快速的高速缓冲存储器（cache memory）作为一部分存储在相对慢速的主存储器（main memory）中的数据和指令的缓冲区">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -98,7 +101,7 @@
 		<h3 id="§第六章-存储器层次结构"><a href="#§第六章-存储器层次结构" class="headerlink" title="§第六章 存储器层次结构"></a>§第六章 存储器层次结构</h3><ol>
 <li><p>在简单模型中，存储器系统是一个线性的字节数组，而CPU能够在一个常数时间内访问每个存储器位置。实际上，存储器系统（memory system）是一个具有不同容量、成本和访问时间的存储器层次结构。CPU寄存器保存着最常用的数据。靠近CPU的小的、快速的高速缓冲存储器（cache memory）作为一部分存储在相对慢速的主存储器（main memory）中的数据和指令的缓冲区域。主存暂时存放存储在容量较大、慢速磁盘上的数据，而这些磁盘又常常作为存储在通过网络连接的其它机器的磁盘上的数据的缓冲地带。</p>
 </li>
-<li><p>如果程序所需的数据存储在CPU寄存器中，那么在指令的执行期间，在0个周期内就能访问到它们。如果在高速缓冲存储器内，需要1~30个周期。如果存储在主存中，需要50~200个周期。而如果在磁盘上，则需要大约几千万个周期。</p>
+<li><p>如果程序所需的数据存储在CPU寄存器中，那么在指令的执行期间，在0个周期内就能访问到它们。如果在高速缓冲存储器内，需要1<del>30个周期。如果存储在主存中，需要50</del>200个周期。而如果在磁盘上，则需要大约几千万个周期。</p>
 </li>
 </ol>
 <p>3.存储器层次结构围绕着计算机程序的一个称为局部性（locality）的基本属性。具有良好局部性的程序倾向于一次又一次的访问相同的数据项集合，或是倾向于访问邻近的数据项集合。局部性通常有两种不同的形式：时间局部性（temporal locality）和空间局部性（spatial locality）。</p>
@@ -108,7 +111,8 @@
 <li><p>理解存储器层次结构本质的程序员能够利用这些知识编写出更有效的程序，无论具体的存储器系统是怎样实现的。特别地，我们推荐以下技术：1）将注意力集中在内循环上，大部分计算和存储器访问都发生在这里。2）通过按照数据对象存储在存储器中的顺序、以步长为1来读取数据，从而使程序的空间局部性最大。3）一旦程序中读入了一个数据对象，就尽可能多的使用它，从而使程序中的时间局部性最大。</p>
 </li>
 </ol>
-<a id="more"></a>
+<span id="more"></span>
+
 <h3 id="§第七章-链接"><a href="#§第七章-链接" class="headerlink" title="§第七章 链接"></a>§第七章 链接</h3><p>引言：现代操作系统与硬件合作，为每个程序提供一种幻象，好像这个程序是在独占的使用处理器和主存，而实际上，在任何时刻，系统上都有多个程序在运行。</p>
 <ol>
 <li><p>链接（linking）是将各种代码和数据部分收集起来并组合成一个单一文件的过程（感觉该句描述欠妥，应该是针对目标文件而非代码文件），这个文件可以被加载（或被拷贝）到存储器执行。链接可以执行于编译时（compile time），也就是在源代码被翻译为机器代码时；也可以运行于加载时（load time），也就是程序被加载器（loader）加载到存储器并执行时；甚至执行与运行时（run time），由应用程序执行。</p>
@@ -121,7 +125,7 @@
 </li>
 <li><p>共享库（shared library）是致力于解决静态库缺陷的一个现代创新产物。共享库是一个目标模块，在运行时，可以加载到任意的 存储器地址，并和一个在存储器中的程序链接起来。这个过程称为动态链接（dynamic linking），是由一个叫做动态链接器（dynamic linker）的程序执行的。</p>
 </li>
-<li><p>每个Unix程序都有一个运行时存储器映像，在32位Linux系统中，代码段总是从地址0x08048000处开始。数据段是在接下来的一个4KB对齐的地址处。运行时堆在读/写段之后接下来的第一个4KB对齐的地址处，并通过调用malloc库向上增长。用户栈总是从最大的合法用户地址开始，向下增长的（向低存储器地址方向增长）。从栈的上部开始的段是为操作系统驻留存储器部分（也就是内核）的代码和数据保留的。</p>
+<li><p>每个Unix程序都有一个运行时存储器映像，在32位Linux系统中，代码段总是从地址0x08048000处开始。数据段是在接下来的一个4KB对齐的地址处。运行时堆在读&#x2F;写段之后接下来的第一个4KB对齐的地址处，并通过调用malloc库向上增长。用户栈总是从最大的合法用户地址开始，向下增长的（向低存储器地址方向增长）。从栈的上部开始的段是为操作系统驻留存储器部分（也就是内核）的代码和数据保留的。</p>
 </li>
 </ol>
 <h3 id="§第八章-异常控制流"><a href="#§第八章-异常控制流" class="headerlink" title="§第八章 异常控制流"></a>§第八章 异常控制流</h3><ol>
@@ -136,7 +140,7 @@
 <li><p>异常可以分为四类：中断（interrupt）、陷阱（trap）、故障（fault）和终止（abort）。</p>
 </li>
 </ol>
-<p>6.中断是异步产生的，是来自处理器外部的I/O设备的信号的结果。硬件中断不是由任何一条专门的指令造成的，从这个意义上来说它是异步的。硬件中断的异常处理程序通常称为中断处理程序（interrupt handler）。I/O设备，例如网络适配器、磁盘控制器和定时器芯片，通过向处理器芯片上的一个引脚发信号，并将异常号放到系统总线上，以触发中断，这个异常号标识了引起中断的设备。</p>
+<p>6.中断是异步产生的，是来自处理器外部的I&#x2F;O设备的信号的结果。硬件中断不是由任何一条专门的指令造成的，从这个意义上来说它是异步的。硬件中断的异常处理程序通常称为中断处理程序（interrupt handler）。I&#x2F;O设备，例如网络适配器、磁盘控制器和定时器芯片，通过向处理器芯片上的一个引脚发信号，并将异常号放到系统总线上，以触发中断，这个异常号标识了引起中断的设备。</p>
 <ol start="7">
 <li><p>陷阱是有意的异常，实质性一条指令的结果。就像中断处理程序一样，陷阱处理程序将控制返回到下一条指令。陷阱最重要的用途就是在用户程序和内核之间提供一个像过程一样的接口，叫做系统调用。</p>
 </li>
@@ -144,7 +148,7 @@
 </li>
 <li><p>终止是不可恢复的致命错误造成的结果，通常是一些硬件错误，例如DRAM或者SRAM位被损坏时发生的奇偶错误。终止处理程序从不将控制返回给应用程序。</p>
 </li>
-<li><p>为了使描述更具体，让我们来看看为IA32系统定义的一些异常。有高达256种不同的异常类型。0~31的号码是由Intel架构师定义的异常，因此对任何IA32的系统都是一样的。32~255的号码对应的是操作系统中定义的中断和陷阱。</p>
+<li><p>为了使描述更具体，让我们来看看为IA32系统定义的一些异常。有高达256种不同的异常类型。0<del>31的号码是由Intel架构师定义的异常，因此对任何IA32的系统都是一样的。32</del>255的号码对应的是操作系统中定义的中断和陷阱。</p>
 </li>
 <li><p>每个Linux系统调用都有一个唯一的整数号（系统调用号），对应于一个到内核中跳转表的偏移量。历史上系统调用是通过异常128（0x80）提供的。</p>
 </li>
@@ -177,7 +181,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -192,7 +196,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/01/17/10-csapp-3/" data-title="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;下&gt; | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/01/17/10-csapp-3/" data-title="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;下&gt; | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -239,7 +243,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -257,7 +261,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -318,7 +322,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -342,10 +346,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -354,31 +354,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -386,11 +362,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -480,7 +484,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

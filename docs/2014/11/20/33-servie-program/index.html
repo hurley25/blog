@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>浅谈服务端编程 | 浅墨的部落格</title>
@@ -11,14 +11,13 @@
     
 
     
-    <meta name="description" content="我们假定读者掌握了：  Linux环境下C/C++的系统编程和基本的socket编程方法 操作系统基本概念以及Linux的基本概念和原理 Linux进程和线程的内存地址空间布局和资源关系    我们谈什么，不谈什么：  Linux下的网络程序设计所遵循的规范 Linux网络程序的工作模型和原理 一般性质上的网络协议设计方法和原则 基本上只针对Linux，基本不涉及Windows 只涉及TCP协议">
-<meta name="keywords" content="Linux,基础知识">
+    <meta name="description" content="我们假定读者掌握了：   Linux环境下C&#x2F;C++的系统编程和基本的socket编程方法 操作系统基本概念以及Linux的基本概念和原理 Linux进程和线程的内存地址空间布局和资源关系   我们谈什么，不谈什么：   Linux下的网络程序设计所遵循的规范 Linux网络程序的工作模型和原理 一般性质上的网络协议设计方法和原则 基本上只针对Linux，基本不涉及Windows 只涉">
 <meta property="og:type" content="article">
 <meta property="og:title" content="浅谈服务端编程">
 <meta property="og:url" content="https://0xffffff.org/2014/11/20/33-servie-program/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
-<meta property="og:description" content="我们假定读者掌握了：  Linux环境下C/C++的系统编程和基本的socket编程方法 操作系统基本概念以及Linux的基本概念和原理 Linux进程和线程的内存地址空间布局和资源关系    我们谈什么，不谈什么：  Linux下的网络程序设计所遵循的规范 Linux网络程序的工作模型和原理 一般性质上的网络协议设计方法和原则 基本上只针对Linux，基本不涉及Windows 只涉及TCP协议">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:description" content="我们假定读者掌握了：   Linux环境下C&#x2F;C++的系统编程和基本的socket编程方法 操作系统基本概念以及Linux的基本概念和原理 Linux进程和线程的内存地址空间布局和资源关系   我们谈什么，不谈什么：   Linux下的网络程序设计所遵循的规范 Linux网络程序的工作模型和原理 一般性质上的网络协议设计方法和原则 基本上只针对Linux，基本不涉及Windows 只涉">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/33/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/33/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/33/3.png">
@@ -34,10 +33,12 @@
 <meta property="og:image" content="https://0xffffff.org/images/33/13.png">
 <meta property="og:image" content="https://0xffffff.org/images/33/14.png">
 <meta property="og:image" content="https://0xffffff.org/images/33/15.png">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.272Z">
+<meta property="article:published_time" content="2014-11-20T03:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T08:12:41.272Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="浅谈服务端编程">
-<meta name="twitter:description" content="我们假定读者掌握了：  Linux环境下C/C++的系统编程和基本的socket编程方法 操作系统基本概念以及Linux的基本概念和原理 Linux进程和线程的内存地址空间布局和资源关系    我们谈什么，不谈什么：  Linux下的网络程序设计所遵循的规范 Linux网络程序的工作模型和原理 一般性质上的网络协议设计方法和原则 基本上只针对Linux，基本不涉及Windows 只涉及TCP协议">
 <meta name="twitter:image" content="https://0xffffff.org/images/33/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -51,9 +52,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -113,14 +116,15 @@
 		
 		<blockquote>
 <p><strong>我们假定读者掌握了：</strong></p>
+</blockquote>
 <ol>
-<li>Linux环境下C/C++的系统编程和基本的socket编程方法</li>
+<li>Linux环境下C&#x2F;C++的系统编程和基本的socket编程方法</li>
 <li>操作系统基本概念以及Linux的基本概念和原理</li>
 <li>Linux进程和线程的内存地址空间布局和资源关系</li>
 </ol>
-</blockquote>
 <blockquote>
 <p><strong>我们谈什么，不谈什么：</strong></p>
+</blockquote>
 <ol>
 <li>Linux下的网络程序设计所遵循的规范</li>
 <li>Linux网络程序的工作模型和原理</li>
@@ -128,51 +132,57 @@
 <li>基本上只针对Linux，基本不涉及Windows</li>
 <li>只涉及TCP协议的通信，不谈UDP</li>
 </ol>
-</blockquote>
 <hr>
-<p><strong>可以先行阅读的参考资料：</strong><br><a href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/" target="_blank" rel="noopener">进程眼中的线性地址空间</a><br><a href="http://www.0xffffff.org/2013/08/02/20-linux-thread-address-space/" target="_blank" rel="noopener">线程眼中的线性地址空间</a><br><a href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/" target="_blank" rel="noopener">Linux线程的前世今生</a><br><a href="http://www.0xffffff.org/2014/10/31/32-memory-management/" target="_blank" rel="noopener">聊聊内存管理</a><br><a href="http://blog.sae.sina.com.cn/archives/2200" target="_blank" rel="noopener">Linux系统调用</a><br><a href="http://www.sizeofvoid.net/goroutine-under-the-hood/" target="_blank" rel="noopener">goroutine背后的系统知识</a></p>
+<p><strong>可以先行阅读的参考资料：</strong><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">进程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/08/02/20-linux-thread-address-space/">线程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/">Linux线程的前世今生</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2014/10/31/32-memory-management/">聊聊内存管理</a><br><a target="_blank" rel="noopener" href="http://blog.sae.sina.com.cn/archives/2200">Linux系统调用</a><br><a target="_blank" rel="noopener" href="http://www.sizeofvoid.net/goroutine-under-the-hood/">goroutine背后的系统知识</a></p>
 <hr>
-<a id="more"></a>
-<h2 id="从基本socket函数开始"><a href="#从基本socket函数开始" class="headerlink" title="从基本socket函数开始"></a>从基本socket函数开始</h2><p><img src="/images/33/1.png" alt></p>
-<h3 id="留意一些socket函数与众不同的参数细节"><a href="#留意一些socket函数与众不同的参数细节" class="headerlink" title="留意一些socket函数与众不同的参数细节"></a>留意一些socket函数与众不同的参数细节</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">bind</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> struct sockaddr *addr, <span class="keyword">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">connect</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">const</span> struct sockaddr *addr, <span class="keyword">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">accept</span><span class="params">(<span class="keyword">int</span> sockfd, struct sockaddr *addr, <span class="keyword">socklen_t</span> *addrlen)</span></span>;</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<h2 id="从基本socket函数开始"><a href="#从基本socket函数开始" class="headerlink" title="从基本socket函数开始"></a>从基本socket函数开始</h2><p><img src="/images/33/1.png"></p>
+<h3 id="留意一些socket函数与众不同的参数细节"><a href="#留意一些socket函数与众不同的参数细节" class="headerlink" title="留意一些socket函数与众不同的参数细节"></a>留意一些socket函数与众不同的参数细节</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">bind</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">connect</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">accept</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> *addrlen)</span>;</span><br></pre></td></tr></table></figure>
+
 <hr>
-<h3 id="TCP三次握手在socket接口的位置"><a href="#TCP三次握手在socket接口的位置" class="headerlink" title="TCP三次握手在socket接口的位置"></a>TCP三次握手在socket接口的位置</h3><p><img src="/images/33/2.png" alt></p>
+<h3 id="TCP三次握手在socket接口的位置"><a href="#TCP三次握手在socket接口的位置" class="headerlink" title="TCP三次握手在socket接口的位置"></a>TCP三次握手在socket接口的位置</h3><p><img src="/images/33/2.png"></p>
 <p><strong>强调TIME_WAIT状态</strong><br>MSL(最大分段生存期)指明TCP报文在Internet上最长生存时间，每个具体的TCP实现都必须选择一个确定的MSL值。RFC1122建议是2分钟。<br>TIME_WAIT 状态最大保持时间是2 * MSL，也就是1-4分钟。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">listen</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> backlog)</span></span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/33/3.png" alt></p>
-<h4 id="Linux内核协议栈"><a href="#Linux内核协议栈" class="headerlink" title="Linux内核协议栈"></a>Linux内核协议栈</h4><p><img src="/images/33/4.png" alt></p>
-<h4 id="TCP-的发送"><a href="#TCP-的发送" class="headerlink" title="TCP 的发送"></a>TCP 的发送</h4><p><img src="/images/33/5.png" alt></p>
-<h4 id="TCP的接收"><a href="#TCP的接收" class="headerlink" title="TCP的接收"></a>TCP的接收</h4><p><img src="/images/33/6.png" alt></p>
-<h4 id="协议栈完整的收发流程"><a href="#协议栈完整的收发流程" class="headerlink" title="协议栈完整的收发流程"></a>协议栈完整的收发流程</h4><p><img src="/images/33/7.png" alt></p>
-<h3 id="关于socket接口与内核协议栈的挂接"><a href="#关于socket接口与内核协议栈的挂接" class="headerlink" title="关于socket接口与内核协议栈的挂接"></a>关于socket接口与内核协议栈的挂接</h3><p><strong>请参考：<a href="http://rock3.info/blog/2013/10/28/socket%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%86%85%E6%A0%B8%E5%8D%8F%E8%AE%AE%E6%A0%88%E7%9A%84%E6%8C%82%E6%8E%A5/" target="_blank" rel="noopener">socket接口与内核协议栈的挂接</a></strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">listen</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">int</span> backlog)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/33/3.png"></p>
+<h4 id="Linux内核协议栈"><a href="#Linux内核协议栈" class="headerlink" title="Linux内核协议栈"></a>Linux内核协议栈</h4><p><img src="/images/33/4.png"></p>
+<h4 id="TCP-的发送"><a href="#TCP-的发送" class="headerlink" title="TCP 的发送"></a>TCP 的发送</h4><p><img src="/images/33/5.png"></p>
+<h4 id="TCP的接收"><a href="#TCP的接收" class="headerlink" title="TCP的接收"></a>TCP的接收</h4><p><img src="/images/33/6.png"></p>
+<h4 id="协议栈完整的收发流程"><a href="#协议栈完整的收发流程" class="headerlink" title="协议栈完整的收发流程"></a>协议栈完整的收发流程</h4><p><img src="/images/33/7.png"></p>
+<h3 id="关于socket接口与内核协议栈的挂接"><a href="#关于socket接口与内核协议栈的挂接" class="headerlink" title="关于socket接口与内核协议栈的挂接"></a>关于socket接口与内核协议栈的挂接</h3><p><strong>请参考：<a target="_blank" rel="noopener" href="http://rock3.info/blog/2013/10/28/socket%E6%8E%A5%E5%8F%A3%E4%B8%8E%E5%86%85%E6%A0%B8%E5%8D%8F%E8%AE%AE%E6%A0%88%E7%9A%84%E6%8C%82%E6%8E%A5/">socket接口与内核协议栈的挂接</a></strong></p>
 <hr>
-<h3 id="TCP相关参数的设置方法"><a href="#TCP相关参数的设置方法" class="headerlink" title="TCP相关参数的设置方法"></a>TCP相关参数的设置方法</h3><p><br></p>
-<h4 id="套接字设置"><a href="#套接字设置" class="headerlink" title="套接字设置"></a>套接字设置</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getsockopt</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> level, <span class="keyword">int</span> optname,</span></span></span><br><span class="line"><span class="function"><span class="params">                      <span class="keyword">void</span> *optval, <span class="keyword">socklen_t</span> *optlen)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">setsockopt</span><span class="params">(<span class="keyword">int</span> sockfd, <span class="keyword">int</span> level, <span class="keyword">int</span> optname,</span></span></span><br><span class="line"><span class="function"><span class="params">                      <span class="keyword">const</span> <span class="keyword">void</span> *optval, <span class="keyword">socklen_t</span> optlen)</span></span>;</span><br></pre></td></tr></table></figure>
+<h3 id="TCP相关参数的设置方法"><a href="#TCP相关参数的设置方法" class="headerlink" title="TCP相关参数的设置方法"></a>TCP相关参数的设置方法</h3><br />
+
+<h4 id="套接字设置"><a href="#套接字设置" class="headerlink" title="套接字设置"></a>套接字设置</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">getsockopt</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">int</span> level, <span class="type">int</span> optname,</span></span><br><span class="line"><span class="params">                      <span class="type">void</span> *optval, <span class="type">socklen_t</span> *optlen)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">setsockopt</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">int</span> level, <span class="type">int</span> optname,</span></span><br><span class="line"><span class="params">                      <span class="type">const</span> <span class="type">void</span> *optval, <span class="type">socklen_t</span> optlen)</span>;</span><br></pre></td></tr></table></figure>
+
 <p>SO_REUSEADDR<br>当有一个有相同本地地址和端口的socket1处于TIME_WAIT状态时，而你启动的程序的socket2要占用该地址和端口，你的程序就要用到该选项。这个选项允许同一port上启动同一服务器的多个实例(多个进程)。但每个实例绑定的IP地址是不能相同的。<strong>（多块网卡的应用场合）</strong></p>
-<p>SO_RECVBUF / SO_SNDBUF<br>发送和接收缓冲区大小，不详述。</p>
-<p>TCP_NODELAY / TCP_CHORK<br>是否采用Nagle算法把较小的包组装为更大的帧。<strong>HTTP服务器经常使用TCP_NODELAY关闭该算法。</strong>相关的还有TCP_CORK。</p>
+<p>SO_RECVBUF &#x2F; SO_SNDBUF<br>发送和接收缓冲区大小，不详述。</p>
+<p>TCP_NODELAY &#x2F; TCP_CHORK<br>是否采用Nagle算法把较小的包组装为更大的帧。<strong>HTTP服务器经常使用TCP_NODELAY关闭该算法。</strong>相关的还有TCP_CORK。</p>
 <p>TCP_DEFER_ACCEPT<br>推迟accept，实际上是当接收到第一个数据之后，才会创建连接。<strong>（对于像HTTP等非交互式的服务器，这个很有意义，可以用来防御空连接攻击。）</strong></p>
-<p>TCP_KEEPCNT / TCP_KEEPIDLE / TCP_KEEPINTVL<br>如果一方已经关闭或异常终止连接，而另一方却不知道，我们将这样的TCP连接称为半打开的。TCP通过保活定时器(KeepAlive)来检测半打开连接。设置SO_KEEPALIVE选项来开启KEEPALIVE，然后通过TCP_KEEPIDLE、TCP_KEEPINTVL和TCP_KEEPCNT设置keepalive的开始时间、间隔、次数等参数。</p>
-<p><strong>保活时间：keepalive_time = TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT</strong></p>
+<p>TCP_KEEPCNT &#x2F; TCP_KEEPIDLE &#x2F; TCP_KEEPINTVL<br>如果一方已经关闭或异常终止连接，而另一方却不知道，我们将这样的TCP连接称为半打开的。TCP通过保活定时器(KeepAlive)来检测半打开连接。设置SO_KEEPALIVE选项来开启KEEPALIVE，然后通过TCP_KEEPIDLE、TCP_KEEPINTVL和TCP_KEEPCNT设置keepalive的开始时间、间隔、次数等参数。</p>
+<p><strong>保活时间：keepalive_time &#x3D; TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT</strong></p>
 <p>从TCP_KEEPIDLE 时间开始，向对端发送一个探测信息，然后每过TCP_KEEPINTVL 发送一次探测信息。<strong>如果在保活时间内，就算检测不到对端了，仍然保持连接。超过这个保活时间，如果检测不到对端，服务器就会断开连接，如果能够检测到对方，那么连接一直持续。</strong></p>
-<p><br></p>
-<h4 id="内核全局设置"><a href="#内核全局设置" class="headerlink" title="内核全局设置"></a>内核全局设置</h4><p><strong>内核的TCP/IP调优参数都位于/proc/sys/net/目录，可以直接写入数值或者采用sysctl命令或者系统调用。</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/sysctl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> _sysctl(struct __sysctl_args *args);</span><br></pre></td></tr></table></figure>
-<p><strong>详细请参考：<a href="http://www.ibm.com/developerworks/cn/linux/l-hisock.html" target="_blank" rel="noopener">提高 Linux 上 socket 性能</a></strong></p>
+<br />
+
+<h4 id="内核全局设置"><a href="#内核全局设置" class="headerlink" title="内核全局设置"></a>内核全局设置</h4><p><strong>内核的TCP&#x2F;IP调优参数都位于&#x2F;proc&#x2F;sys&#x2F;net&#x2F;目录，可以直接写入数值或者采用sysctl命令或者系统调用。</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/sysctl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> _sysctl(<span class="keyword">struct</span> __sysctl_args *args);</span><br></pre></td></tr></table></figure>
+
+<p><strong>详细请参考：<a target="_blank" rel="noopener" href="http://www.ibm.com/developerworks/cn/linux/l-hisock.html">提高 Linux 上 socket 性能</a></strong></p>
 <hr>
 <h2 id="常见的协议格式设计"><a href="#常见的协议格式设计" class="headerlink" title="常见的协议格式设计"></a>常见的协议格式设计</h2><h3 id="记住，TCP是一种流协议"><a href="#记住，TCP是一种流协议" class="headerlink" title="记住，TCP是一种流协议"></a>记住，TCP是一种流协议</h3><blockquote>
-<p>语出《Effective TCP/IP Programming》。意思是，TCP的数据是以字节流的方式由发送者传递给接收者，没有固有的“报文”或者“报文边界”的概念。<strong>简单说，TCP不理解应用层通信的协议，不知道应用层协议格式和边界。所以，所谓的“粘包和断包”是个伪概念。</strong>TCP压根就没有包边界的概念，何谈粘与断。</p>
+<p>语出《Effective TCP&#x2F;IP Programming》。意思是，TCP的数据是以字节流的方式由发送者传递给接收者，没有固有的“报文”或者“报文边界”的概念。<strong>简单说，TCP不理解应用层通信的协议，不知道应用层协议格式和边界。所以，所谓的“粘包和断包”是个伪概念。</strong>TCP压根就没有包边界的概念，何谈粘与断。</p>
 </blockquote>
-<p><img src="/images/33/8.png" alt></p>
-<p>OSI模型定义的7层结构网络中，TCP协议所在的传输层和应用层之间还有会话层和表示层，原本协议包分界和加密等等操作是在这两层完成的。TCP/IP协议在设计的时候，并没有会话层和表示层。那如果用户需要这两层提供的服务怎么办？比如包的分界？答案是，用户自行在应用层代码中实现吧。</p>
+<p><img src="/images/33/8.png"></p>
+<p>OSI模型定义的7层结构网络中，TCP协议所在的传输层和应用层之间还有会话层和表示层，原本协议包分界和加密等等操作是在这两层完成的。TCP&#x2F;IP协议在设计的时候，并没有会话层和表示层。那如果用户需要这两层提供的服务怎么办？比如包的分界？答案是，用户自行在应用层代码中实现吧。</p>
 <p><strong>示例：</strong></p>
 <p>发送者发送三次</p>
-<p><img src="/images/33/9.png" alt></p>
+<p><img src="/images/33/9.png"></p>
 <p>接收者可能收到这样：</p>
-<p><img src="/images/33/10.png" alt></p>
+<p><img src="/images/33/10.png"></p>
 <h3 id="避免分片的效率损失"><a href="#避免分片的效率损失" class="headerlink" title="避免分片的效率损失"></a>避免分片的效率损失</h3><p><strong>数据链路层Maximum Transmission Unit（MTU, 最大传输单元）。</strong></p>
 <p>以太网通常在1500字节上下。所以单次发送的协议包数据最好小于这个值，从而避免IP层分片带来的效率损失。</p>
-<p>扩展阅读：<a href="http://www.0xffffff.org/2014/04/16/30-linux-ip-fragment/" target="_blank" rel="noopener">Linux TCP/IP协议栈关于IP分片重组的实现</a></p>
+<p>扩展阅读：<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2014/04/16/30-linux-ip-fragment/">Linux TCP&#x2F;IP协议栈关于IP分片重组的实现</a></p>
 <hr>
 <h3 id="常见的协议格式"><a href="#常见的协议格式" class="headerlink" title="常见的协议格式"></a>常见的协议格式</h3><p>这个很简单，和文件一样，无非是<strong>纯文本格式</strong>或者<strong>二进制格式</strong>。</p>
 <h3 id="便于解包的协议设计方法"><a href="#便于解包的协议设计方法" class="headerlink" title="便于解包的协议设计方法"></a>便于解包的协议设计方法</h3><p><strong>一般而言，应用层协议设计有四种常见方法：</strong></p>
@@ -184,97 +194,111 @@
 </ol>
 <p><strong>以上1和3通常是二进制格式，2和4是文本格式。</strong></p>
 <p>有没有通用的二进制通信协议？推荐谷歌的ProtoBuf或者Apache Swift.</p>
-<p><a href="http://code.google.com/p/protobuf/" target="_blank" rel="noopener">Protocol Buffers</a></p>
-<p><a href="http://www.ibm.com/developerworks/cn/linux/l-cn-gpb/" target="_blank" rel="noopener">Google Protocol Buffer的使用和原理</a></p>
-<p><a href="http://www.cnblogs.com/Anker/p/3416541.html" target="_blank" rel="noopener">protobuf-c的学习总结</a></p>
-<p><a href="http://www.oschina.net/translate/choose-protocol-buffers" target="_blank" rel="noopener">使用Protocol Buffers代替JSON的五个原因</a></p>
-<p><a href="http://thrift.apache.org/" target="_blank" rel="noopener">Apache Thrift</a></p>
-<h3 id="Need-a-demo？"><a href="#Need-a-demo？" class="headerlink" title="Need a demo？"></a>Need a demo？</h3><p></p><p></p><p></p>
-<h4 id="包长度固定"><a href="#包长度固定" class="headerlink" title="包长度固定"></a>包长度固定</h4><p>很简单的思路，我们可以定义服务端和客户端均采用同一个结构体进行数据传输，这样的话很容易根据结构体大小来进行分隔收到的数据。这个不用写吧…</p>
-<p></p><p></p><p></p>
-<h4 id="包每行均采取特殊结束标记用以区分"><a href="#包每行均采取特殊结束标记用以区分" class="headerlink" title="包每行均采取特殊结束标记用以区分"></a>包每行均采取特殊结束标记用以区分</h4><p>这个也很简单理解，采用纯ASCII发送信息的时候，完全可以采用这种方式。比如一个包中，每行采用\r\n进行分隔，包结束采用\r\n\r\n进行分隔等等。<br>如果在包的数据中出现了结束标记怎么办？转义呗～</p>
-<p></p><p></p><p></p>
-<h4 id="包前添加长度信息（所谓的TLV模式，即type、length、value）"><a href="#包前添加长度信息（所谓的TLV模式，即type、length、value）" class="headerlink" title="包前添加长度信息（所谓的TLV模式，即type、length、value）"></a>包前添加长度信息（所谓的TLV模式，即type、length、value）</h4><p>这个理解起来也不困难，以结构体为例，即便是服务端和客户端采用多种结构体进行通信，只需要加上一个类型字段和长度字段，这样不就解决了么。</p>
+<p><a target="_blank" rel="noopener" href="http://code.google.com/p/protobuf/">Protocol Buffers</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.ibm.com/developerworks/cn/linux/l-cn-gpb/">Google Protocol Buffer的使用和原理</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/Anker/p/3416541.html">protobuf-c的学习总结</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.oschina.net/translate/choose-protocol-buffers">使用Protocol Buffers代替JSON的五个原因</a></p>
+<p><a target="_blank" rel="noopener" href="http://thrift.apache.org/">Apache Thrift</a></p>
+<h3 id="Need-a-demo？"><a href="#Need-a-demo？" class="headerlink" title="Need a demo？"></a>Need a demo？</h3><p></p>
+#### 包长度固定
+
+<p>很简单的思路，我们可以定义服务端和客户端均采用同一个结构体进行数据传输，这样的话很容易根据结构体大小来进行分隔收到的数据。这个不用写吧…</p>
+<p></p>
+#### 包每行均采取特殊结束标记用以区分
+
+<p>这个也很简单理解，采用纯ASCII发送信息的时候，完全可以采用这种方式。比如一个包中，每行采用\r\n进行分隔，包结束采用\r\n\r\n进行分隔等等。<br>如果在包的数据中出现了结束标记怎么办？转义呗～</p>
+<p></p>
+#### 包前添加长度信息（所谓的TLV模式，即type、length、value）
+
+<p>这个理解起来也不困难，以结构体为例，即便是服务端和客户端采用多种结构体进行通信，只需要加上一个类型字段和长度字段，这样不就解决了么。</p>
 <p><strong>不过这里的type、length以及value只是指导思想，大家完全可以自行去实现自己的格式。</strong></p>
 <p>不要觉得这个貌似很搓的样子，看看QQ早些时候的定义：</p>
-<p><img src="/images/33/11.png" alt></p>
-<p><strong>沈昭萌学长博客：<a href="http://blog.csdn.net/sim_szm/article/details/27581633" target="_blank" rel="noopener">TLV-简单的数据传输协议</a></strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 包类型</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="keyword">enum</span> &#123;</span><br><span class="line">    control_start,</span><br><span class="line">    control_end,</span><br><span class="line">    heart_data</span><br><span class="line">&#125; <span class="keyword">package_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 协议包</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">protocol_t</span> &#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span> length_;</span><br><span class="line">    <span class="keyword">package_t</span> type_;</span><br><span class="line">    <span class="keyword">uint32_t</span> crc_;</span><br><span class="line">    <span class="keyword">uint8_t</span> data_[DATA_LENGTH];</span><br><span class="line">&#125; __attribute__((packed)) <span class="keyword">protocol_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解包过程：</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">uint32_t</span> length = <span class="keyword">sizeof</span>(<span class="keyword">uint32_t</span>);</span><br><span class="line">    <span class="comment">// 读取 length 值</span></span><br><span class="line">    <span class="keyword">if</span> (rio_readn(conn_fd, conn_buff-&gt;buff, length) == length) &#123;</span><br><span class="line">        length = *(<span class="keyword">uint32_t</span> *)conn_buff-&gt;buff;</span><br><span class="line">        <span class="keyword">if</span> (rio_readn(conn_fd, conn_buff-&gt;buff+<span class="keyword">sizeof</span>(<span class="keyword">uint32_t</span>), length) == length) &#123;</span><br><span class="line">            <span class="keyword">if</span> (analyse_protocol(conn_buff) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            server_print_info(LOG_INFO, <span class="string">"Read Data Error! Close User Link!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        server_print_info(LOG_INFO, <span class="string">"Read Data Length Error! Close User Link!"</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/33/11.png"></p>
+<p><strong>沈昭萌学长博客：<a target="_blank" rel="noopener" href="http://blog.csdn.net/sim_szm/article/details/27581633">TLV-简单的数据传输协议</a></strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 包类型</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    control_start,</span><br><span class="line">    control_end,</span><br><span class="line">    heart_data</span><br><span class="line">&#125; <span class="type">package_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 协议包</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">protocol_t</span> &#123;</span></span><br><span class="line">    <span class="type">uint32_t</span> length_;</span><br><span class="line">    <span class="type">package_t</span> type_;</span><br><span class="line">    <span class="type">uint32_t</span> crc_;</span><br><span class="line">    <span class="type">uint8_t</span> data_[DATA_LENGTH];</span><br><span class="line">&#125; __attribute__((packed)) <span class="type">protocol_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解包过程：</span></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="type">uint32_t</span> length = <span class="keyword">sizeof</span>(<span class="type">uint32_t</span>);</span><br><span class="line">    <span class="comment">// 读取 length 值</span></span><br><span class="line">    <span class="keyword">if</span> (rio_readn(conn_fd, conn_buff-&gt;buff, length) == length) &#123;</span><br><span class="line">        length = *(<span class="type">uint32_t</span> *)conn_buff-&gt;buff;</span><br><span class="line">        <span class="keyword">if</span> (rio_readn(conn_fd, conn_buff-&gt;buff+<span class="keyword">sizeof</span>(<span class="type">uint32_t</span>), length) == length) &#123;</span><br><span class="line">            <span class="keyword">if</span> (analyse_protocol(conn_buff) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            server_print_info(LOG_INFO, <span class="string">&quot;Read Data Error! Close User Link!&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        server_print_info(LOG_INFO, <span class="string">&quot;Read Data Length Error! Close User Link!&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>rio_readn 函数的实现如下</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">size_t</span> rio_readn(<span class="keyword">int</span> fd, <span class="keyword">void</span> *usrbuf, <span class="keyword">size_t</span> n)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">size_t</span> nleft = n;</span><br><span class="line">    <span class="keyword">size_t</span> nread = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">char</span>   *bufp = usrbuf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (nleft &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((nread = read(fd, bufp, nleft)) == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (errno == EINTR) &#123;     <span class="comment">// Interrupted by sig handler return</span></span><br><span class="line">                nread = <span class="number">0</span>;     <span class="comment">// and call read() again</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;     <span class="comment">// errno set by read()</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (nread == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;         <span class="comment">// EOF</span></span><br><span class="line">        &#125;</span><br><span class="line">        nleft -= nread;</span><br><span class="line">        bufp += nread;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (n - nleft);     <span class="comment">// return &gt;= 0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">rio_readn</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> nleft = n;</span><br><span class="line">    <span class="type">size_t</span> nread = <span class="number">0</span>;</span><br><span class="line">    <span class="type">char</span>   *bufp = usrbuf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (nleft &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> ((nread = read(fd, bufp, nleft)) == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (errno == EINTR) &#123;     <span class="comment">// Interrupted by sig handler return</span></span><br><span class="line">                nread = <span class="number">0</span>;     <span class="comment">// and call read() again</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;     <span class="comment">// errno set by read()</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (nread == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">break</span>;         <span class="comment">// EOF</span></span><br><span class="line">        &#125;</span><br><span class="line">        nleft -= nread;</span><br><span class="line">        bufp += nread;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (n - nleft);     <span class="comment">// return &gt;= 0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>analyse_protocol 是解析函数，简单的实现如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 协议解析程序</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">analyse_protocol</span><span class="params">(<span class="keyword">server_buffer_t</span> *buff)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">protocol_t</span> *proto = (<span class="keyword">protocol_t</span> *)buff-&gt;buff;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (proto-&gt;type_) &#123;</span><br><span class="line">    <span class="keyword">case</span> heart_data:</span><br><span class="line">        <span class="keyword">if</span> (write(data_fd, buff-&gt;buff, DATA_LENGTH) != DATA_LENGTH) &#123;</span><br><span class="line">            perror(<span class="string">"write file error"</span>);</span><br><span class="line">            <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        server_print_info(LOG_ERR, <span class="string">"未知的包类型，解析错误"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 协议解析程序</span></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">analyse_protocol</span><span class="params">(<span class="type">server_buffer_t</span> *buff)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">protocol_t</span> *proto = (<span class="type">protocol_t</span> *)buff-&gt;buff;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (proto-&gt;type_) &#123;</span><br><span class="line">    <span class="keyword">case</span> heart_data:</span><br><span class="line">        <span class="keyword">if</span> (write(data_fd, buff-&gt;buff, DATA_LENGTH) != DATA_LENGTH) &#123;</span><br><span class="line">            perror(<span class="string">&quot;write file error&quot;</span>);</span><br><span class="line">            <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        server_print_info(LOG_ERR, <span class="string">&quot;未知的包类型，解析错误&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <h4 id="利用包本身的格式解析（如XML、JSON等）"><a href="#利用包本身的格式解析（如XML、JSON等）" class="headerlink" title="利用包本身的格式解析（如XML、JSON等）"></a>利用包本身的格式解析（如XML、JSON等）</h4><p>这种方式也不难，我们可以通过Xml，Json本身的格式来匹配每一个具体的包。下面给出一个简单的XML接收和解析的简单例子和Qt下使用QtXml的解析方法。</p>
 <p><strong>上面是同步的，下面来个异步的：</strong></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> MainWindow::clientDataReceived()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span> (clientSocket-&gt;bytesAvailable()) &#123;</span><br><span class="line">        QByteArray recvMsg = clientSocket-&gt;readAll();</span><br><span class="line">        recvBuffer.append(recvMsg);</span><br><span class="line"></span><br><span class="line">        <span class="function">QString <span class="title">strProtoTag</span><span class="params">(<span class="string">"&lt;/wiidroid&gt;"</span>)</span></span>;</span><br><span class="line">        <span class="keyword">int</span> tagLen = strProtoTag.size();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> pos = recvBuffer.indexOf(strProtoTag);</span><br><span class="line">        <span class="keyword">while</span> ((pos = recvBuffer.indexOf(strProtoTag)) != <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="function">QByteArray <span class="title">recvPacket</span><span class="params">(recvBuffer.data(), pos+tagLen)</span></span>;</span><br><span class="line">            recvBuffer.remove(<span class="number">0</span>, recvPacket.size());</span><br><span class="line">            <span class="keyword">if</span> (recvBuffer.at(<span class="number">0</span>) == <span class="string">'\n'</span>) &#123;</span><br><span class="line">                recvBuffer.remove(<span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (recvBuffer.at(<span class="number">0</span>) == <span class="string">'\r'</span> &amp;&amp; recvBuffer.at(<span class="number">1</span>) == <span class="string">'\n'</span>) &#123;</span><br><span class="line">                recvBuffer.remove(<span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            parseProtoPackage(recvPacket);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> MainWindow::parseProtoPackage(QByteArray &amp;recvPacket)</span><br><span class="line">&#123;</span><br><span class="line">    KeyPressInfo keyPressInfo;</span><br><span class="line">    ASpeedInfo aSpeedInfo;</span><br><span class="line">    GyroscopeInfo gyroscopeInfo;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (ProtocolXml::getXmlInfoType(recvPacket)) &#123;</span><br><span class="line">        <span class="comment">// 客户端控制（键盘消息）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_KEY:</span><br><span class="line">            ProtocolXml::parseKeyInfo(recvPacket, keyPressInfo);</span><br><span class="line">            qDebug() &lt;&lt; <span class="string">"客户端控制（键盘消息）: \n Key: "</span> &lt;&lt; keyPressInfo.key</span><br><span class="line">                &lt;&lt; <span class="string">" isPress: "</span> &lt;&lt; keyPressInfo.isPress &lt;&lt; <span class="string">"\n"</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// 客户端控制（加速度传感器）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_ASPEED:</span><br><span class="line">            ProtocolXml::parseASpeedInfo(recvPacket, aSpeedInfo);</span><br><span class="line">            qDebug() &lt;&lt; <span class="string">"客户端控制（加速度传感器）\n x: "</span> &lt;&lt; aSpeedInfo.x</span><br><span class="line">                &lt;&lt; <span class="string">" y: "</span> &lt;&lt; aSpeedInfo.y &lt;&lt; <span class="string">" z: "</span> &lt;&lt; aSpeedInfo.z &lt;&lt; <span class="string">"\n"</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// 客户端控制（陀螺仪）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_GYROSCOPE:</span><br><span class="line">            ProtocolXml::parseGyroscopeInfo(recvPacket, gyroscopeInfo);</span><br><span class="line">            qDebug() &lt;&lt; <span class="string">"客户端控制（陀螺仪）\n x: "</span> &lt;&lt; gyroscopeInfo.x</span><br><span class="line">                &lt;&lt; <span class="string">" y: "</span> &lt;&lt; gyroscopeInfo.y &lt;&lt; <span class="string">" z: "</span> &lt;&lt; gyroscopeInfo.z &lt;&lt; <span class="string">"\n"</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">-1</span>:</span><br><span class="line">            qDebug() &lt;&lt; <span class="string">"Error Package Format!\n"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">&lt;?xml version="1.0" encoding="utf-8" ?&gt;</span></span><br><span class="line"><span class="comment">    &lt;wiidroid type="11"&gt;           // 消息类型 11</span></span><br><span class="line"><span class="comment">        &lt;coord-x&gt;x&lt;/coord-x&gt;       // x, y, z 三轴数据</span></span><br><span class="line"><span class="comment">        &lt;coord-y&gt;y&lt;/coord-y&gt;</span></span><br><span class="line"><span class="comment">        &lt;coord-z&gt;z&lt;/coord-z&gt;</span></span><br><span class="line"><span class="comment">     &lt;/wiidroid&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">void</span> ProtocolXml::parseASpeedInfo(QByteArray &amp;recvPacket, ASpeedInfo &amp;aSpeedInfo)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function">QXmlStreamReader <span class="title">reader</span><span class="params">(recvPacket)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (!reader.atEnd()) &#123;</span><br><span class="line">        QXmlStreamReader::TokenType type = reader.readNext();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (type == QXmlStreamReader::StartElement) &#123;</span><br><span class="line">            <span class="keyword">if</span> (reader.name() == <span class="string">"coord-x"</span>) &#123;</span><br><span class="line">                aSpeedInfo.x = reader.readElementText(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .toDouble();</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (reader.name() == <span class="string">"coord-y"</span>) &#123;</span><br><span class="line">                aSpeedInfo.y = reader.readElementText(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .toDouble();</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (reader.name() == <span class="string">"coord-z"</span>) &#123;</span><br><span class="line">                aSpeedInfo.z = reader.readElementText(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .toDouble();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (reader.hasError()) &#123;</span><br><span class="line">        qDebug() &lt;&lt; <span class="string">"XML Format Error:"</span> &lt;&lt; reader.errorString() &lt;&lt; <span class="string">"\r\n"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::clientDataReceived</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (clientSocket-&gt;<span class="built_in">bytesAvailable</span>()) &#123;</span><br><span class="line">        QByteArray recvMsg = clientSocket-&gt;<span class="built_in">readAll</span>();</span><br><span class="line">        recvBuffer.<span class="built_in">append</span>(recvMsg);</span><br><span class="line"></span><br><span class="line">        <span class="function">QString <span class="title">strProtoTag</span><span class="params">(<span class="string">&quot;&lt;/wiidroid&gt;&quot;</span>)</span></span>;</span><br><span class="line">        <span class="type">int</span> tagLen = strProtoTag.<span class="built_in">size</span>();</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> pos = recvBuffer.<span class="built_in">indexOf</span>(strProtoTag);</span><br><span class="line">        <span class="keyword">while</span> ((pos = recvBuffer.<span class="built_in">indexOf</span>(strProtoTag)) != <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="function">QByteArray <span class="title">recvPacket</span><span class="params">(recvBuffer.data(), pos+tagLen)</span></span>;</span><br><span class="line">            recvBuffer.<span class="built_in">remove</span>(<span class="number">0</span>, recvPacket.<span class="built_in">size</span>());</span><br><span class="line">            <span class="keyword">if</span> (recvBuffer.<span class="built_in">at</span>(<span class="number">0</span>) == <span class="string">&#x27;\n&#x27;</span>) &#123;</span><br><span class="line">                recvBuffer.<span class="built_in">remove</span>(<span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (recvBuffer.<span class="built_in">at</span>(<span class="number">0</span>) == <span class="string">&#x27;\r&#x27;</span> &amp;&amp; recvBuffer.<span class="built_in">at</span>(<span class="number">1</span>) == <span class="string">&#x27;\n&#x27;</span>) &#123;</span><br><span class="line">                recvBuffer.<span class="built_in">remove</span>(<span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">parseProtoPackage</span>(recvPacket);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::parseProtoPackage</span><span class="params">(QByteArray &amp;recvPacket)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    KeyPressInfo keyPressInfo;</span><br><span class="line">    ASpeedInfo aSpeedInfo;</span><br><span class="line">    GyroscopeInfo gyroscopeInfo;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (ProtocolXml::<span class="built_in">getXmlInfoType</span>(recvPacket)) &#123;</span><br><span class="line">        <span class="comment">// 客户端控制（键盘消息）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_KEY:</span><br><span class="line">            ProtocolXml::<span class="built_in">parseKeyInfo</span>(recvPacket, keyPressInfo);</span><br><span class="line">            <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;客户端控制（键盘消息）: \n Key: &quot;</span> &lt;&lt; keyPressInfo.key</span><br><span class="line">                &lt;&lt; <span class="string">&quot; isPress: &quot;</span> &lt;&lt; keyPressInfo.isPress &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// 客户端控制（加速度传感器）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_ASPEED:</span><br><span class="line">            ProtocolXml::<span class="built_in">parseASpeedInfo</span>(recvPacket, aSpeedInfo);</span><br><span class="line">            <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;客户端控制（加速度传感器）\n x: &quot;</span> &lt;&lt; aSpeedInfo.x</span><br><span class="line">                &lt;&lt; <span class="string">&quot; y: &quot;</span> &lt;&lt; aSpeedInfo.y &lt;&lt; <span class="string">&quot; z: &quot;</span> &lt;&lt; aSpeedInfo.z &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// 客户端控制（陀螺仪）</span></span><br><span class="line">        <span class="keyword">case</span> PROTO_CONTROL_GYROSCOPE:</span><br><span class="line">            ProtocolXml::<span class="built_in">parseGyroscopeInfo</span>(recvPacket, gyroscopeInfo);</span><br><span class="line">            <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;客户端控制（陀螺仪）\n x: &quot;</span> &lt;&lt; gyroscopeInfo.x</span><br><span class="line">                &lt;&lt; <span class="string">&quot; y: &quot;</span> &lt;&lt; gyroscopeInfo.y &lt;&lt; <span class="string">&quot; z: &quot;</span> &lt;&lt; gyroscopeInfo.z &lt;&lt; <span class="string">&quot;\n&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> <span class="number">-1</span>:</span><br><span class="line">            <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;Error Package Format!\n&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;</span></span><br><span class="line"><span class="comment">    &lt;wiidroid type=&quot;11&quot;&gt;           // 消息类型 11</span></span><br><span class="line"><span class="comment">        &lt;coord-x&gt;x&lt;/coord-x&gt;       // x, y, z 三轴数据</span></span><br><span class="line"><span class="comment">        &lt;coord-y&gt;y&lt;/coord-y&gt;</span></span><br><span class="line"><span class="comment">        &lt;coord-z&gt;z&lt;/coord-z&gt;</span></span><br><span class="line"><span class="comment">     &lt;/wiidroid&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ProtocolXml::parseASpeedInfo</span><span class="params">(QByteArray &amp;recvPacket, ASpeedInfo &amp;aSpeedInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">QXmlStreamReader <span class="title">reader</span><span class="params">(recvPacket)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (!reader.<span class="built_in">atEnd</span>()) &#123;</span><br><span class="line">        QXmlStreamReader::TokenType type = reader.<span class="built_in">readNext</span>();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (type == QXmlStreamReader::StartElement) &#123;</span><br><span class="line">            <span class="keyword">if</span> (reader.<span class="built_in">name</span>() == <span class="string">&quot;coord-x&quot;</span>) &#123;</span><br><span class="line">                aSpeedInfo.x = reader.<span class="built_in">readElementText</span>(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .<span class="built_in">toDouble</span>();</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (reader.<span class="built_in">name</span>() == <span class="string">&quot;coord-y&quot;</span>) &#123;</span><br><span class="line">                aSpeedInfo.y = reader.<span class="built_in">readElementText</span>(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .<span class="built_in">toDouble</span>();</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (reader.<span class="built_in">name</span>() == <span class="string">&quot;coord-z&quot;</span>) &#123;</span><br><span class="line">                aSpeedInfo.z = reader.<span class="built_in">readElementText</span>(QXmlStreamReader::SkipChildElements)</span><br><span class="line">                .<span class="built_in">toDouble</span>();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (reader.<span class="built_in">hasError</span>()) &#123;</span><br><span class="line">        <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;XML Format Error:&quot;</span> &lt;&lt; reader.<span class="built_in">errorString</span>() &lt;&lt; <span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <hr>
 <h2 id="常见的通信模型"><a href="#常见的通信模型" class="headerlink" title="常见的通信模型"></a>常见的通信模型</h2><h3 id="研究server模型的目的"><a href="#研究server模型的目的" class="headerlink" title="研究server模型的目的"></a>研究server模型的目的</h3><blockquote>
 <p><strong>适应特定的硬件体系与OS特点</strong><br>比如说相同的server模型在SMP体系下与NUMA下的表现就可能不尽相同，又如在linux下表现尚可的进程模型在windows下面就非常吃力。好的server 模型应该从硬件和OS的进步发展中，得到最大化的好处。</p>
 </blockquote>
-<p><img src="/images/33/12.png" alt></p>
+<p><img src="/images/33/12.png"></p>
 <blockquote>
 <p><strong>实现维护成本与性能的平衡</strong><br>好的模型会在编程难度与性能之间做比较好的平衡，并且会很容易地在特定场景下做重心偏移。</p>
 </blockquote>
-<h3 id="基本模型"><a href="#基本模型" class="headerlink" title="基本模型"></a>基本模型</h3><p><br></p>
-<h4 id="多进程模型与原理"><a href="#多进程模型与原理" class="headerlink" title="多进程模型与原理"></a>多进程模型与原理</h4><p>Unix/Linux特有模型，不必多说，可参考<strong><a href="http://www.cnblogs.com/hnrainll/archive/2011/05/11/2043472.html" target="_blank" rel="noopener">子进程自父进程继承什么或未继承什么</a>。</strong></p>
-<p>最典型的应用当数传统CGI了。什么语言能写CGI？只要写出来的东东能运行，就能当CGI。c/c++、php、python、perl、甚至shell等等。</p>
+<h3 id="基本模型"><a href="#基本模型" class="headerlink" title="基本模型"></a>基本模型</h3><br />
+
+<h4 id="多进程模型与原理"><a href="#多进程模型与原理" class="headerlink" title="多进程模型与原理"></a>多进程模型与原理</h4><p>Unix&#x2F;Linux特有模型，不必多说，可参考**<a target="_blank" rel="noopener" href="http://www.cnblogs.com/hnrainll/archive/2011/05/11/2043472.html">子进程自父进程继承什么或未继承什么</a>。**</p>
+<p>最典型的应用当数传统CGI了。什么语言能写CGI？只要写出来的东东能运行，就能当CGI。c&#x2F;c++、php、python、perl、甚至shell等等。</p>
 <p>优化下就是prefork模型，传说中的进程池。</p>
 <blockquote>
-<p>进程数的经验值可以这样估计: n=current * delay<br>Current 是并发量，delay 是平均任务时延。<br>当delay 为2，并发量current 为100 时，进程数至少要为200。</p>
+<p>进程数的经验值可以这样估计: n&#x3D;current * delay<br>Current 是并发量，delay 是平均任务时延。<br>当delay 为2，并发量current 为100 时，进程数至少要为200。</p>
 </blockquote>
 <p>缺点：用进程数来抗并发用户数，因一台机器可启动的进程数是有限的，还没见到过进程能开到K级别，并且当进程太多时OS调度和切换开销往往也大于业务本身了。</p>
-<h4 id="多线程模型与原理"><a href="#多线程模型与原理" class="headerlink" title="多线程模型与原理"></a>多线程模型与原理</h4><p><img src="/images/33/13.png" alt></p>
+<h4 id="多线程模型与原理"><a href="#多线程模型与原理" class="headerlink" title="多线程模型与原理"></a>多线程模型与原理</h4><p><img src="/images/33/13.png"></p>
 <p>也不必多说了吧？对其进行简单的优化就是<strong>线程池模型</strong>了。</p>
-<p><img src="/images/33/14.png" alt></p>
-<p><strong>线程池代码:</strong> <a href="https://github.com/hurley25/xyftp/blob/master/include/thread_pool.h" target="_blank" rel="noopener">头文件</a> <a href="https://github.com/hurley25/xyftp/blob/master/thread/thread_pool.c" target="_blank" rel="noopener">实现</a></p>
+<p><img src="/images/33/14.png"></p>
+<p><strong>线程池代码:</strong> <a target="_blank" rel="noopener" href="https://github.com/hurley25/xyftp/blob/master/include/thread_pool.h">头文件</a> <a target="_blank" rel="noopener" href="https://github.com/hurley25/xyftp/blob/master/thread/thread_pool.c">实现</a></p>
 <p><strong>上面代码看看思想就好，99.99%的可能会有bug。</strong></p>
 <p>你会发现，C写的线程池把互斥锁、条件变量、队列和代码逻辑混合在一起很难理解。我们引入C++和RAII技术：RAII就是资源获取即初始化。简单说就是由相关的类来<strong>拥有和处理</strong>资源，在构造函数里进行资源的获取，在析构函数里对资源进行释放。由语言天生的作用域来控制资源，极大的解放了生产力和程序员思想包袱。</p>
-<p>pthread_mutex的 <a href="https://github.com/hurley25/socx/blob/master/socx/base/Mutex.h" target="_blank" rel="noopener">例子</a></p>
-<p>怎么用？戳这里的 <a href="https://github.com/hurley25/socx/blob/master/socx/base/BlockingQueue.h" target="_blank" rel="noopener">无界阻塞队列</a></p>
-<p>封装之后的代码：<a href="https://github.com/hurley25/socx/blob/master/socx/base/ThreadPool.cpp" target="_blank" rel="noopener">线程池</a></p>
-<h3 id="从同步到异步"><a href="#从同步到异步" class="headerlink" title="从同步到异步"></a>从同步到异步</h3><p><br></p>
-<h4 id="阻塞、非阻塞、同步、异步"><a href="#阻塞、非阻塞、同步、异步" class="headerlink" title="阻塞、非阻塞、同步、异步"></a>阻塞、非阻塞、同步、异步</h4><p><img src="/images/33/15.png" alt></p>
+<p>pthread_mutex的 <a target="_blank" rel="noopener" href="https://github.com/hurley25/socx/blob/master/socx/base/Mutex.h">例子</a></p>
+<p>怎么用？戳这里的 <a target="_blank" rel="noopener" href="https://github.com/hurley25/socx/blob/master/socx/base/BlockingQueue.h">无界阻塞队列</a></p>
+<p>封装之后的代码：<a target="_blank" rel="noopener" href="https://github.com/hurley25/socx/blob/master/socx/base/ThreadPool.cpp">线程池</a></p>
+<h3 id="从同步到异步"><a href="#从同步到异步" class="headerlink" title="从同步到异步"></a>从同步到异步</h3><br />
+
+<h4 id="阻塞、非阻塞、同步、异步"><a href="#阻塞、非阻塞、同步、异步" class="headerlink" title="阻塞、非阻塞、同步、异步"></a>阻塞、非阻塞、同步、异步</h4><p><img src="/images/33/15.png"></p>
 <h4 id="非阻塞-IO复用"><a href="#非阻塞-IO复用" class="headerlink" title="非阻塞+IO复用"></a>非阻塞+IO复用</h4><p><strong>推荐方式，非阻塞必然和IO复用联合起来~（不然你要一直在用户态做轮询吗？）</strong></p>
-<p><a href="https://github.com/hurley25/Experiment/blob/master/epoll/epoll.c" target="_blank" rel="noopener"></a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/hurley25/Experiment/blob/master/epoll/epoll.c"></a></p>
 <h4 id="这是异步IO？"><a href="#这是异步IO？" class="headerlink" title="这是异步IO？"></a>这是异步IO？</h4><blockquote>
-<p>啥是异步IO？看<strong>POSIX.1对同步I/O和异步I/O的定义</strong>：</p>
-<ul>
-<li>同步I/O操作导致发出请求的进程被阻塞直到I/O操作完成。</li>
-<li>异步I/O操作在I/O操作期间不导致发出请求的进程被阻塞。</li>
-</ul>
+<p>啥是异步IO？看<strong>POSIX.1对同步I&#x2F;O和异步I&#x2F;O的定义</strong>：</p>
 </blockquote>
-<p><strong>根据这个定义，阻塞，非阻塞，多路复用，信号驱动均属于同步I/O(尽管信号驱动由于习惯原因，在以前被成为异步I/O)</strong></p>
-<p><br></p>
+<ul>
+<li>同步I&#x2F;O操作导致发出请求的进程被阻塞直到I&#x2F;O操作完成。</li>
+<li>异步I&#x2F;O操作在I&#x2F;O操作期间不导致发出请求的进程被阻塞。</li>
+</ul>
+<p><strong>根据这个定义，阻塞，非阻塞，多路复用，信号驱动均属于同步I&#x2F;O(尽管信号驱动由于习惯原因，在以前被成为异步I&#x2F;O)</strong></p>
+<br />
+
 <h4 id="Linux目前实现的两套异步IO方法"><a href="#Linux目前实现的两套异步IO方法" class="headerlink" title="Linux目前实现的两套异步IO方法"></a>Linux目前实现的两套异步IO方法</h4><p><strong>Pthread实现的AIO</strong>和<strong>Linxu内核实现的Native AIO</strong>。</p>
 <p>缺点？Pthread的是在用线程模拟！<strong>完全不可用！</strong>内核的倒是异步，但是<strong>目前的实现没法利用IO缓存！不过在一些场合还是不错的。</strong></p>
-<p>可以参考：<a href="http://www.yeolar.com/note/2012/12/16/linux-aio/" target="_blank" rel="noopener">Linux AIO（异步IO）那点事儿</a></p>
+<p>可以参考：<a target="_blank" rel="noopener" href="http://www.yeolar.com/note/2012/12/16/linux-aio/">Linux AIO（异步IO）那点事儿</a></p>
 <p>好吧，不明觉厉的同学暂时还是老老实实的用EventLoop+IO线程池吧~</p>
 <p><strong>吐槽下，windows很早以前的的IOCP就是纯异步了…迅雷很早以前都在用…</strong></p>
-<p><br></p>
-<h4 id="Reactor模型与Proactor模型"><a href="#Reactor模型与Proactor模型" class="headerlink" title="Reactor模型与Proactor模型"></a>Reactor模型与Proactor模型</h4><p>重头戏，先看看 <a href="http://blog.csdn.net/liu251/article/details/8351197" target="_blank" rel="noopener">【翻译】两种高性能I/O设计模式(Reactor/Proactor)的比较</a>，到时候我们现场重点聊聊Reactor这个。这里就不描述了，细节太多，问题太多。我希望这里作为大家讨论的重点，而不是现在用文字完全描述。</p>
-<p>其次，单个EventLoop循环如果跑在了单个进程/线程中，对于多核服务器来说，是个浪费。多线程和多进程需要注意的一些点还有false sharing等现象和cache的利用以及上下的切换。前者看<a href="http://www.0xffffff.org/2014/08/09/31-smp-false-sharing/" target="_blank" rel="noopener">SMP架构多线程程序的一种性能衰退现象—False Sharing</a>，后者看<a href="http://blog.csdn.net/joker0910/article/details/7484371" target="_blank" rel="noopener">cpu绑定和cpu亲和性</a>。最后不要忘记了<strong>函数重入性与线程安全</strong>。</p>
-<p><strong>什么，你要代码示例？看<a href="https://github.com/hurley25/linux_system_call/blob/master/src/get_cpu_core_num.c" target="_blank" rel="noopener">这里</a>.</strong></p>
-<p>内核级别的优化，来自最近火起来的新浪的FastOS计划内的<a href="https://github.com/fastos/fastsocket" target="_blank" rel="noopener">FastSocket</a>.</p>
+<br />
+
+<h4 id="Reactor模型与Proactor模型"><a href="#Reactor模型与Proactor模型" class="headerlink" title="Reactor模型与Proactor模型"></a>Reactor模型与Proactor模型</h4><p>重头戏，先看看 <a target="_blank" rel="noopener" href="http://blog.csdn.net/liu251/article/details/8351197">【翻译】两种高性能I&#x2F;O设计模式(Reactor&#x2F;Proactor)的比较</a>，到时候我们现场重点聊聊Reactor这个。这里就不描述了，细节太多，问题太多。我希望这里作为大家讨论的重点，而不是现在用文字完全描述。</p>
+<p>其次，单个EventLoop循环如果跑在了单个进程&#x2F;线程中，对于多核服务器来说，是个浪费。多线程和多进程需要注意的一些点还有false sharing等现象和cache的利用以及上下的切换。前者看<a target="_blank" rel="noopener" href="http://www.0xffffff.org/2014/08/09/31-smp-false-sharing/">SMP架构多线程程序的一种性能衰退现象—False Sharing</a>，后者看<a target="_blank" rel="noopener" href="http://blog.csdn.net/joker0910/article/details/7484371">cpu绑定和cpu亲和性</a>。最后不要忘记了<strong>函数重入性与线程安全</strong>。</p>
+<p><strong>什么，你要代码示例？看<a target="_blank" rel="noopener" href="https://github.com/hurley25/linux_system_call/blob/master/src/get_cpu_core_num.c">这里</a>.</strong></p>
+<p>内核级别的优化，来自最近火起来的新浪的FastOS计划内的<a target="_blank" rel="noopener" href="https://github.com/fastos/fastsocket">FastSocket</a>.</p>
 <hr>
 <h2 id="Linux服务器程序规范"><a href="#Linux服务器程序规范" class="headerlink" title="Linux服务器程序规范"></a>Linux服务器程序规范</h2><ol>
 <li>一般以后台守进程形式运行，没有控制终端不接受用户输入。</li>
 <li>通常有一套日志系统，至少能输出到文件。</li>
 <li><strong>一般以非root的特殊用户身份运行。</strong></li>
-<li>通常是可配置的，文件放在/etc下。</li>
-<li>通常需要在启动的时候生成一个PID文件并存入/var/run目录中，记录该后台进程的PID 。</li>
+<li>通常是可配置的，文件放在&#x2F;etc下。</li>
+<li>通常需要在启动的时候生成一个PID文件并存入&#x2F;var&#x2F;run目录中，记录该后台进程的PID 。</li>
 </ol>
 <hr>
-<h2 id="标准库与第三方库"><a href="#标准库与第三方库" class="headerlink" title="标准库与第三方库"></a>标准库与第三方库</h2><h3 id="C-C-相关"><a href="#C-C-相关" class="headerlink" title="C/C++相关"></a>C/C++相关</h3><p>太多了，数不胜数，典型的有<a href="http://software.schmorp.de/pkg/libev.html" target="_blank" rel="noopener">libev</a>、<a href="http://libevent.org/" target="_blank" rel="noopener">libevent</a>、<a href="https://github.com/joyent/libuv" target="_blank" rel="noopener">libuv</a>、<a href="http://www.boost.org/doc/libs/1_46_1/doc/html/boost_asio.html" target="_blank" rel="noopener">boost asio</a>、<a href="http://cpp-netlib.org/0.11.0/index.html" target="_blank" rel="noopener">cpp-netlib</a>、<a href="http://pocoproject.org/" target="_blank" rel="noopener">POCO</a></p>
+<h2 id="标准库与第三方库"><a href="#标准库与第三方库" class="headerlink" title="标准库与第三方库"></a>标准库与第三方库</h2><h3 id="C-x2F-C-相关"><a href="#C-x2F-C-相关" class="headerlink" title="C&#x2F;C++相关"></a>C&#x2F;C++相关</h3><p>太多了，数不胜数，典型的有<a target="_blank" rel="noopener" href="http://software.schmorp.de/pkg/libev.html">libev</a>、<a target="_blank" rel="noopener" href="http://libevent.org/">libevent</a>、<a target="_blank" rel="noopener" href="https://github.com/joyent/libuv">libuv</a>、<a target="_blank" rel="noopener" href="http://www.boost.org/doc/libs/1_46_1/doc/html/boost_asio.html">boost asio</a>、<a target="_blank" rel="noopener" href="http://cpp-netlib.org/0.11.0/index.html">cpp-netlib</a>、<a target="_blank" rel="noopener" href="http://pocoproject.org/">POCO</a></p>
 <p>太多了，还有各种特殊用途的，比如SSL，DNS异步解析，HTTP相关操作的curl等，不详细说了。</p>
-<p><a href="http://blog.jobbole.com/78901/" target="_blank" rel="noopener">国外程序员整理的 C++ 资源大全</a></p>
-<p><a href="http://blog.csdn.net/langeldep/article/details/6976120" target="_blank" rel="noopener">C/C++网络库比较</a></p>
-<p><a href="http://www.yeolar.com/note/2012/12/16/libev/" target="_blank" rel="noopener">libev库的用法</a></p>
-<p><a href="http://chenzhenianqing.cn/articles/1051.html" target="_blank" rel="noopener">Libev轻网络库 源码浅析</a></p>
-<p><a href="http://www.256code.com/uvbook/" target="_blank" rel="noopener">UVBook中文版</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.jobbole.com/78901/">国外程序员整理的 C++ 资源大全</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/langeldep/article/details/6976120">C&#x2F;C++网络库比较</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.yeolar.com/note/2012/12/16/libev/">libev库的用法</a></p>
+<p><a target="_blank" rel="noopener" href="http://chenzhenianqing.cn/articles/1051.html">Libev轻网络库 源码浅析</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.256code.com/uvbook/">UVBook中文版</a></p>
 <h3 id="Java相关"><a href="#Java相关" class="headerlink" title="Java相关"></a>Java相关</h3><p>标准库就是socket和nio了。</p>
-<p>第三方库很多，比如<a href="http://mina.apache.org/" target="_blank" rel="noopener">mina</a>、<a href="http://netty.io/" target="_blank" rel="noopener">netty</a>等，推荐后者，应用的比较多且比前者效率好些。</p>
-<h3 id="Python相关"><a href="#Python相关" class="headerlink" title="Python相关"></a>Python相关</h3><p>大名鼎鼎的 <a href="https://twistedmatrix.com/trac/" target="_blank" rel="noopener">Twisted</a>.</p>
-<p><a href="http://blog.sina.com.cn/s/blog_704b6af70100py9n.html" target="_blank" rel="noopener">我看到的最棒的Twisted入门教程</a></p>
+<p>第三方库很多，比如<a target="_blank" rel="noopener" href="http://mina.apache.org/">mina</a>、<a target="_blank" rel="noopener" href="http://netty.io/">netty</a>等，推荐后者，应用的比较多且比前者效率好些。</p>
+<h3 id="Python相关"><a href="#Python相关" class="headerlink" title="Python相关"></a>Python相关</h3><p>大名鼎鼎的 <a target="_blank" rel="noopener" href="https://twistedmatrix.com/trac/">Twisted</a>.</p>
+<p><a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_704b6af70100py9n.html">我看到的最棒的Twisted入门教程</a></p>
 <hr>
 <blockquote>
 <p><strong>如果时间允许，我们还要：</strong><br>剖析一个流行的开源服务器模型，比如nginx的框架和实现，顺道看看阿里核心系统团队怎么对nginx的数据结构和算法进行的优化～</p>
@@ -286,7 +310,7 @@
 </blockquote>
 <p>特性：组件的并发性、缺乏全局时钟、组件故障的独立性<br>动机：资源共享<br>挑战：组件异构性、开放性、安全性、可伸缩性、故障处理、并发性、透明性、服务质量。</p>
 <p>怎么学？哈哈，我还不会，跟着大牛们摸索，不过分布式两大基础协议之一的<strong>一致性哈希算法</strong>我介绍过的，这个必须会。</p>
-<p><a href="http://www.yeolar.com/note/2013/09/19/consistent-hashing/" target="_blank" rel="noopener">一致性hash算法</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.yeolar.com/note/2013/09/19/consistent-hashing/">一致性hash算法</a></p>
 <hr>
 <p><strong>服务器端程序设计就这么一点内容吗？</strong><br><strong>No, we are too young, too simple.</strong><br><strong>路很长，现在还远远不是终点，我们欠缺的还有很多！共勉！</strong></p>
   
@@ -303,7 +327,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/检验总结/">检验总结</a>
+  <a class="article-category-link" href="/categories/%E6%A3%80%E9%AA%8C%E6%80%BB%E7%BB%93/">检验总结</a>
 </div>
 
 
@@ -318,7 +342,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2014/11/20/33-servie-program/" data-title="浅谈服务端编程 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2014/11/20/33-servie-program/" data-title="浅谈服务端编程 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -365,7 +389,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -383,7 +407,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -444,7 +468,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -468,10 +492,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -480,31 +500,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -512,11 +508,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -606,7 +630,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

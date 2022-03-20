@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程 | 浅墨的部落格</title>
@@ -12,19 +12,20 @@
 
     
     <meta name="description" content="前段时间我在微博上看到了阮一峰的一篇日志 《计算机是如何启动的？》 才想起来自己之前也尝试探索x86架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于BIOS查找“启动顺序”（Boot Sequence）之前，也就是从按下电源到BIOS移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。 顺便罗嗦一下，有关“扩展分区”">
-<meta name="keywords" content="基础知识,x86">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程">
 <meta property="og:url" content="https://0xffffff.org/2013/03/14/15-x86-boot/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="前段时间我在微博上看到了阮一峰的一篇日志 《计算机是如何启动的？》 才想起来自己之前也尝试探索x86架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于BIOS查找“启动顺序”（Boot Sequence）之前，也就是从按下电源到BIOS移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。 顺便罗嗦一下，有关“扩展分区”">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/15/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/15/2.png">
-<meta property="og:updated_time" content="2019-07-23T06:10:31.710Z">
+<meta property="article:published_time" content="2013-03-14T07:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-23T06:10:31.710Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="x86">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程">
-<meta name="twitter:description" content="前段时间我在微博上看到了阮一峰的一篇日志 《计算机是如何启动的？》 才想起来自己之前也尝试探索x86架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于BIOS查找“启动顺序”（Boot Sequence）之前，也就是从按下电源到BIOS移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。 顺便罗嗦一下，有关“扩展分区”">
 <meta name="twitter:image" content="https://0xffffff.org/images/15/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -38,9 +39,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -98,7 +101,7 @@
 </header>
 	<div class="article-content">
 		
-		<p>前段时间我在微博上看到了阮一峰的一篇日志 <a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">《计算机是如何启动的？》</a> 才想起来自己之前也尝试探索<code>x86</code>架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于<code>BIOS</code>查找“启动顺序”<code>（Boot Sequence）</code>之前，也就是从按下电源到<code>BIOS</code>移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。</p>
+		<p>前段时间我在微博上看到了阮一峰的一篇日志 <a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2013/02/booting.html">《计算机是如何启动的？》</a> 才想起来自己之前也尝试探索<code>x86</code>架构计算机的启动流程来着，趁着还没遗忘就先记录下一部分结论吧。不过相对于阮一峰的这篇博文，我的侧重点在于<code>BIOS</code>查找“启动顺序”<code>（Boot Sequence）</code>之前，也就是从按下电源到<code>BIOS</code>移交权限之间的这一段。关于之后的过程，阮一峰描述的很详细，我就不重复造轮子了。</p>
 <p><strong>顺便罗嗦一下，有关<code>“扩展分区”（Extended partition）的</code>细节，阮一峰这里是正确的，多个扩展分区是“链式”的串起来的。网上有不少说法是错误的。倘若读者质疑，不妨用<code>WinHex</code>之类的工具直接以二进制打开磁盘，一看便知。<code>Linux</code>也可以用<code>dd</code>命令拷贝出磁盘的内容到文件，再查看文件内容。比如<code>dd if=/dev/sda of=/tmp/xxx bs=512 count=1</code>什么的。</strong></p>
 <p>言归正传，开始我们的探索之旅吧。不过，我们不会深入到开机电路之类的硬件问题上去，毕竟，我们还是以一个程序员的角度来看待计算机。<strong>同时，我们假定读者能完全读懂并理解上面我提到的那篇阮一峰的博文并且能理解寻址空间，实模式、保护模式、端口独立编址和端口统一编址等相关术语名词。</strong></p>
 <p>我们从按下电源开始。</p>
@@ -110,16 +113,17 @@
 <p><code>8086 CPU</code>确实如此，但我们的问题是，<code>80386</code>及其以上的<code>CPU</code>怎么处理呢？其计算地址法则还是如此吗？当然不是，否则我说这些废话做什么。如果读者之前对实模式和保护模式寻址以及地址计算的理念根深蒂固的话，那么请先暂时忘却以前的认知，因为我下文说的也许有些惊世骇俗（我指的是相对于国产的某些教材来说）。</p>
 <p><strong>第一点，<code>80386</code>及其以上的现代<code>CPU</code>（以下<code>CPU</code>说的都是指<code>80386</code>以上的）加电<code>Reset</code>之后并不是直接进入<code>实模式</code>；</strong></p>
 <p><strong>第二点，<code>CPU</code>在合成地址的时候并不区分实模式和保护模式。</strong></p>
-<a id="more"></a>
+<span id="more"></span>
+
 <p>我们知道，<code>CPU</code>进入保护模式的方法是<code>CR0</code>寄存器的<code>PE Bit</code>置为1。而在<code>CPU</code>刚加电的时候，<code>CR0</code>寄存器的PE位确实是0，那么，此时是实模式吗？暂时还不是，<code>Intel</code>并没有给给出表示此时<code>CPU</code>状态的术语名词，我们姑且称之为混沌模式吧。自从<code>80386</code>以来，因为增加了保护模式的缘故，<code>CS</code>等段寄存器不再是简简单单的段寄存器了，而是一个包含了<code>段选择器（segment selector）</code>、<code>段基址（segment base）</code>，以及<code>段限制（segment limit）</code>的一组复杂寄存器。显然段基址决定着内存段的基地址。<strong>不过需要说明的是作为程序员只能操作<code>CS</code>寄存器中的<code>“段选择器”</code>这16位的大小，其它的区域作为隐藏区域对程序员不可见，我们无法访问。</strong></p>
-<p>当<code>CPU</code>处于段寻址模式的时候，假设段选择器（我们能访问的那16位）装入了<code>0xF000</code>，那么<code>CPU</code>会先将<code>F000 * 10h</code>也就是<code>F0000h</code>装入段基址里。之后需要合成地址的时候不考虑别的，而是直接从之前合成好的段基址里读出基地址<code>F0000h</code>加上IP寄存器里的偏移生成地址。如果<code>CS</code>寄存器的值不发生改变，段基址部分就不会发生改变。所以我们说，<strong><code>CPU</code>在合成地址的时候不区分实模式和保护模式，<code>CPU</code>只是机械的从隐藏区域读出来段基址和<code>IP</code>寄存器的数值相加。</strong></p>
+<p>当<code>CPU</code>处于段寻址模式的时候，假设段选择器（我们能访问的那16位）装入了<code>0xF000</code>，那么<code>CPU</code>会先将<code>F000 * 10h</code>也就是<code>F0000h</code>装入段基址里。之后需要合成地址的时候不考虑别的，而是直接从之前合成好的段基址里读出基地址<code>F0000h</code>加上IP寄存器里的偏移生成地址。如果<code>CS</code>寄存器的值不发生改变，段基址部分就不会发生改变。所以我们说，**<code>CPU</code>在合成地址的时候不区分实模式和保护模式，<code>CPU</code>只是机械的从隐藏区域读出来段基址和<code>IP</code>寄存器的数值相加。**</p>
 <p><code>Intel</code>这样做的目的何在？当然是为了效率，也许实模式的地址计算很快，但是保护模式计算一个地址还要有去内存中寻找段描述符等工作，这会大大影响<code>CPU</code>的效率，而我们知道，程序具有访问局部区域里的数据和代码的趋势（局部性原理）。所以在<code>CS</code>寄存器没有发生变化的时候，直接从之前隐藏区域获取段基址岂不是更快？当<code>CS</code>寄存器被修改呢？那<code>CPU</code>就再进行一次查找段描述符的操作，然后更新隐藏区域。</p>
 <p>顺便说一句，利用<code>CPU</code>的这个特性，我们可以先进入<code>CPU</code>的保护模式配置好某个起始地址为0，段限长为 4G 的段描述符并加载到除过<code>CS</code>的其他任意寄存器（<code>CS</code>寄存器改变太过频繁），然后退出保护模式进入实模式去执行指令，利用<code>80386</code>之后长达32位的<code>ESI</code>或<code>EDI</code>寄存器和那个段寄存器配合寻址就可以在实模式下访问全部地址空间了。（中途不可以修改那个载入过段描述符的寄存器，否则其隐藏区域会被更新）。这种方式是一种称之为<code>Big Real Mode</code>（翻译成“大实模式”怪怪的）的模式，其区别于实模式和保护模式。</p>
 <p>说了这么多，我们找张图片大概说明一下<code>CS</code>寄存器。下图来自<code>Intel</code>的“CPU使用说明书”，著名的那三卷开发文档的第三卷<code>《Intel® 64 and IA-32 Architectures Software Developer’s Manual Volume 3A: System Programming Guide》P91</code>中的插图，也算是对我上文的证明，证明下我不是在信口开河。至于隐藏区域有多大，不好意思，<code>Intel</code>没有说，不过我估计不会短于一个段描述符的大小，也就是至少有8字节（64位）吧（纯属猜测）。</p>
-<p><img src="/images/15/1.png" alt></p>
+<p><img src="/images/15/1.png"></p>
 <p>有了上述的证明，我们可以继续说下去了。<code>CPU</code>在<code>Reset</code>之后，<code>IP</code>寄存器被置为<code>0x0000FFF0</code>，<code>CS</code>寄存器的段选择器默认值是<code>0xF000</code>，而隐藏区域中的段基址却没有按照实模式的标准去装入，而是被置为<code>0xFFFF0000</code>。<strong>那么<code>CPU</code>生成的第一条访问地址是什么呢？显而易见，<code>80386</code>之后的<code>CPU</code>合成的是<code>0xFFFFFFF0</code>这个地址，这也符合<code>Intel</code>文档的说法。也有资料显示从<code>80286</code>之后的CPU就是这个地址了，暂时我没有考证。</strong>即便是有其它文档有不同见解，我还是觉得<code>Intel</code>的说法更靠谱，毕竟还是人家造的处理器不是。</p>
 <p>再来一张图，说明下<code>80386</code>以上<code>CPU</code>在保护模式下的寻址图，同样来自那个PDF。</p>
-<p><img src="/images/15/2.png" alt></p>
+<p><img src="/images/15/2.png"></p>
 <p>所以我们说<code>CPU</code>执行第一条指令的时候不是实模式也不是保护模式，而是一种怪异的中间模式。</p>
 <p>问题又来了，这一条指令在哪？我们知道计算机开机后首先读取哪里呢？<code>BIOS</code>！对就是它，这一条指令会被指向<code>BIOS</code>。</p>
 <p>我们虽然已经假定过读者知道线性地址空间的大致意思，但我觉得还是有必要简单说一下，<code>IBM PC</code>一部分的端口采用独立编址，而另一部分采用端口统一编址，传统<code>PC</code>机使用<code>0x000~0x3FF</code>共1024个端口地址。现代<code>PC</code>则有多达<code>64KB</code>的<code>I/O 端口</code>提供编址。不过显存等一些硬件的地址还有所有<code>BIOS</code>的编址却在线性地址空间里。这也是我们所谓的32位操作系统没办法完全利用4G内存的原因，尽管寻址能力有4G（共2的32次方个地址），但是并不是所有的地址都能分配给内存使用。</p>
@@ -129,7 +133,7 @@
 <p>就<code>Legacy BIOS</code>来说，放在<code>0xFFFFFFF0</code>的第一条指令一般是一个<code>远跳转指令（far jump）</code>，也就是说<code>CPU</code>在执行<code>Legacy BIOS</code>时，会直接从<code>0xFFFFFFF0</code>跳回<code>F Segment</code>，回到1MB以下这个<code>Legacy BIOS</code>的老巢里去。而<code>EFI BIOS</code>的第一条指令是<code>wbinvd（清洗CPU高速缓存）</code>，之后做一些设定之后，会直接进入保护模式。所以<code>EFI BIOS</code>是从南桥<code>Region 4G</code>通过，并不需要<code>Legacy Region</code>。</p>
 <p><strong>必须说明，这里提到的一些说法参考自一些国外论文及其译文，我只能考证其说法而没有办法考证原作者。虽然在博文内容上我要求自己按照论文来写，但是引文上没有办法考证的我就只考证说法的正确性而不注明出处了，大家见谅。</strong></p>
 <p>然后按照传统的<code>BIOS</code>所做的事情，接下来是<code>Power-On Self-Test（开机自检）</code>、查找启动设备等工作，这里有篇文章说的不错。我考证了下基本靠谱：</p>
-<p><a href="http://www.360doc.com/content/06/0810/13/0_177979.shtml" target="_blank" rel="noopener">http://www.360doc.com/content/06/0810/13/0_177979.shtml</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.360doc.com/content/06/0810/13/0_177979.shtml">http://www.360doc.com/content/06/0810/13/0_177979.shtml</a></p>
 <p>别人写过的我就不写了，大家就自己去看吧。有什么问题的话我们再探讨。这篇文章标题貌似有点问题了，我们毕竟只是讨论了<code>CPU Reset</code>的一个小问题，和计算机启动相去甚远呢。反而阮一峰那篇博文更贴切呢。</p>
   
 	</div>
@@ -145,7 +149,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -160,7 +164,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/03/14/15-x86-boot/" data-title="基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/03/14/15-x86-boot/" data-title="基于 Intel 80×86 CPU 的 IBM PC 及其兼容计算机的启动流程 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -207,7 +211,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -225,7 +229,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -286,7 +290,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -310,10 +314,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -322,31 +322,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -354,11 +330,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -448,7 +452,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

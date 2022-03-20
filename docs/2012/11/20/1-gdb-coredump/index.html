@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>用 gdb 配合内核转储文件瞬间定位段错误 | 浅墨的部落格</title>
@@ -12,17 +12,18 @@
 
     
     <meta name="description" content="前几天在写一个使用Huffman算法的文本压缩程序时被“段错误”折磨了好长时间。因为自己向来对内存的使用保持着“克勤克俭”的作风，所以总是被此类错误折磨的焦头难额。C语言的内存管理本来就是一个繁琐的工作，写代码时略有不慎便会出现诸如“段错误（吐核）”的运行时崩溃。 其实段错误是操作系统的一个内存保护机制，一般情况下某程序尝试访问其许可范围之外的内存空间时便会触发内核的“一般保护性异常”，内核便会向">
-<meta name="keywords" content="Linux,基础知识">
 <meta property="og:type" content="article">
 <meta property="og:title" content="用 gdb 配合内核转储文件瞬间定位段错误">
 <meta property="og:url" content="https://0xffffff.org/2012/11/20/1-gdb-coredump/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="前几天在写一个使用Huffman算法的文本压缩程序时被“段错误”折磨了好长时间。因为自己向来对内存的使用保持着“克勤克俭”的作风，所以总是被此类错误折磨的焦头难额。C语言的内存管理本来就是一个繁琐的工作，写代码时略有不慎便会出现诸如“段错误（吐核）”的运行时崩溃。 其实段错误是操作系统的一个内存保护机制，一般情况下某程序尝试访问其许可范围之外的内存空间时便会触发内核的“一般保护性异常”，内核便会向">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T09:16:49.136Z">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2012-11-20T08:02:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:16:49.136Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="用 gdb 配合内核转储文件瞬间定位段错误">
-<meta name="twitter:description" content="前几天在写一个使用Huffman算法的文本压缩程序时被“段错误”折磨了好长时间。因为自己向来对内存的使用保持着“克勤克俭”的作风，所以总是被此类错误折磨的焦头难额。C语言的内存管理本来就是一个繁琐的工作，写代码时略有不慎便会出现诸如“段错误（吐核）”的运行时崩溃。 其实段错误是操作系统的一个内存保护机制，一般情况下某程序尝试访问其许可范围之外的内存空间时便会触发内核的“一般保护性异常”，内核便会向">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -103,28 +106,35 @@
 <li>程序访问了系统数据区，尤其是往系统保护的内存地址写数据。比如尝试对NULL指针进行解引用或者对其指向的内存写入数据（但是不见得所有的指针越界都会触发“段错误”）;</li>
 <li>内存访问越界（数组越界等）；</li>
 <li>无限的递归（导致栈溢出）；</li>
-<li>对malloc / calloc申请的堆内存二次释放（可能与glibc库版本有关）；</li>
+<li>对malloc &#x2F; calloc申请的堆内存二次释放（可能与glibc库版本有关）；</li>
 <li>由于操作系统的段保护机制，如果由于缓冲区溢出等错误导致对某段内存的非法访问也会触发；</li>
 </ol>
 </blockquote>
 <p>另外还有一些大家平时不大注意的地方会导致段错误，例如使用标准库函数fclose对一个打开的文件关闭了多次也会导致段错误，同时终端可能会输出很多关于运行时库错误的信息。因为对使用malloc族函数申请的堆内存释放第二次的时候会触发段错误，所以我猜测fclose触发段错误的原因可能是对文件指针FILE *指向的内存二次释放时触发的段错误。而Valgrind检测的结果基本上证明了我的猜测，fclose引发了堆异常，错误被定位到了free函数。</p>
-<a id="more"></a>
-<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">==<span class="number">5715</span>== Invalid free() / delete / delete[] / realloc()</span><br><span class="line">==<span class="number">5715</span>== at <span class="number">0x4006D3D</span>: free (vg_replace_malloc.<span class="symbol">c:</span><span class="number">446</span>) ==<span class="number">5715</span>== by <span class="number">0x42C62853</span>: fclose@@GLIBC_2.<span class="number">1</span> (in /<span class="class"><span class="keyword">lib</span>/<span class="title">libc</span>-2.14.90.<span class="title">so</span>)</span></span><br><span class="line">==<span class="number">5715</span>== by <span class="number">0x42C146B2</span>: (below main) (in /<span class="class"><span class="keyword">lib</span>/<span class="title">libc</span>-2.14.90.<span class="title">so</span>)</span></span><br><span class="line">==<span class="number">5715</span>== Address <span class="number">0x4031028</span> is <span class="number">0</span> bytes inside a block <span class="keyword">of</span> size <span class="number">352</span> free<span class="string">'d</span></span><br><span class="line"><span class="string">==5715== at 0x4006D3D: free (vg_replace_malloc.c:446)</span></span><br><span class="line"><span class="string">==5715== by 0x42C62853: fclose@@GLIBC_2.1 (in /lib/libc-2.14.90.so)</span></span><br><span class="line"><span class="string">==5715== by 0x42C146B2: (below main) (in /lib/libc-2.14.90.so)</span></span><br><span class="line"><span class="string">==5715==</span></span><br><span class="line"><span class="string">==5715== HEAP SUMMARY:</span></span><br><span class="line"><span class="string">==5715== in use at exit: 0 bytes in 0 blocks</span></span><br><span class="line"><span class="string">==5715== total heap usage: 1 allocs, 2 frees, 352 bytes allocated</span></span><br><span class="line"><span class="string">==5715==</span></span><br><span class="line"><span class="string">==5715== All heap blocks were freed -- no leaks are possible</span></span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">==<span class="number">5715</span>== Invalid free() / delete / delete[] / realloc()</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">at</span> <span class="number">0x4006D3D</span>: free (vg_replace_malloc.c:<span class="number">446</span>) ==<span class="number">5715</span>== <span class="keyword">by</span> <span class="number">0x42C62853</span>: fclose@@GLIBC_2<span class="number">.1</span> (<span class="keyword">in</span> /lib/libc<span class="number">-2.14</span><span class="number">.90</span>.so)</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">by</span> <span class="number">0x42C146B2</span>: (<span class="keyword">below</span> main) (<span class="keyword">in</span> /lib/libc<span class="number">-2.14</span><span class="number">.90</span>.so)</span><br><span class="line">==<span class="number">5715</span>== Address <span class="number">0x4031028</span> <span class="keyword">is</span> <span class="number">0</span> bytes inside a block <span class="keyword">of</span> size <span class="number">352</span> free&#x27;d</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">at</span> <span class="number">0x4006D3D</span>: free (vg_replace_malloc.c:<span class="number">446</span>)</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">by</span> <span class="number">0x42C62853</span>: fclose@@GLIBC_2<span class="number">.1</span> (<span class="keyword">in</span> /lib/libc<span class="number">-2.14</span><span class="number">.90</span>.so)</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">by</span> <span class="number">0x42C146B2</span>: (<span class="keyword">below</span> main) (<span class="keyword">in</span> /lib/libc<span class="number">-2.14</span><span class="number">.90</span>.so)</span><br><span class="line">==<span class="number">5715</span>==</span><br><span class="line">==<span class="number">5715</span>== HEAP SUMMARY:</span><br><span class="line">==<span class="number">5715</span>== <span class="keyword">in</span> use <span class="keyword">at</span> <span class="keyword">exit</span>: <span class="number">0</span> bytes <span class="keyword">in</span> <span class="number">0</span> blocks</span><br><span class="line">==<span class="number">5715</span>== total heap usage: <span class="number">1</span> allocs, <span class="number">2</span> frees, <span class="number">352</span> bytes allocated</span><br><span class="line">==<span class="number">5715</span>==</span><br><span class="line">==<span class="number">5715</span>== All heap blocks were freed <span class="comment">-- no leaks are possible</span></span><br></pre></td></tr></table></figure>
+
 <p>Valgrind是一款用于内存调试、内存泄漏检测以及性能分析的软件开发工具。遗憾的是它只能检测到堆里的内存泄漏和越界访问，对于栈里的内存访问错误爱莫能助（如果你对这里堆栈等概念有疑问，请参阅百度百科词条“堆栈”，至于为什么不推荐维基百科…因为关于这个词条，百度百科的资料更全一些）。关于Valgrind的具体使用方法超出了本文讨论范围，有兴趣的读者请自行Google。另外，关于“段错误”的介绍不再赘述，毕竟我们现在讨论的重点不是“段错误”的前世今生。</p>
 <p>言归正传，我们前面提到，当一个程序出现内存异常访问后会触发内核的“一般保护性异常”，内核会向程序发送一个SIGSEGV（11）信号（无效的内存引用），而SIGSEGV信号的默认handler的动作便是在终端上打印出名为“段错误”的出错信息，并产生Core（内核转储）文件，最后结束掉当前犯错的程序。重点在这里，那个所谓的Core（内核转储）文件是什么东西呢？通过查阅man文档（man 5 core）我们得知了在程序崩溃时，它一般会在目录下生成一个core文件。core文件是该程序在内存中的映象（同时还会有一些调试信息包含在内）。而某些系统默认设置是不生成core文件的，我们可以在终端下输入ulimit -a 命令查看设置。</p>
 <figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora ~$ ulimit -a</span><br><span class="line">core <span class="keyword">file</span> <span class="keyword">size</span> (blocks, -c) <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
 <p>可以看到我的当前设置（fedora 16）把core文件大小被限制为0了（不生成core文件）。我们可以在终端下执行ulimit -c 1024修改限制（我的系统在重启后该设置又被重置为0，所以每次调试前都要设置，不知道为什么…）。</p>
 <p>设置好了以后我们来制造一个会触发“段错误”的程序吧…</p>
 <p>代码很简单：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> *p = (<span class="keyword">char</span> *)<span class="number">0xB800</span>;</span><br><span class="line"></span><br><span class="line">    *p = <span class="string">'a'</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *p = (<span class="type">char</span> *)<span class="number">0xB800</span>;</span><br><span class="line"></span><br><span class="line">    *p = <span class="string">&#x27;a&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <p>很显然，编译运行后“段错误（吐核）”</p>
-<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ gcc <span class="keyword">test</span>.c -o <span class="keyword">test</span></span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ./<span class="keyword">test</span></span><br><span class="line">段错误(吐核)</span><br></pre></td></tr></table></figure>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ gcc <span class="keyword">test</span><span class="number">.</span>c -o <span class="keyword">test</span></span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ./<span class="keyword">test</span></span><br><span class="line">段错误(吐核)</span><br></pre></td></tr></table></figure>
+
 <p>我们使用gcc重新编译，这次要加上 -g 和 -rdynamic参数，-g我们都知道是加入调试信息，那 -rdynamic呢？它的作用是用来通知链接器将所有符号添加到动态符号表中（具体请查阅 man文档，关于链接这块的知识除了经典的《Linkers and loaders》之外，国产的《程序员的自我修养——链接、装载与库》也值得一读）。</p>
-<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ gcc -Wall -g -rdynamic <span class="keyword">test</span>.c -o <span class="keyword">test</span></span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ./<span class="keyword">test</span></span><br><span class="line">段错误(吐核)</span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ls</span><br><span class="line">core<span class="meta">.6864</span> <span class="keyword">test</span> <span class="keyword">test</span>.c</span><br></pre></td></tr></table></figure>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ gcc -Wall -g -rdynamic <span class="keyword">test</span><span class="number">.</span>c -o <span class="keyword">test</span></span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ./<span class="keyword">test</span></span><br><span class="line">段错误(吐核)</span><br><span class="line">hurley@hurley-fedora <span class="meta">segment</span>-<span class="keyword">test</span>$ ls</span><br><span class="line">core<span class="number">.6864</span> <span class="keyword">test</span> <span class="keyword">test</span><span class="number">.</span>c</span><br></pre></td></tr></table></figure>
+
 <p>我们看到了程序所在目录下生成了一个名为core.6864的内核转储文件，就是它了。如果你没有找到这个文件，那么请往上翻找找我关于ulimit的说明。</p>
 <p>接下来我们用gdb开始调试，命令行如下，注意最后要加上那个内核转储文件。</p>
-<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora segment-<span class="keyword">test</span>$ gdb ./<span class="keyword">test</span> core.6864</span><br><span class="line">GNU gdb (GDB) Fedora (7.3.50.20110722-16.fc16)</span><br><span class="line"><span class="keyword">Copyright</span> (C) 2011 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL <span class="keyword">version</span> 3 or later</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is <span class="keyword">NO</span> WARRANTY, to the extent permitted <span class="keyword">by</span> law. <span class="keyword">Type</span> <span class="string">"show copying"</span></span><br><span class="line">and <span class="string">"show warranty"</span> <span class="keyword">for</span> details.</span><br><span class="line">This GDB was configured <span class="keyword">as</span> <span class="string">"i686-redhat-linux-gnu"</span>.</span><br><span class="line"><span class="keyword">For</span> bug reporting instructions, please see:</span><br><span class="line">...</span><br><span class="line">Reading symbols from /home/hurley/segment-<span class="keyword">test</span>/<span class="keyword">test</span>...done.</span><br><span class="line">[New LWP 6864]</span><br><span class="line">Core was generated <span class="keyword">by</span> `./<span class="keyword">test</span>'.</span><br><span class="line"><span class="keyword">Program</span> terminated with signal 11, Segmentation fault.</span><br><span class="line">#0 0x08048524 <span class="keyword">in</span> main (argc=1, argv=0xbfb126b4) at <span class="keyword">test</span>.c:26</span><br><span class="line">26 *p = 'a';</span><br><span class="line">Missing <span class="keyword">separate</span> debuginfos, <span class="keyword">use</span>: debuginfo-install glibc-2.14.90-24.fc16.9.i686</span><br></pre></td></tr></table></figure>
-<p>我们什么也没有做，gdb就定位到了这个*p = ‘a’; 触发了异常，并且明确的告诉了我们这行代码位于test.c的第26行，main函数里，同时gdb告诉我们程序接收到了11号信号退出，原因是段错误。</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">hurley@hurley-fedora segment-<span class="keyword">test</span>$ gdb ./<span class="keyword">test</span> core.6864</span><br><span class="line">GNU gdb (GDB) Fedora (7.3.50.20110722-16.fc16)</span><br><span class="line"><span class="keyword">Copyright</span> (C) 2011 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL <span class="keyword">version</span> 3 or later</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is <span class="keyword">NO</span> WARRANTY, to the extent permitted <span class="keyword">by</span> law. <span class="keyword">Type</span> <span class="string">&quot;show copying&quot;</span></span><br><span class="line">and <span class="string">&quot;show warranty&quot;</span> <span class="keyword">for</span> details.</span><br><span class="line">This GDB was configured <span class="keyword">as</span> <span class="string">&quot;i686-redhat-linux-gnu&quot;</span>.</span><br><span class="line"><span class="keyword">For</span> bug reporting instructions, please see:</span><br><span class="line">...</span><br><span class="line">Reading symbols from /home/hurley/segment-<span class="keyword">test</span>/<span class="keyword">test</span>...done.</span><br><span class="line">[New LWP 6864]</span><br><span class="line">Core was generated <span class="keyword">by</span> `./<span class="keyword">test</span>&#x27;.</span><br><span class="line"><span class="keyword">Program</span> terminated with signal 11, Segmentation fault.</span><br><span class="line">#0 0x08048524 <span class="keyword">in</span> main (argc=1, argv=0xbfb126b4) at <span class="keyword">test</span>.c:26</span><br><span class="line">26 *p = &#x27;a&#x27;;</span><br><span class="line">Missing <span class="keyword">separate</span> debuginfos, <span class="keyword">use</span>: debuginfo-install glibc-2.14.90-24.fc16.9.i686</span><br></pre></td></tr></table></figure>
+
+<p>我们什么也没有做，gdb就定位到了这个*p &#x3D; ‘a’; 触发了异常，并且明确的告诉了我们这行代码位于test.c的第26行，main函数里，同时gdb告诉我们程序接收到了11号信号退出，原因是段错误。</p>
 <p>难不成就这么简单吗？是的，就这么简单。实际的使用中我发现有时候不需要内核转储文件gdb也能直接定位到错误点，这一点比起vc那个调试器来毫不逊色。</p>
 <p>这篇文章到这里就告一段落了，貌似关键内容就这么一点。好吧，其实段错误的处理并不复杂，之前的纠结完全是因为自己没有掌握方法罢了…</p>
 <p>如果你也被数不尽的“段错误”所纠结着 ，希望这篇文章能帮到你。如果你觉得这篇文章太水了……好吧，我承认，它确实很水…</p>
@@ -142,7 +152,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -157,7 +167,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2012/11/20/1-gdb-coredump/" data-title="用 gdb 配合内核转储文件瞬间定位段错误 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2012/11/20/1-gdb-coredump/" data-title="用 gdb 配合内核转储文件瞬间定位段错误 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -196,7 +206,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -214,7 +224,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -275,7 +285,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -299,10 +309,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -311,31 +317,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -343,11 +325,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -437,7 +447,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

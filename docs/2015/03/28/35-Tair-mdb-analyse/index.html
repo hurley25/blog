@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>Tair MDB 存储引擎的实现 | 浅墨的部落格</title>
@@ -12,13 +12,12 @@
 
     
     <meta name="description" content="Tair是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。 Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有">
-<meta name="keywords" content="tair,源码分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Tair MDB 存储引擎的实现">
 <meta property="og:url" content="https://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="Tair是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。 Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/35/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/35/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/35/3.png">
@@ -36,10 +35,12 @@
 <meta property="og:image" content="https://0xffffff.org/images/35/15.png">
 <meta property="og:image" content="https://0xffffff.org/images/35/16.png">
 <meta property="og:image" content="https://0xffffff.org/images/35/17.png">
-<meta property="og:updated_time" content="2019-07-07T09:13:06.540Z">
+<meta property="article:published_time" content="2015-03-28T08:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:13:06.540Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="tair">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Tair MDB 存储引擎的实现">
-<meta name="twitter:description" content="Tair是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。 Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有">
 <meta name="twitter:image" content="https://0xffffff.org/images/35/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -53,9 +54,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -113,60 +116,63 @@
 </header>
 	<div class="article-content">
 		
-		<p><a href="http://tair.taobao.org/" target="_blank" rel="noopener">Tair</a>是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。</p>
+		<p><a target="_blank" rel="noopener" href="http://tair.taobao.org/">Tair</a>是一个高性能、分布式、可扩展、高可靠的NoSQL存储系统。本文基于Tair v3.1.2.43版本，探究其mdb存储引擎的实现。</p>
 <p>Tair目前有mdb、ldb和rdb等存储引擎。其中mdb是Tair最早的一款内存型产品，也是在公司内部应用最广泛的集中式缓存。特别适用容量小（一般在M级别，50G之内），读写QPS高（万级别）的应用场景。由于是内存型产品，因此无法保证数据的安全性，对数据安全有要求的应用建议在后端加持久化数据源（例如MySQL）。本文接下来详细讨论Tair mdb存储引擎的实现。</p>
 <p>Tair的存储引擎接口是<code>src\storage\storage_manager.hpp</code>里的虚基类<code>storage_manager</code>。所有的Tair存储引擎均继承实现了<code>storage_manager</code>这个虚基类。<code>src\dataserver\tair_manager.cpp</code>文件中的<code>tair_manager::initialize</code>函数根据配置文件中<code>storage_engine</code>的设置初始化相应的存储引擎。</p>
-<p><img src="/images/35/1.png" alt></p>
-<p><img src="/images/35/2.png" alt></p>
-<a id="more"></a>
+<p><img src="/images/35/1.png"></p>
+<p><img src="/images/35/2.png"></p>
+<span id="more"></span>
+
 <p>mdb引擎默认使用POSIX共享内存的方式进行内存的分配和管理。mdb引擎会在初始化的时候创建或者使用已存在的共享内存。其配置使用内存的方式和共享内存命名的前缀均在其配置文件中进行设置。如图所示：</p>
-<p><img src="/images/35/3.png" alt></p>
+<p><img src="/images/35/3.png"></p>
 <p><code>src\storage\mdb</code>目录是mdb存储引擎的实现，这里的实现、测试和接口文件都放在同一个目录中。其中有关mdb存储实现的文件如下：</p>
-<pre><code>◇ db_define.{hpp,cpp} —— mdb引擎相关的配置信息和定义。
-◇ mdb_factory.{hpp,cpp} —— mdb引擎初始化工厂类的实现。
-◇ mdb_manager.{hpp,cpp} —— mdb引擎管理结构的实现。
-◇ mdb_instance.{hpp,cpp} —— mdb实例相关的实现。
-◇ mem_cache.{hpp,cpp}  —— MemCache结构的实现。
-◇ mem_pool.{hpp,cpp} —— MemPool结构的实现。
-◇ cache_hashmap.{hpp,cpp} —— 全局缓存KV结构映射的Hash表的实现。
-◇ mdb_stat_manager.{hpp,cpp} —— mdb引擎状态管理相关实现。
+<pre><code>◇ db_define.&#123;hpp,cpp&#125; —— mdb引擎相关的配置信息和定义。
+◇ mdb_factory.&#123;hpp,cpp&#125; —— mdb引擎初始化工厂类的实现。
+◇ mdb_manager.&#123;hpp,cpp&#125; —— mdb引擎管理结构的实现。
+◇ mdb_instance.&#123;hpp,cpp&#125; —— mdb实例相关的实现。
+◇ mem_cache.&#123;hpp,cpp&#125;  —— MemCache结构的实现。
+◇ mem_pool.&#123;hpp,cpp&#125; —— MemPool结构的实现。
+◇ cache_hashmap.&#123;hpp,cpp&#125; —— 全局缓存KV结构映射的Hash表的实现。
+◇ mdb_stat_manager.&#123;hpp,cpp&#125; —— mdb引擎状态管理相关实现。
 ◇ mdb_stat.hpp —— mdb引擎读取写入统计的相关数据结构的定义和实现。
 ◇ lock_guard.hpp —— pthread_mutex_t的简单RAII封装。
-</code></pre><p>其中<code>mdb_define.{hpp,cpp}</code>里定义了mdb引擎的配置变量，打开共享内存的操作函数以及获取时间、判断当前时间的hour是否在给定区间等函数。</p>
-<p><code>mdb_factory.{hpp,cpp}</code>用于创建mdb引擎，<code>mdb_factory.hpp</code>中定义的接口如下：</p>
-<p><img src="/images/35/4.png" alt></p>
+</code></pre>
+<p>其中<code>mdb_define.&#123;hpp,cpp&#125;</code>里定义了mdb引擎的配置变量，打开共享内存的操作函数以及获取时间、判断当前时间的hour是否在给定区间等函数。</p>
+<p><code>mdb_factory.&#123;hpp,cpp&#125;</code>用于创建mdb引擎，<code>mdb_factory.hpp</code>中定义的接口如下：</p>
+<p><img src="/images/35/4.png"></p>
 <p>create_mdb_manager读取配置文件中的配置信息，然后创建<code>mdb_manager</code>对象并返回。这个函数在<code>src\dataserver\tair_manager.cpp</code>文件中的<code>tair_manager::initialize</code>函数中被调用。</p>
-<p><code>mdb_manager.{hpp,cpp}</code>定义了mdb引擎管理类<code>mdb_manager</code>的实现，<code>mdb_manager</code>类继承自<code>storage_manager</code>虚基类，实现了相关的虚函数接口。其定义<code>std::vector&lt;mdb_instance*&gt;</code>结构保存所有的mdb实例。<code>mdb_instance</code>类在<code>mdb_instance.{hpp,cpp}</code>中定义和实现。<code>mdb_manager</code>类的<code>initialize</code>函数会调用<code>init_area_stat</code>函数创建/打开名为<code>mdb_param::mdb_path+&quot;.stat</code>这个存储mdb引擎状态信息的共享内存块，其大小为<code>TAIR_MAX_AREA_COUNT * sizeof(mdb_area_stat)</code>。然后会根据配置文件里的实例个数信息创建<code>mdb_instance</code>实例。配置如下：</p>
-<p><img src="/images/35/5.png" alt></p>
+<p><code>mdb_manager.&#123;hpp,cpp&#125;</code>定义了mdb引擎管理类<code>mdb_manager</code>的实现，<code>mdb_manager</code>类继承自<code>storage_manager</code>虚基类，实现了相关的虚函数接口。其定义<code>std::vector&lt;mdb_instance*&gt;</code>结构保存所有的mdb实例。<code>mdb_instance</code>类在<code>mdb_instance.&#123;hpp,cpp&#125;</code>中定义和实现。<code>mdb_manager</code>类的<code>initialize</code>函数会调用<code>init_area_stat</code>函数创建&#x2F;打开名为<code>mdb_param::mdb_path+&quot;.stat</code>这个存储mdb引擎状态信息的共享内存块，其大小为<code>TAIR_MAX_AREA_COUNT * sizeof(mdb_area_stat)</code>。然后会根据配置文件里的实例个数信息创建<code>mdb_instance</code>实例。配置如下：</p>
+<p><img src="/images/35/5.png"></p>
 <p><code>mdb_instance</code>创建时会创建名为<code>mdb_param::mdb_path+&quot;.000&quot;</code>开始计数的共享内存块。创建的实例中bucket的个数由以下配置决定：</p>
-<p><img src="/images/35/6.png" alt></p>
+<p><img src="/images/35/6.png"></p>
 <p><code>mdb_instance</code> 、<code>mem_cache</code>、<code>mem_pool</code>、<code>cache_hashmap</code>这几个类构成了mdb存储引擎的核心。创建完成后，其包含指向关系如下：</p>
-<p><img src="/images/35/7.png" alt></p>
+<p><img src="/images/35/7.png"></p>
 <p>对应的内存结构图大致如下：</p>
-<p><img src="/images/35/8.png" alt></p>
+<p><img src="/images/35/8.png"></p>
 <p>其中MemPool以页的形式管理通过共享内存分配的内存，分配或者释放一个内存页。其定义了<code>uint8_t page_bitmap[BITMAP_SIZE]</code>，以位的形式来管理内存页；MemCache比页低一级，采用slab算法将内存分配给具体的item；HashTable以一个巨大的Hash表存储key的映射关系。下面阐述对共享内存具体的分配情况。内存布局如图所示：</p>
-<p><img src="/images/35/9.png" alt></p>
+<p><img src="/images/35/9.png"></p>
 <p>cache meta的结构如下：</p>
-<p><img src="/images/35/10.png" alt></p>
+<p><img src="/images/35/10.png"></p>
 <p>hash buckets的结构如下：</p>
-<p><img src="/images/35/11.png" alt></p>
+<p><img src="/images/35/11.png"></p>
 <p>slab use这里，当前的代码实际上仅放置了一个mdb_cache_info：</p>
-<p><img src="/images/35/12.png" alt></p>
+<p><img src="/images/35/12.png"></p>
 <p>下面是内存管理结构中的一些定义：</p>
 <p><code>mdb_id</code>的定义：</p>
-<p><img src="/images/35/13.png" alt></p>
+<p><img src="/images/35/13.png"></p>
 <p>其中<code>item_id</code>的图示如下：</p>
-<p><img src="/images/35/14.png" alt></p>
+<p><img src="/images/35/14.png"></p>
 <p>一些换算关系如下：</p>
 <pre><code>page_addr = S0 + (page_id * page_size)
 item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset_in_page)
-</code></pre><p>最后是slab分配器和K/V存储相关的细节。<code>mem_cache</code>类使用<code>slab_manager</code>类对从<code>mem_pool</code>中申请到的内存页进行管理。页信息的结构定义如下：</p>
-<p><img src="/images/35/15.png" alt></p>
+</code></pre>
+<p>最后是slab分配器和K&#x2F;V存储相关的细节。<code>mem_cache</code>类使用<code>slab_manager</code>类对从<code>mem_pool</code>中申请到的内存页进行管理。页信息的结构定义如下：</p>
+<p><img src="/images/35/15.png"></p>
 <p><code>mem_cache</code>里的pages被放置在三个链表中，分别是Free页链表、Full页链表和Partial页链表。Free页链表、Full页链表是简单的双向链表，用于链接空页和满页。Partial页链表如下图：</p>
-<p><img src="/images/35/16.png" alt></p>
+<p><img src="/images/35/16.png"></p>
 <p>下图是不同的Area里放置item的图示：</p>
-<p><img src="/images/35/17.png" alt></p>
-<p>最后剩下的<code>mdb_stat_manager.{hpp,cpp}</code>和<code>mdb_stat.hpp</code>定义和实现了访问统计相关的功能，其创建的共享内存块为相应的mdb实例的名称+”mdbstat”，此处不再赘述。</p>
+<p><img src="/images/35/17.png"></p>
+<p>最后剩下的<code>mdb_stat_manager.&#123;hpp,cpp&#125;</code>和<code>mdb_stat.hpp</code>定义和实现了访问统计相关的功能，其创建的共享内存块为相应的mdb实例的名称+”mdbstat”，此处不再赘述。</p>
   
 	</div>
 
@@ -181,13 +187,13 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/源码分析/">源码分析</a>
+  <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a>
 </div>
 
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/tair/">tair</a><a href="/tags/源码分析/">源码分析</a>
+  <span></span> <a href="/tags/源码分析/">源码分析</a><a href="/tags/tair/">tair</a>
   </div>
 
 </div>
@@ -196,7 +202,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/" data-title="Tair MDB 存储引擎的实现 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2015/03/28/35-Tair-mdb-analyse/" data-title="Tair MDB 存储引擎的实现 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -243,7 +249,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -261,7 +267,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -322,7 +328,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -346,10 +352,6 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -358,31 +360,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -390,11 +368,39 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -484,7 +490,7 @@ item_addr = S0 + (page_id * page_size) + sizeof(page_info) + (slab_size * offset
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>控制台下星号密码输入的实现 | 浅墨的部落格</title>
@@ -11,18 +11,19 @@
     
 
     
-    <meta name="description" content="最近频繁需要实现在windows控制台下输入星号密码的功能，Unix/Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下： 1234567891011121314151617181920212223">
-<meta name="keywords" content="基础知识,C">
+    <meta name="description" content="最近频繁需要实现在windows控制台下输入星号密码的功能，Unix&#x2F;Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下： 12345678910111213141516171819202">
 <meta property="og:type" content="article">
 <meta property="og:title" content="控制台下星号密码输入的实现">
 <meta property="og:url" content="https://0xffffff.org/2012/11/23/3-password-input/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
-<meta property="og:description" content="最近频繁需要实现在windows控制台下输入星号密码的功能，Unix/Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下： 1234567891011121314151617181920212223">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T08:12:41.272Z">
+<meta property="og:description" content="最近频繁需要实现在windows控制台下输入星号密码的功能，Unix&#x2F;Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下： 12345678910111213141516171819202">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2012-11-23T06:02:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T08:12:41.272Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="C">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="控制台下星号密码输入的实现">
-<meta name="twitter:description" content="最近频繁需要实现在windows控制台下输入星号密码的功能，Unix/Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下： 1234567891011121314151617181920212223">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -95,8 +98,8 @@
 </header>
 	<div class="article-content">
 		
-		<p>最近频繁需要实现在windows控制台下输入星号密码的功能，Unix/Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _WIN32 <span class="comment">// 如果不是WIN32环境，则要自定义getch()函数</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;termio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getch</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">     <span class="class"><span class="keyword">struct</span> <span class="title">termios</span> <span class="title">tm</span>, <span class="title">tm_old</span>;</span></span><br><span class="line">     <span class="keyword">int</span> fd = <span class="number">0</span>, ch;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (tcgetattr(fd, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     tm_old = tm;</span><br><span class="line">     cfmakeraw(&amp;tm);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     ch = fgetc(<span class="built_in">stdin</span>);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm_old) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> ch;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;conio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// _WIN32</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 密码输入函数，参数 passwd 为密码缓冲区，buff_len 为缓冲区长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">passwd_input</span><span class="params">(<span class="keyword">char</span> *passwd, <span class="keyword">int</span> buff_len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">     <span class="keyword">char</span> str;</span><br><span class="line">     <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">     <span class="keyword">int</span> enter_num = <span class="number">13</span>;</span><br><span class="line">     <span class="keyword">int</span> backspace_num;</span><br><span class="line"></span><br><span class="line">     <span class="meta">#<span class="meta-keyword">ifndef</span> _WIN32</span></span><br><span class="line">     backspace_num = <span class="number">127</span>;</span><br><span class="line">     <span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">     backspace_num = <span class="number">8</span>;</span><br><span class="line">     <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (passwd == <span class="literal">NULL</span> || buff_len &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> passwd;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">     &#123;</span><br><span class="line">          <span class="comment">// 如果没有按下退格键</span></span><br><span class="line">          <span class="keyword">if</span> ((str = getch()) != (<span class="keyword">char</span>)backspace_num) &#123;</span><br><span class="line">               <span class="keyword">if</span> (i &lt; buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                    passwd[i++] = str;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"*"</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">if</span> (i != <span class="number">0</span>) &#123;</span><br><span class="line">                    i--;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">"\b \b"</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 如果按下了回车键</span></span><br><span class="line">          <span class="keyword">if</span> (str == (<span class="keyword">char</span>)enter_num) &#123;</span><br><span class="line">               passwd[--i] = <span class="string">'\0'</span>;</span><br><span class="line"></span><br><span class="line">               <span class="keyword">if</span> (i != buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                   <span class="built_in">printf</span>(<span class="string">"\b \b"</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">break</span>;</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (str == <span class="number">-1</span>) &#123;</span><br><span class="line">               <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Error to set termio noecho.n"</span>);</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> passwd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 测试示例（请自行添加头文件）</span></span><br><span class="line"><span class="comment">int main(void)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">      char pass[7];</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">      printf("亲，试试输入密码（长度限制 6）：");</span></span><br><span class="line"><span class="comment">      passwd_input(pass, 7);</span></span><br><span class="line"><span class="comment">      printf("\n%s\n", pass);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     return 0;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+		<p>最近频繁需要实现在windows控制台下输入星号密码的功能，Unix&#x2F;Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> _WIN32 <span class="comment">// 如果不是WIN32环境，则要自定义getch()函数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;termio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">getch</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">     <span class="class"><span class="keyword">struct</span> <span class="title">termios</span> <span class="title">tm</span>, <span class="title">tm_old</span>;</span></span><br><span class="line">     <span class="type">int</span> fd = <span class="number">0</span>, ch;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (tcgetattr(fd, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     tm_old = tm;</span><br><span class="line">     cfmakeraw(&amp;tm);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     ch = fgetc(<span class="built_in">stdin</span>);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm_old) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> ch;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;conio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// _WIN32</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 密码输入函数，参数 passwd 为密码缓冲区，buff_len 为缓冲区长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">char</span> *<span class="title function_">passwd_input</span><span class="params">(<span class="type">char</span> *passwd, <span class="type">int</span> buff_len)</span></span><br><span class="line">&#123;</span><br><span class="line">     <span class="type">char</span> str;</span><br><span class="line">     <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">     <span class="type">int</span> enter_num = <span class="number">13</span>;</span><br><span class="line">     <span class="type">int</span> backspace_num;</span><br><span class="line"></span><br><span class="line">     <span class="meta">#<span class="keyword">ifndef</span> _WIN32</span></span><br><span class="line">     backspace_num = <span class="number">127</span>;</span><br><span class="line">     <span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">     backspace_num = <span class="number">8</span>;</span><br><span class="line">     <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (passwd == <span class="literal">NULL</span> || buff_len &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> passwd;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">     &#123;</span><br><span class="line">          <span class="comment">// 如果没有按下退格键</span></span><br><span class="line">          <span class="keyword">if</span> ((str = getch()) != (<span class="type">char</span>)backspace_num) &#123;</span><br><span class="line">               <span class="keyword">if</span> (i &lt; buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                    passwd[i++] = str;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">if</span> (i != <span class="number">0</span>) &#123;</span><br><span class="line">                    i--;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;\b \b&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 如果按下了回车键</span></span><br><span class="line">          <span class="keyword">if</span> (str == (<span class="type">char</span>)enter_num) &#123;</span><br><span class="line">               passwd[--i] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line"></span><br><span class="line">               <span class="keyword">if</span> (i != buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                   <span class="built_in">printf</span>(<span class="string">&quot;\b \b&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">break</span>;</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (str == <span class="number">-1</span>) &#123;</span><br><span class="line">               <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error to set termio noecho.n&quot;</span>);</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> passwd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 测试示例（请自行添加头文件）</span></span><br><span class="line"><span class="comment">int main(void)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">      char pass[7];</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">      printf(&quot;亲，试试输入密码（长度限制 6）：&quot;);</span></span><br><span class="line"><span class="comment">      passwd_input(pass, 7);</span></span><br><span class="line"><span class="comment">      printf(&quot;\n%s\n&quot;, pass);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     return 0;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
   
 	</div>
 
@@ -111,7 +114,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -126,7 +129,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2012/11/23/3-password-input/" data-title="控制台下星号密码输入的实现 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2012/11/23/3-password-input/" data-title="控制台下星号密码输入的实现 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -173,7 +176,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -191,7 +194,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -252,7 +255,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -276,10 +279,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -288,31 +287,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -320,11 +295,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -414,7 +417,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

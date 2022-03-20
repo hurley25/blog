@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>《Linux 多线程服务端编程》总结备忘 | 浅墨的部落格</title>
@@ -12,17 +12,18 @@
 
     
     <meta name="description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
-<meta name="keywords" content="Linux,多线程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《Linux 多线程服务端编程》总结备忘">
 <meta property="og:url" content="https://0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-07-07T09:14:49.153Z">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2014-01-09T07:09:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:14:49.153Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="多线程">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="《Linux 多线程服务端编程》总结备忘">
-<meta name="twitter:description" content="§ 1 线程安全的对象生命期管理  对象的生与死不能由对象自身拥有的mutex（互斥器）来保护。如何避免对象析构时可能存在的race condition（竞态条件）是C++多线程编程面临的基本问题。  当一个对象被多个线程同时看到，那么对象的销毁时机就会模糊不清，可能出现多种的race condition（竞态条件）：  即将析构一个对象时，从何而知此刻是否有别的对象正在执行该对象的成员函数？ 如">
 <meta name="twitter:creator" content="@hurleyhades">
 
     
@@ -35,9 +36,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -116,7 +119,8 @@
 <li><p>按照以上定义，C++标准库中的大多数类都不是线程安全的，包括std:string、std::vector、std::map等，这些class通常需要在外部加锁才能供多个线程同步访问。</p>
 </li>
 </ul>
-<a id="more"></a>
+<span id="more"></span>
+
 <ul>
 <li><p>对象构造要做到线程安全，唯一的要求是在构造期间不要泄漏this指针，即：</p>
 <ul>
@@ -129,11 +133,11 @@
 </li>
 <li><p>一个对象在析构的时候，调用它的任何非静态函数都是不安全的。</p>
 </li>
-<li><p>scoped_ptr/shared_ptr/weak_ptr都是值语义，要么是栈上对象，或者是其它对象的直接数据成员，其“计数”操作在主流平台上的实现都是原子操作。</p>
+<li><p>scoped_ptr&#x2F;shared_ptr&#x2F;weak_ptr都是值语义，要么是栈上对象，或者是其它对象的直接数据成员，其“计数”操作在主流平台上的实现都是原子操作。</p>
 </li>
 <li><p>注意shared_ptr本身不是线程安全的，它的引用计数本身是安全无锁的，但对象的读写却不是。如果多个线程要读写同一个shared_ptr，那么需要加锁。</p>
 </li>
-<li><p>如果对象的析构比较耗时，我们可以用一个单独的线程专门做析构，通过一个BlockingQueue&lt;shared_ptr<void>&gt;把对象的析构都挪到专门的析构线程。</void></p>
+<li><p>如果对象的析构比较耗时，我们可以用一个单独的线程专门做析构，通过一个BlockingQueue&lt;shared_ptr<void>&gt;把对象的析构都挪到专门的析构线程。</p>
 </li>
 <li><p>分析可能出现的rece condition不仅是多线程编程的基本功，也是分布式系统设计的基本功，需要反复历练，形成一定的思考范式，并积累一些经验教训，才能少犯错误。</p>
 </li>
@@ -159,21 +163,22 @@
 <li>不手工调用lock()和unlock()函数，一切交给栈上的Guard对象的构造和析构函数负责。Guard对象的生命期正好等于临界区。</li>
 <li>在每次构造Guard对象的时候，思考栈上已经持有的锁，放置因为加锁顺序所导致的死锁（deadlock）。</li>
 <li>不使用跨进程的mutex，进程间通信只使用TCP Sockets。</li>
-<li>加锁/解锁在同一个线程里进行，线程a不能去unlock线程b已经锁住的mutex（RAII自动保证）。</li>
+<li>加锁&#x2F;解锁在同一个线程里进行，线程a不能去unlock线程b已经锁住的mutex（RAII自动保证）。</li>
 </ul>
 </li>
 <li><p>Linux下mutex的一个封装实例：</p>
 </li>
 </ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Mutex.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> MUTEX_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MUTEX_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"noncopyable.h"</span></span></span><br><span class="line">    </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 原始互斥锁的封装</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MutexLock</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    MutexLock();</span><br><span class="line">    ~MutexLock();</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 加锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 解锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">unlock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 返回原始互斥锁类型的指针（仅允许 Condition 类调用）</span></span><br><span class="line">    <span class="keyword">pthread_mutex_t</span> *getPthreadMutex();</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">pthread_mutex_t</span> mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * MutexLock 互斥锁的加/解锁类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MutexLockGuard</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数自动加锁</span></span><br><span class="line">    explicit MutexLockGuard(MutexLock &amp;mutex) : mutex_(mutex)</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_.lock();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 脱离作用域的时候自动解锁</span></span><br><span class="line">    ~MutexLockGuard()</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_.unlock();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 下面的宏防止出现诸如 MutexLockGuard(mutex) 的定义</span></span><br><span class="line"><span class="comment"> * 正规做法是 MutexLockGuard lock(mutex)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MutexLockGuard(x) static_assert(false, <span class="meta-string">"missing mutex guarg var name!"</span>)</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// MUTEX_H_</span></span></span><br></pre></td></tr></table></figure>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MutexLock.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MutexLock.h"</span></span></span><br><span class="line"> </span><br><span class="line">MutexLock::MutexLock()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">pthread_mutexattr_t</span> attr;</span><br><span class="line">    </span><br><span class="line">    pthread_mutexattr_init(&amp;attr);</span><br><span class="line">    <span class="comment">/// 初始化互斥锁类型为 PTHREAD_MUTEX_NORMAL</span></span><br><span class="line">    pthread_mutexattr_settype(&amp;attr, PTHREAD_MUTEX_NORMAL);</span><br><span class="line">    pthread_mutex_init(&amp;mutex_, &amp;attr);</span><br><span class="line">    pthread_mutexattr_destroy(&amp;attr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">MutexLock::~MutexLock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_destroy(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> MutexLock::lock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_lock(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">void</span> MutexLock::unlock()</span><br><span class="line">&#123;</span><br><span class="line">    pthread_mutex_unlock(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">pthread_mutex_t</span> *MutexLock::getPthreadMutex()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;mutex_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Mutex.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> MUTEX_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MUTEX_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;noncopyable.h&quot;</span></span></span><br><span class="line">    </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 原始互斥锁的封装</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MutexLock</span> : <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">MutexLock</span>();</span><br><span class="line">    ~<span class="built_in">MutexLock</span>();</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 加锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 解锁函数（仅允许 MutexLockGuard 类调用）</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 返回原始互斥锁类型的指针（仅允许 Condition 类调用）</span></span><br><span class="line">    <span class="function"><span class="type">pthread_mutex_t</span> *<span class="title">getPthreadMutex</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">pthread_mutex_t</span> mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * MutexLock 互斥锁的加/解锁类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MutexLockGuard</span> : <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数自动加锁</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">MutexLockGuard</span><span class="params">(MutexLock &amp;mutex)</span> : mutex_(mutex)</span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line">        mutex_.<span class="built_in">lock</span>();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 脱离作用域的时候自动解锁</span></span><br><span class="line">    ~<span class="built_in">MutexLockGuard</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        mutex_.<span class="built_in">unlock</span>();</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 下面的宏防止出现诸如 MutexLockGuard(mutex) 的定义</span></span><br><span class="line"><span class="comment"> * 正规做法是 MutexLockGuard lock(mutex)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MutexLockGuard(x) static_assert(false, <span class="string">&quot;missing mutex guarg var name!&quot;</span>)</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// MUTEX_H_</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MutexLock.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;MutexLock.h&quot;</span></span></span><br><span class="line"> </span><br><span class="line">MutexLock::<span class="built_in">MutexLock</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">pthread_mutexattr_t</span> attr;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">pthread_mutexattr_init</span>(&amp;attr);</span><br><span class="line">    <span class="comment">/// 初始化互斥锁类型为 PTHREAD_MUTEX_NORMAL</span></span><br><span class="line">    <span class="built_in">pthread_mutexattr_settype</span>(&amp;attr, PTHREAD_MUTEX_NORMAL);</span><br><span class="line">    <span class="built_in">pthread_mutex_init</span>(&amp;mutex_, &amp;attr);</span><br><span class="line">    <span class="built_in">pthread_mutexattr_destroy</span>(&amp;attr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">MutexLock::~<span class="built_in">MutexLock</span>()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">pthread_mutex_destroy</span>(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MutexLock::lock</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">pthread_mutex_lock</span>(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MutexLock::unlock</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">pthread_mutex_unlock</span>(&amp;mutex_);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">pthread_mutex_t</span> *<span class="title">MutexLock::getPthreadMutex</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;mutex_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li><p>条件变量（condition variable）用于一个或者多个线程等待某个布尔表达式为真，即等待别的线程“唤醒”它，条件变量的学名叫管程（monitor）。对于wait端：</p>
 <ul>
 <li>条件变量必须与mutex一起使用，该布尔表达式的读写需受此mutex保护。</li>
 <li>在mutex已经上锁的时候才能调用wait()。</li>
 <li>把判断布尔条件和wait()放到while循环里（避免虚假唤醒（suprious wakeup））。</li>
-<li>对于signal/broadcast端</li>
+<li>对于signal&#x2F;broadcast端</li>
 <li>不一定要再mutex已经上锁的情况下调用signal（理论上）。</li>
 <li>在signal之前一定要修改布尔表达式。修改布尔表达式的时候需用mutex保护。</li>
 <li>注意区分signal和broadcast。</li>
@@ -182,7 +187,8 @@
 <li><p>Linux下condition封装的一个实例：</p>
 </li>
 </ul>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Condition.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> CONDITION_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CONDITION_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"noncopyable.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MutexLock.h"</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 条件变量的封装类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Condition</span> :</span> <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数</span></span><br><span class="line">    explicit Condition(MutexLock &amp;mutex) : mutex_(mutex)</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_cond_init(&amp;pcond_, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 析构函数</span></span><br><span class="line">    ~Condition()</span><br><span class="line">    &#123;</span><br><span class="line">        pthread_cond_destroy(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 等待该条件变量</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">wait</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_wait(&amp;pcond_, mutex_.getPthreadMutex);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知一个等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">notify</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_signal(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知所有等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">notifyAll</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        pthread_cond_broadcast(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">    <span class="keyword">pthread_cond_t</span> pcond_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// CONDITION_H_</span></span></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Condition.h</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> CONDITION_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CONDITION_H_</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pthread.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;noncopyable.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;MutexLock.h&quot;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 条件变量的封装类</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Condition</span> : <span class="keyword">private</span> noncopyable</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/// 构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">Condition</span><span class="params">(MutexLock &amp;mutex)</span> : mutex_(mutex)</span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line">        <span class="built_in">pthread_cond_init</span>(&amp;pcond_, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 析构函数</span></span><br><span class="line">    ~<span class="built_in">Condition</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">pthread_cond_destroy</span>(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 等待该条件变量</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">wait</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">pthread_cond_wait</span>(&amp;pcond_, mutex_.getPthreadMutex);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知一个等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">notify</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">pthread_cond_signal</span>(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">/// 通知所有等待该条件变量的线程</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">notifyAll</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">pthread_cond_broadcast</span>(&amp;pcond_);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MutexLock &amp;mutex_;</span><br><span class="line">    <span class="type">pthread_cond_t</span> pcond_;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// CONDITION_H_</span></span></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li><p>真正影响性能的不是锁，而是锁争用（lock contention）。</p>
 </li>
@@ -209,7 +215,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/读书笔迹/">读书笔迹</a>
+  <a class="article-category-link" href="/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%BF%B9/">读书笔迹</a>
 </div>
 
 
@@ -224,7 +230,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/" data-title="《Linux 多线程服务端编程》总结备忘 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2014/01/09/27-linux-mutil-threads-programming/" data-title="《Linux 多线程服务端编程》总结备忘 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -271,7 +277,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -289,7 +295,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -350,7 +356,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -374,10 +380,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -386,31 +388,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -418,11 +396,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -512,7 +518,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

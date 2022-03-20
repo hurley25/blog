@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>Linux 线程的前世今生 | 浅墨的部落格</title>
@@ -12,13 +12,12 @@
 
     
     <meta name="description" content="最近在重新翻阅《Unix环境高级编程》的时候，被书上的一段例程所困扰，那段代码是分别在主线程和子线程中使用 getpid() 函数打印进程标识符PID，书上告诉我们是不同的值，但是测试结果是主线程和子线程中打印出了相同的值。 在我的印象中《Linux内核设计与实现》这本书曾经谈到线程时如是说：从内核的角度来说，它并没有线程这个概念。Linux内核把所有的线程都当成进程来实现……在内核中，线程看起来">
-<meta name="keywords" content="Linux,基础知识">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux 线程的前世今生">
 <meta property="og:url" content="https://0xffffff.org/2013/07/30/19-linux-thread-history/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="最近在重新翻阅《Unix环境高级编程》的时候，被书上的一段例程所困扰，那段代码是分别在主线程和子线程中使用 getpid() 函数打印进程标识符PID，书上告诉我们是不同的值，但是测试结果是主线程和子线程中打印出了相同的值。 在我的印象中《Linux内核设计与实现》这本书曾经谈到线程时如是说：从内核的角度来说，它并没有线程这个概念。Linux内核把所有的线程都当成进程来实现……在内核中，线程看起来">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/19/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/19/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/19/3.png">
@@ -28,10 +27,12 @@
 <meta property="og:image" content="https://0xffffff.org/images/19/7.png">
 <meta property="og:image" content="https://0xffffff.org/images/19/8.png">
 <meta property="og:image" content="https://0xffffff.org/images/19/9.png">
-<meta property="og:updated_time" content="2019-07-07T09:15:20.471Z">
+<meta property="article:published_time" content="2013-07-30T11:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:15:20.471Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="基础知识">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux 线程的前世今生">
-<meta name="twitter:description" content="最近在重新翻阅《Unix环境高级编程》的时候，被书上的一段例程所困扰，那段代码是分别在主线程和子线程中使用 getpid() 函数打印进程标识符PID，书上告诉我们是不同的值，但是测试结果是主线程和子线程中打印出了相同的值。 在我的印象中《Linux内核设计与实现》这本书曾经谈到线程时如是说：从内核的角度来说，它并没有线程这个概念。Linux内核把所有的线程都当成进程来实现……在内核中，线程看起来">
 <meta name="twitter:image" content="https://0xffffff.org/images/19/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -45,9 +46,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -116,7 +119,8 @@
 <li>在不同的“线程”内调用 getpid() 函数，打印的肯定是不同的值，因为它们在内核的进程链表中有不同的 task_struct 结构体来表示，有各自不同的进程标识符PID。</li>
 </ol>
 </blockquote>
-<a id="more"></a>
+<span id="more"></span>
+
 <p>值得一提的是，内核不区分线程，那么在用户态的实现就必须予以区分和处理。所以 LinuxThreads  有一个非常出名的特性就是管理线程（manager thread）(这也是为什么实际创建的线程数比程序自己创建的多一个的原因)。管理线程必须满足以下要求：</p>
 <blockquote>
 <ul>
@@ -133,52 +137,53 @@
 <li>查看进程列表的时候，相关的一组 task_struct 应当被展现为列表中的一个节点；</li>
 <li>发送给这个”进程”的信号(对应 kill 系统调用)，将被对应的这一组 task_struct 所共享， 并且被其中的任意一个”线程”处理；</li>
 <li>发送给某个”线程”的信号(对应 pthread_kill )，将只被对应的一个 task_struct 接收，并且由它自己来处理；</li>
-<li>当”进程”被停止或继续时(对应 SIGSTOP/SIGCONT 信号)， 对应的这一组 task_struct 状态将改变；</li>
+<li>当”进程”被停止或继续时(对应 SIGSTOP&#x2F;SIGCONT 信号)， 对应的这一组 task_struct 状态将改变；</li>
 <li>当”进程”收到一个致命信号(比如由于段错误收到 SIGSEGV 信号)，对应的这一组 task_struct 将全部退出；</li>
 <li>……</li>
 </ol>
 </blockquote>
-<p>另外还有好多好多的问题，我们不一一列举，只引用 IBM 的相关论文作为补充：<a href="http://www.ibm.com/developerworks/cn/linux/kernel/l-thread/" target="_blank" rel="noopener">http://www.ibm.com/developerworks/cn/linux/kernel/l-thread/</a></p>
+<p>另外还有好多好多的问题，我们不一一列举，只引用 IBM 的相关论文作为补充：<a target="_blank" rel="noopener" href="http://www.ibm.com/developerworks/cn/linux/kernel/l-thread/">http://www.ibm.com/developerworks/cn/linux/kernel/l-thread/</a></p>
 <p>有问题自然就有人在尝试解决问题，活跃的开源社区自然不会放任问题继续下去，后来就有了各种各样的尝试，其中既包括用户级线程库，也包括核心级和用户级配合改进的线程库。知名的有 RedHat 公司牵头研发的 NPTL（Native Posix Thread Library），另一个则是IBM投资开发的 NGPT（Next Generation Posix Threading），二者都是围绕完全兼容POSIX 1003.1c，同时在核内和核外做工作以而实现多对多线程模型。这两种模型都在一定程度上弥补了 LinuxThreads 的缺点，且都是重起炉灶全新设计的。</p>
 <p>在开始下文之前，我们在终端上执行这个命令<code>getconf GNU_LIBPTHREAD_VERSION</code>来检查自己机器所使用的线程库。在我的 fedora 18 上得到了如下的输出结果：</p>
-<p><img src="/images/19/1.png" alt></p>
+<p><img src="/images/19/1.png"></p>
 <p>Fedora是RedHat系的，没理由不使用NPTL（开个玩笑）。按照维基百科的说法是，是NPTL赢得了今天附带绝大多数的Linux系统的支持，原文是：NPTL won out and is today shipped with the vast majority of Linux systems. 后来IBM貌似就慢慢放弃了，随着IBM的放弃，RedHat 的 Native POSIX Thread Library（NPTL）就成唯一的解决方案了。随着 NPTL 的崛起，Linux2.6 以及以上版本的内核中基本上很少能再看到 LinuxThreads 的身影了。</p>
 <p>与 LinuxThreads 相比，NPTL 具有很多优点：</p>
 <blockquote>
 <p>NPTL 就没有使用管理线程。因为管理线程的一些需求，例如向作为进程一部分的所有线程发送终止信号，是并不需要的，因为内核本身就可以实现这些功能。内核还会处理每个线程堆栈所使用的内存的回收工作。它甚至还通过在清除父线程之前进行等待，从而实现对所有线程结束的管理，这样可以避免僵尸进程的问题。</p>
 </blockquote>
 <p>还有好多的优势和相关的比较，详见这里：</p>
-<p><a href="http://www.ibm.com/developerworks/cn/linux/l-threading.html" target="_blank" rel="noopener">http://www.ibm.com/developerworks/cn/linux/l-threading.html</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.ibm.com/developerworks/cn/linux/l-threading.html">http://www.ibm.com/developerworks/cn/linux/l-threading.html</a></p>
 <p>现在，我们关心的是在 NPTL 对内核作出改动之后，现在的线程模型大概是怎么一回事，内核是否依旧不区分进程与线程呢？getpid() 函数返回的为何是一样的数值？别急，我们继续往下看。</p>
 <p>传言在2002年8、9月份，一直不肯松劲的 Linus Torvalds 先生终于被说服了，Ingo Molnar 把一些重要特性加入到2.5开发版官方内核中。这些特性大体包括：新的clone系统调用，TLS系统调用，posix 线程间信号，exit_group (exit的一个变体 )等内容。此时有了OS的支持，Ingo Molnar 先生同 Ulrich Drepper（GLIBC的LinuxThreads库的维护者，NPTL 的设计者与维护者，现工作于 RedHat 公司）和其他一些 Hackers 开始 NPTL 的完善工作。</p>
 <p>所以说 NPTL 并不是完全在用户态实现的线程库，事实上内核也进行了一定程度的支持。既然getpid()函数返回了不一样的值，那我们就从这个函数的实现开始研究。因为现代的Linux内核引入了 “Container” 的概念。Container 类似于虚拟机的概念，每个 Container 都会有自己的 namespace。说了这么多，其实意思就是内核中两个 PID namespace 中可以有 PID 相同的进程；一个轻量级进程可以同时出现在两个 namespace 中，这就意味着该轻量级进程具有两个或以上的 PID。而  task_struct(进程控制块PCB) 结构体中还有 group-&gt;leader 域来标记该轻量级进程所在组的领头进程。我们今天就先看早前的实现，避免引入太多影响我们偏离主题。现代的实现方法有兴趣的的童鞋访问下面链接研究吧。</p>
-<p><a href="http://blog.csdn.net/fengtaocat/article/details/7001527" target="_blank" rel="noopener">http://blog.csdn.net/fengtaocat/article/details/7001527</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.csdn.net/fengtaocat/article/details/7001527">http://blog.csdn.net/fengtaocat/article/details/7001527</a></p>
 <p>早些的实现是这样：</p>
-<p><img src="/images/19/2.png" alt></p>
+<p><img src="/images/19/2.png"></p>
 <p>对，你没看错，返回的是 TGID 这个成员，而 current 是一个宏，代表当前的程序。这个 TGID 又是何许人也？这个东西的全称是”Thread Group ID”的意思，即线程组ID的意思，其值等于进程的 PID。所以在一个进程的各个线程中调用getpid()函数的话得到的值是一样的。NPTL 通过这样的一个途径实现了之前的线程库没有解决的线程组的问题。</p>
 <p>实质上到今天，Linux 内核依旧没有区分进程与线程。这和 Microsoft Windows、或是Sun Solaris等操作系统的实现差异非常大。那么，此时 Linux 内核里那个 task_struct 组成的双向循环链表此时又是什么情景呢？</p>
 <p>揣测了一会没有答案，我们还是写个内核模块来看访问下进程表看看。</p>
 <p>代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/kernel.h&gt; </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/module.h&gt; </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/proc_fs.h&gt; </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/init.h&gt; </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/sched.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> __<span class="function">init <span class="title">print_init</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> *<span class="title">task</span>;</span></span><br><span class="line"> </span><br><span class="line">        printk(<span class="string">"process info:n"</span>);</span><br><span class="line">        for_each_process(task)</span><br><span class="line">                printk(<span class="string">"%s   pid:%d  tgid:%d  father pid:%dn"</span>,</span><br><span class="line">                                thread-&gt;comm,</span><br><span class="line">                                thread-&gt;pid,</span><br><span class="line">                                thread-&gt;tgid,</span><br><span class="line">                                thread-&gt;parent-&gt;pid);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> __<span class="function"><span class="built_in">exit</span> <span class="title">print_exit</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        printk(<span class="string">"Goodbye, process_print!n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">module_init(print_init);</span><br><span class="line">module_exit(print_exit);</span><br><span class="line">MODULE_AUTHOR(<span class="string">"hurley"</span>);</span><br><span class="line">MODULE_DESCRIPTION(<span class="string">"Print Process Info."</span>);</span><br><span class="line">MODULE_LICENSE(<span class="string">"GPL"</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/kernel.h&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/proc_fs.h&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/init.h&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/sched.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="type">static</span> <span class="type">int</span> __init <span class="title function_">print_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> *<span class="title">task</span>;</span></span><br><span class="line"> </span><br><span class="line">        printk(<span class="string">&quot;process info:n&quot;</span>);</span><br><span class="line">        for_each_process(task)</span><br><span class="line">                printk(<span class="string">&quot;%s   pid:%d  tgid:%d  father pid:%dn&quot;</span>,</span><br><span class="line">                                thread-&gt;comm,</span><br><span class="line">                                thread-&gt;pid,</span><br><span class="line">                                thread-&gt;tgid,</span><br><span class="line">                                thread-&gt;parent-&gt;pid);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="type">static</span> <span class="type">void</span> __exit <span class="title function_">print_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        printk(<span class="string">&quot;Goodbye, process_print!n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">module_init(print_init);</span><br><span class="line">module_exit(print_exit);</span><br><span class="line">MODULE_AUTHOR(<span class="string">&quot;hurley&quot;</span>);</span><br><span class="line">MODULE_DESCRIPTION(<span class="string">&quot;Print Process Info.&quot;</span>);</span><br><span class="line">MODULE_LICENSE(<span class="string">&quot;GPL&quot;</span>);</span><br></pre></td></tr></table></figure>
+
 <p>Makefile如下：</p>
-<p><img src="/images/19/3.png" alt></p>
+<p><img src="/images/19/3.png"></p>
 <p>但是光有这个程序是不够的，我们再写一个用户态的创建线程的程序，它将创建两个线程，而线程会一直睡眠不退出。代码很简单，就不贴了。我们编译这个程序 <code>thread_id</code>，执行它，然后我们编译内核模块，载入，然后卸载。最后执行dmesg命令查看内核输出：</p>
-<p><img src="/images/19/4.png" alt></p>
+<p><img src="/images/19/4.png"></p>
 <p>我们在众多的输出最后找到了我们的程序，可是，只有一项结果，没有多个来自<code>task_struct</code>的输出。这…难道？内核的管理方式发生了改变？等等，我们在内核头文件里我们使用的<code>for_each_process</code>宏下面发现了这样一组宏：</p>
-<p><img src="/images/19/5.png" alt></p>
+<p><img src="/images/19/5.png"></p>
 <p>通过继续对宏的展开分析，我们发现原来同一个线程组的线程只有主线程在那个大循环里，而每一个进程的线程在自己的一个小循环里(这里的循环的实现是双向循环链表)。</p>
 <p>示意图如下：</p>
-<p><img src="/images/19/6.png" alt></p>
+<p><img src="/images/19/6.png"></p>
 <p>我们将遍历部分的代码如下修改：</p>
-<p><img src="/images/19/7.png" alt></p>
+<p><img src="/images/19/7.png"></p>
 <p>然后重新执行上面的测试，果然，我们得到了来自三个task_struct结构体的输出：</p>
-<p><img src="/images/19/8.png" alt></p>
+<p><img src="/images/19/8.png"></p>
 <p>我们知道，在线程里调用 getpid() 函数，获取的是TGID，那么如果我们需要获得线程真实的 PID 怎么办呢？有一个系统调用是 sys_gettid() 可以帮助我们，不过 GLIBC 并没有提供包装函数，所以我们干脆直接使用 syscall() 函数加系统调用号 224 来实现（另外支持在日志里打线程的 tid，proc 里就能查到相关信息，也便于后期追查）。</p>
 <p>结果如下：</p>
-<p><img src="/images/19/9.png" alt></p>
+<p><img src="/images/19/9.png"></p>
 <p>我们简单介绍下规则。如果这个 task 是一个”主线程”, 则它的 TGID 等于 PID, 否则 TGID 等于进程的PID(即主线程的PID)。在 clone 系统调用中, 传递 CLONE_THREAD 参数就可以把新进程的 TGID 设置为父进程的 TGID (否则新进程的 TGID 会设为其自身的 PID)。</p>
 <p>时间不早了，就此打住。当然了，NPTL 其他的改变和设计还有很多，我就不一一列举了，姑且留下其作者自己写的一篇文章供有兴趣继续深究的同学研究吧。</p>
-<p>地址在此：<a href="http://www.akkadia.org/drepper/nptl-design.pdf" target="_blank" rel="noopener">http://www.akkadia.org/drepper/nptl-design.pdf</a></p>
+<p>地址在此：<a target="_blank" rel="noopener" href="http://www.akkadia.org/drepper/nptl-design.pdf">http://www.akkadia.org/drepper/nptl-design.pdf</a></p>
   
 	</div>
 
@@ -193,7 +198,7 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
@@ -208,7 +213,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/07/30/19-linux-thread-history/" data-title="Linux 线程的前世今生 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/07/30/19-linux-thread-history/" data-title="Linux 线程的前世今生 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -255,7 +260,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -273,7 +278,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -334,7 +339,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -358,10 +363,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -370,31 +371,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -402,11 +379,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -496,7 +501,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

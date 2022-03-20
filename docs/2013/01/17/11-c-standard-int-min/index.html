@@ -1,7 +1,7 @@
 
  <!DOCTYPE HTML>
 <html lang="zh-CN">
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="UTF-8">
   
     <title>探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义 | 浅墨的部落格</title>
@@ -12,20 +12,22 @@
 
     
     <meta name="description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
-<meta name="keywords" content="基础知识,C,CSAPP">
 <meta property="og:type" content="article">
 <meta property="og:title" content="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义">
 <meta property="og:url" content="https://0xffffff.org/2013/01/17/11-c-standard-int-min/index.html">
 <meta property="og:site_name" content="浅墨的部落格">
 <meta property="og:description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://0xffffff.org/images/11/1.png">
 <meta property="og:image" content="https://0xffffff.org/images/11/2.png">
 <meta property="og:image" content="https://0xffffff.org/images/11/3.png">
-<meta property="og:updated_time" content="2019-07-07T09:16:05.796Z">
+<meta property="article:published_time" content="2013-01-17T03:02:00.000Z">
+<meta property="article:modified_time" content="2019-07-07T09:16:05.796Z">
+<meta property="article:author" content="浅墨">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="CSAPP">
+<meta property="article:tag" content="C">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义">
-<meta name="twitter:description" content="最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。 我们先看看MSVC的相关头文件内容：  GCC也给出了类似的定义方">
 <meta name="twitter:image" content="https://0xffffff.org/images/11/1.png">
 <meta name="twitter:creator" content="@hurleyhades">
 
@@ -39,9 +41,11 @@
     <link rel="apple-touch-icon" href="/img/jacman.jpg">
     <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
     
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-</html>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
   <body>
     <header>
       
@@ -101,24 +105,26 @@
 		
 		<p>最近在读《深入理解计算机系统》（顺便打个广告，卡内基梅隆出品的这本书绝对精品），在书的48页提到了在C语言标准库limits.h中将int类型的最小值INT_MIN定义为-INT_MAX-1。书中提到了为何不写做-2147483648或者0x80000000，但是并没有给出解释，只是说这需要我们钻研C语言标准的一些比较隐晦的角落。</p>
 <p>我们先看看MSVC的相关头文件内容：</p>
-<p><img src="/images/11/1.png" alt></p>
+<p><img src="/images/11/1.png"></p>
 <p>GCC也给出了类似的定义方式：</p>
-<p><img src="/images/11/2.png" alt></p>
-<p>为何是这样呢？这个头文件对我来说并不陌生。这几个宏也时常在用着，但是从没有注意过这个细节问题。百度一番后没找到满意的答案，最后勉强找到了<a href="http://www.hardtoc.com/archives/119这个比较靠谱的答案。因为英文看起来比较麻烦，再者作者描述的也不是很清楚，我写篇文章" target="_blank" rel="noopener">http://www.hardtoc.com/archives/119这个比较靠谱的答案。因为英文看起来比较麻烦，再者作者描述的也不是很清楚，我写篇文章</a> 权当翻译 一下，再加上一点点自己查到的内容。</p>
-<p>我们先来查看C语言标准文档是怎么解释常量的，ISO/ANSI C99 和C11对于这里的描述是相同的。我们摘录下来：</p>
+<p><img src="/images/11/2.png"></p>
+<p>为何是这样呢？这个头文件对我来说并不陌生。这几个宏也时常在用着，但是从没有注意过这个细节问题。百度一番后没找到满意的答案，最后勉强找到了<a target="_blank" rel="noopener" href="http://www.hardtoc.com/archives/119%E8%BF%99%E4%B8%AA%E6%AF%94%E8%BE%83%E9%9D%A0%E8%B0%B1%E7%9A%84%E7%AD%94%E6%A1%88%E3%80%82%E5%9B%A0%E4%B8%BA%E8%8B%B1%E6%96%87%E7%9C%8B%E8%B5%B7%E6%9D%A5%E6%AF%94%E8%BE%83%E9%BA%BB%E7%83%A6%EF%BC%8C%E5%86%8D%E8%80%85%E4%BD%9C%E8%80%85%E6%8F%8F%E8%BF%B0%E7%9A%84%E4%B9%9F%E4%B8%8D%E6%98%AF%E5%BE%88%E6%B8%85%E6%A5%9A%EF%BC%8C%E6%88%91%E5%86%99%E7%AF%87%E6%96%87%E7%AB%A0">http://www.hardtoc.com/archives/119这个比较靠谱的答案。因为英文看起来比较麻烦，再者作者描述的也不是很清楚，我写篇文章</a> 权当翻译 一下，再加上一点点自己查到的内容。</p>
+<p>我们先来查看C语言标准文档是怎么解释常量的，ISO&#x2F;ANSI C99 和C11对于这里的描述是相同的。我们摘录下来：</p>
 <p><strong>“An integer constant begins with a digit, but has no period or exponent part. It may have a prefix that specifies its base and a suffix that specifies its type.”</strong></p>
 <p>大概意思是“一个常量起始于一个数字，但是不包含小数点或指数的部分。并且可能有一个用于指定数字基底的前缀和一个指定类型的后缀。”</p>
-<a id="more"></a>
+<span id="more"></span>
+
 <p>这里的前缀比如16进制的0x，后缀比如指明是长整型的L或者无符号的U。</p>
 <p>简而言之，c99对整数的定义是这样的：</p>
 <figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D                        [<span class="number">0</span><span class="number">-9</span>]</span><br><span class="line">IS                       (u|<span class="type">U</span>|<span class="type">l</span>|<span class="type">L</span>)*</span><br><span class="line">&#123;D&#125;+&#123;IS&#125;?</span><br></pre></td></tr></table></figure>
+
 <p>不知道大家有没有注意到，这里没有提到正负号，或而言之，常量不包含符号。</p>
 <p>下一段引用自 幻の上帝：</p>
 <blockquote>
 <p>C语言中的常量(constant)和常量表达式(constant expression)是两个概念。前者是语法规定的一些记号(token)；后者语法本质是条件表达式(conditional-expression)，只是加了能在翻译而不是运行时求值的语义限制。 C语言中的常量(constant)和常量表达式(constant expression)是两个概念。前者是语法规定的一些记号(token)；后者语法本质是条件表达式(conditional-expression)，只是加了能在翻译而不是运行时求值的语义限制。</p>
 </blockquote>
 <p>那么，我们假设INT_MIN定义为-2147483648，这里的-2147483648其实是由一个一元运算符-和一个常量2147483648组成，编译器怎么解释2147483648呢？编译器对于这么一个数字，按照定义好的变量顺序一一匹配其类型，这个定义好的顺序在文档里可以查到，C99和C11是一样的，另外C++11也是相同的。截图如下：</p>
-<p><img src="/images/11/3.png" alt></p>
+<p><img src="/images/11/3.png"></p>
 <p>首先是由int开始，因为2147483648超过了int的最大取值范围2147483647，所以会被认为是long int类型。按照C语言的表达式求值规则，原本可能使用的x &lt; INT_MIN这样的表达式，x被转换为long int类型再进行表达式求值了，便有可能会出现一些预料之外的结果，而按照-2147483647-1这样的定义，不会被认为是long int类型的，这个小技巧使得我们获得了正确的类型和正确的值。</p>
 <p>这样解释不知道大家明白了没有？</p>
 <p>这篇文章基本上是查证和翻译了，如果说有版权的话，原始版权归原作者所有。</p>
@@ -136,13 +142,13 @@
 
 <div class="article-categories">
   <span></span>
-  <a class="article-category-link" href="/categories/基础知识/">基础知识</a>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
 </div>
 
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/C/">C</a><a href="/tags/CSAPP/">CSAPP</a>
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/CSAPP/">CSAPP</a><a href="/tags/C/">C</a>
   </div>
 
 </div>
@@ -151,7 +157,7 @@
 
 	<div class="article-share" id="share">
 	
-	  <div data-url="https://0xffffff.org/2013/01/17/11-c-standard-int-min/" data-title="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义 | 浅墨的部落格" data-tsina="null" class="share clearfix">
+	  <div data-url="https://0xffffff.org/2013/01/17/11-c-standard-int-min/" data-title="探究 C 语言标准库 limits.h 关于INT_MIN 宏的奇怪定义 | 浅墨的部落格" data-tsina="" class="share clearfix">
 	  </div>
 	
 	</div>
@@ -198,7 +204,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -216,7 +222,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>3</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
 		  
 		
 		  
@@ -277,7 +283,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>14</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
 			
 		
 			
@@ -301,10 +307,6 @@
 			
 		
 			
-				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
-			
-		
-			
 				<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>2</sup></a></li>
 			
 		
@@ -313,31 +315,7 @@
 			
 		
 			
-				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/架构/" title="架构">架构<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tair/" title="tair">tair<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/tcp/" title="tcp">tcp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/协议栈/" title="协议栈">协议栈<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
+				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
 			
 		
 			
@@ -345,11 +323,39 @@
 			
 		
 			
-				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+				<li><a href="/tags/前端/" title="前端">前端<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内核/" title="内核">内核<sup>1</sup></a></li>
 			
 		
 			
 				<li><a href="/tags/cache/" title="cache">cache<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Golang/" title="Golang">Golang<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/多线程/" title="多线程">多线程<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/并发/" title="并发">并发<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP-IP/" title="TCP/IP">TCP/IP<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -439,7 +445,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2021
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		
