@@ -23,7 +23,7 @@
 <meta property="og:image" content="https://0xffffff.org/images/41/Linux-storage-stack.png">
 <meta property="og:image" content="https://0xffffff.org/images/41/linux-io.png">
 <meta property="article:published_time" content="2017-05-01T10:54:00.000Z">
-<meta property="article:modified_time" content="2019-07-07T09:13:31.966Z">
+<meta property="article:modified_time" content="2022-06-26T10:25:28.887Z">
 <meta property="article:author" content="浅墨">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="IO">
@@ -154,8 +154,8 @@
 <p>默认是写回方式，如果想指定某个文件是写穿方式呢？即写操作的可靠性压倒效率的时候，能否做到呢？当然能，除了之前提到的<code>fsync(2)</code>之类的系统调用外，在<code>open(2)</code>打开文件时，传入<code>O_SYNC</code>这个flag即可实现。这里给篇参考文章[5]，不再赘述（更好的选择是去读TLPI相关章节）。</p>
 <p>文件读写遭遇断电时，数据还安全吗？相信你有自己的答案了。使用<code>O_SYNC</code>或者<code>fsync(2)</code>刷新文件就能保证安全吗？现代磁盘一般都内置了缓存，代码层面上也只能讲数据刷新到磁盘的缓存了。当数据已经进入到磁盘的高速缓存时断电了会怎么样？这个恐怕不能一概而论了。不过可以使用<code>hdparm -W0</code>命令关掉这个缓存，相应的，磁盘性能必然会降低。</p>
 <h3 id="文件操作与锁"><a href="#文件操作与锁" class="headerlink" title="文件操作与锁"></a>文件操作与锁</h3><p>当多个进程&#x2F;线程对同一个文件发生写操作的时候会发生什么？如果写的是文件的同一个位置呢？这个问题讨论起来有点复杂了。首先<code>write(2)</code>调用不是原子操作，不要被TLPI的中文版5.2章节的第一句话误导了（英文版也是有歧义的，作者在<a target="_blank" rel="noopener" href="http://www.man7.org/tlpi/errata/index.html">这里</a>给出了勘误信息）。当多个<code>write(2)</code>操作对一个文件的同一部分发起写操作的时候，情况实际上和多个线程访问共享的变量没有什么区别。按照不同的逻辑执行流，会有很多种可能的结果。也许大多数情况下符合预期，但是本质上这样的代码是不可靠的。</p>
-<p>特别的，文件操作中有两个操作是内核保证原子的。分别是<code>open(2)</code>调用的<code>O_CREAT</code>和<code>O_APPEND</code>这两个flag属性。前者是文件不存在就创建，后者是每次写文件时把文件游标移动到文件最后追加写（NFS等文件系统不保证这个flag）。有意思的问题来了，以<code>O_APPEND</code>方式打开的文件<code>write(2)</code>操作是不是原子的？文件游标的移动和调用写操作是原子的，那写操作本身会不会发生改变呢？有的开源软件比如apache写日志就是这样写的，这是可靠安全的吗？坦白讲我也不清楚，有人说<code>Then O_APPEND is atomic and write-in-full for all reasonably-sized&gt; writes to regular files.</code>但是我也没有找到很权威的说法。这里给出一个邮件列表上的讨论，可以参考下[6]。今天先放过去，后面有时间的话专门研究下这个问题。如果你能给出很明确的说法和证明，还望不吝赐教。</p>
-<p>Linux下的文件锁有两种，分别是<code>flock(2)</code>的方式和<code>fcntl(2)</code>的方式，前者源于BSD，后者源于System V，各有限制和应用场景。老规矩，TLPI上讲的很清楚的这里不赘述。我个人是没有用过文件锁的，系统设计的时候一般会避免多个执行流写一个文件的情况，或者在代码逻辑上以mutex加锁，而不是直接加锁文件本身。数据库场景下这样的操作可能会多一些（这个纯属臆测），这就不是我了解的范畴了。</p>
+<p>特别的，文件操作中有两个操作是内核保证原子的。分别是<code>open(2)</code>调用的<code>O_CREAT</code>和<code>O_APPEND</code>这两个flag属性。前者是文件不存在就创建，后者是每次写文件时把文件游标移动到文件最后追加写（NFS等文件系统不保证这个flag）。有意思的问题来了，以<code>O_APPEND</code>方式打开的文件<code>write(2)</code>操作是不是原子的？文件游标的移动和调用写操作是原子的，那写操作本身会不会发生改变呢？有的开源软件比如apache写日志就是这样写的，这是可靠安全的吗？坦白讲我也不清楚，有人说<code>Then O_APPEND is atomic and write-in-full for all reasonably-sized writes to regular files.</code>但是我也没有找到很权威的说法。这里给出一个邮件列表上的讨论，可以参考下[6]。今天先放过去，后面有时间的话专门研究下这个问题。如果你能给出很明确的说法和证明，还望不吝赐教。</p>
+<p>Linux下的文件锁有两种，分别是<code>flock(2)</code>的方式和<code>fcntl(2)</code>的方式，前者源于BSD，后者源于System V，各有限制和应用场景。老规矩，TLPI上讲的很清楚的这里不赘述。我个人是没有用过文件锁的，系统设计的时候一般会避免多个执行流写一个文件的情况，或者在代码逻辑上以mutex加锁，而不是直接加锁文件本身。</p>
 <h3 id="磁盘的性能测试"><a href="#磁盘的性能测试" class="headerlink" title="磁盘的性能测试"></a>磁盘的性能测试</h3><p>在具体的机器上跑服务程序，如果涉及大量IO的话，首先要对机器本身的磁盘性能有明确的了解，包括不限于IOPS、IO Depth等等。这些数据不仅能指导系统设计，也能帮助资源规划以及定位系统瓶颈。比如我们知道机械磁盘的连续读写性能一般不会超过120M&#x2F;s，而普通的SSD磁盘随意就能超过机械盘几倍（商用SSD的连续读写速率达到2G+&#x2F;s不是什么新鲜事）。另外由于磁盘的工作原理不同，机械磁盘需要旋转来寻找数据存放的磁道，所以其随机存取的效率受到了“寻道时间”的严重影响，远远小于连续存取的效率；而SSD磁盘读写任意扇区可以认为是相同的时间，随机存取的性能远远超过机械盘。所以呢，在机械磁盘作为底层存储时，如果一个线程写文件很慢的话，多个线程分别去写这个文件的各个部分能否加速呢？不见得吧？如果这个文件很大，各个部分的寻道时间带来极大的时间消耗的话，效率就很低了（先不考虑<code>Page Cache</code>）。SSD呢？可以明确，设计合理的话，SSD多线程读写文件的效率会高于单线程。当前的SSD盘很多都以高并发的读取为卖点的，一个线程压根就喂不饱一块SSD盘。一般SSD的IO Depth都在32甚至更高，使用32或者64个线程才能跑满一个SSD磁盘的带宽（同步IO情况下）。</p>
 <p>具体的SSD原理不在本文计划内，这里给出一篇详细的参考文章[7]。有时候一些文章中所谓的SATA磁盘一般说的就是机械盘（虽然SATA本身只是一个总线接口）。接口会影响存储设备的最大速率，基本上是<code>SATA -&gt; PCI-E -&gt; NVMe</code>的发展路径，具体请自行Google了解。</p>
 <p>具体的设备一般使用<code>fio</code>工具[8]来测试相关磁盘的读写性能。fio的介绍和使用教程有很多[9]，不再赘述。这里不想贴性能数据的原因是存储介质的发展实在太快了，一方面不想贴某些很快就过时的数据以免让初学者留下不恰当的第一印象，另一方面也希望读写自己实践下fio命令。</p>
