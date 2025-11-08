@@ -83,6 +83,150 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2013/01/15/8-csapp-1/" title="《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;上&gt;" itemprop="url">《深入理解计算机系统》读书笔记 &amp; 要点总结&lt;上&gt;</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2013-01-15T02:02:00.000Z" itemprop="datePublished"> 发表于 2013-01-15</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="§第一章-计算机系统漫游"><a href="#§第一章-计算机系统漫游" class="headerlink" title="§第一章 计算机系统漫游"></a>§第一章 计算机系统漫游</h3><ol>
+<li><p>只由ASCII字符构成的文件称为文本文件，所有其他的文件都称为二进制文件。</p>
+</li>
+<li><p>区分不同数据对象的唯一方法是我们读到这些数据时候的上下文。</p>
+</li>
+<li><p>汇编为不同的高级语言的编译器提供了通用的输出语言。</p>
+</li>
+<li><p>从物理上来说，主存是由一组动态随机存取存储器（DRAM）组成的。从逻辑上来说，存储器是一个线性的字节数组，每个字节都有其唯一的地址（即数组索引），这些地址是从0开始的。</p>
+</li>
+<li><p>利用直接储存器存取（DMA），数据可以不通过处理器而直接从磁盘到达主存。</p>
+</li>
+<li><p>对处理器而言，从磁盘驱动器上读取一个字的开销要比从主存中读取的开销大100万倍。</p>
+</li>
+<li><p>高速缓存的局部性原理：即程序具有访问局部区域里的数据和代码的趋势。</p>
+</li>
+<li><p>操作系统有两个基本的功能：1）防止硬件被失控的应用程序滥用 2）向应用程序提供简单一致的机制来控制复杂而通常大相径庭的低级硬件设备。操作系统通过几个基本的抽象概念（进程、虚拟存储器和文件）来实现这两个功能。</p>
+</li>
+</ol>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2013/01/15/8-csapp-1/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/CSAPP/">CSAPP</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2012/12/09/6-stack-overflow-2/" title="浅谈缓冲区溢出之栈溢出&lt;下&gt;" itemprop="url">浅谈缓冲区溢出之栈溢出&lt;下&gt;</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2012-12-09T02:02:00.000Z" itemprop="datePublished"> 发表于 2012-12-09</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>上回我们简单的介绍了缓冲区溢出的基本原理和机器级代码的解释，对此类问题的分析和研究都必须建立在对程序的机器级表示有一定的了解的基础上。记得有句话是这样说的，“真正了不起的程序员是对自己代码的每一个字节都了如指掌的程序员。”我们也许做不到每一字节，但至少得明晰机器级程序的组成结构和执行流程。</p>
+<p>言归正传，我们今天在上回的基础上继续探索缓冲区溢出。之前的例子都是简单的通过越界访问来实现对程序执行流程的变动，而且执行的函数都是编译前写入的，那么如何对一个发行版的可执行程序进行缓冲区溢出呢？ 首先，这个程序必须存在缓冲区溢出漏洞（这不是废话么），一般来说C语言中容易引起缓冲区溢出的函数有strcpy，strcat之类的不顾及缓冲区大小的内存操作函数以及scanf，gets之类的IO函数。如果你使用vs2010以及vs2012附带的C编译器cl.exe编译使用了这些函数的C代码，编译器一般会给出一个编号为4996的警告，大致的意思是这类函数如scanf不安全，请使用它们的安全版本scanf_s什么的。其实也就是给这些函数加上一个描述缓冲器大小的参数，以防止缓冲区溢出。</p>
+<p>我们就以一个相对简单的函数gets开始研究吧。gets函数的实现想必大家都比较清楚吧，gets不考虑缓冲区大小，将输入缓冲中的内容逐一复制到内存指定位置，遇’\n’结束并且自动将’\n’替换为’\0’。</p>
+<p><img src="/images/6/1.png"></p>
+<p>编译后我们同objdump反汇编，命令是 objdump -d -M intel overflow （overflow是可执行文件名字），同理，我们只要 main函数的实现：</p>
+<p><img src="/images/6/2.png"></p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2012/12/09/6-stack-overflow-2/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2012/12/02/5-stack-overflow-1/" title="浅谈缓冲区溢出之栈溢出&lt;上&gt;" itemprop="url">浅谈缓冲区溢出之栈溢出&lt;上&gt;</a>
   </h1>
   <p class="article-author">By
@@ -122,7 +266,7 @@
 
   <div class="article-tags">
   
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/Linux/">Linux</a>
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/基础知识/">基础知识</a>
   </div>
 
 </div>
@@ -205,143 +349,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2012/11/23/3-password-input/" title="控制台下星号密码输入的实现" itemprop="url">控制台下星号密码输入的实现</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2012-11-23T06:02:00.000Z" itemprop="datePublished"> 发表于 2012-11-23</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>最近频繁需要实现在windows控制台下输入星号密码的功能，Unix&#x2F;Linux那种没有任何屏显的实现总感觉对用户不太友好。今天在自己的Linux代码库中发现了自己去年写图书馆管理系统的时候写的一个密码输入函数。索性拿来修改了接口并且重新优化了处理逻辑后移植到了windows下（其实也就是加上几句条件编译罢了）。代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> _WIN32 <span class="comment">// 如果不是WIN32环境，则要自定义getch()函数</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;termio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">getch</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">     <span class="class"><span class="keyword">struct</span> <span class="title">termios</span> <span class="title">tm</span>, <span class="title">tm_old</span>;</span></span><br><span class="line">     <span class="type">int</span> fd = <span class="number">0</span>, ch;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (tcgetattr(fd, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     tm_old = tm;</span><br><span class="line">     cfmakeraw(&amp;tm);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     ch = fgetc(<span class="built_in">stdin</span>);</span><br><span class="line">     <span class="keyword">if</span> (tcsetattr(fd, TCSANOW, &amp;tm_old) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> ch;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;conio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// _WIN32</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* 密码输入函数，参数 passwd 为密码缓冲区，buff_len 为缓冲区长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">char</span> *<span class="title function_">passwd_input</span><span class="params">(<span class="type">char</span> *passwd, <span class="type">int</span> buff_len)</span></span><br><span class="line">&#123;</span><br><span class="line">     <span class="type">char</span> str;</span><br><span class="line">     <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">     <span class="type">int</span> enter_num = <span class="number">13</span>;</span><br><span class="line">     <span class="type">int</span> backspace_num;</span><br><span class="line"></span><br><span class="line">     <span class="meta">#<span class="keyword">ifndef</span> _WIN32</span></span><br><span class="line">     backspace_num = <span class="number">127</span>;</span><br><span class="line">     <span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">     backspace_num = <span class="number">8</span>;</span><br><span class="line">     <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (passwd == <span class="literal">NULL</span> || buff_len &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> passwd;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">     &#123;</span><br><span class="line">          <span class="comment">// 如果没有按下退格键</span></span><br><span class="line">          <span class="keyword">if</span> ((str = getch()) != (<span class="type">char</span>)backspace_num) &#123;</span><br><span class="line">               <span class="keyword">if</span> (i &lt; buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                    passwd[i++] = str;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">if</span> (i != <span class="number">0</span>) &#123;</span><br><span class="line">                    i--;</span><br><span class="line">                    <span class="built_in">printf</span>(<span class="string">&quot;\b \b&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 如果按下了回车键</span></span><br><span class="line">          <span class="keyword">if</span> (str == (<span class="type">char</span>)enter_num) &#123;</span><br><span class="line">               passwd[--i] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line"></span><br><span class="line">               <span class="keyword">if</span> (i != buff_len - <span class="number">1</span>) &#123;</span><br><span class="line">                   <span class="built_in">printf</span>(<span class="string">&quot;\b \b&quot;</span>);</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">break</span>;</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (str == <span class="number">-1</span>) &#123;</span><br><span class="line">               <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error to set termio noecho.n&quot;</span>);</span><br><span class="line">          &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> passwd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 测试示例（请自行添加头文件）</span></span><br><span class="line"><span class="comment">int main(void)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">      char pass[7];</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">      printf(&quot;亲，试试输入密码（长度限制 6）：&quot;);</span></span><br><span class="line"><span class="comment">      passwd_input(pass, 7);</span></span><br><span class="line"><span class="comment">      printf(&quot;\n%s\n&quot;, pass);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     return 0;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-        
-        
-        <p class="article-more-link">
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/C/">C</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2012/11/20/1-gdb-coredump/" title="用 gdb 配合内核转储文件瞬间定位段错误" itemprop="url">用 gdb 配合内核转储文件瞬间定位段错误</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2012-11-20T08:02:00.000Z" itemprop="datePublished"> 发表于 2012-11-20</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>前几天在写一个使用Huffman算法的文本压缩程序时被“段错误”折磨了好长时间。因为自己向来对内存的使用保持着“克勤克俭”的作风，所以总是被此类错误折磨的焦头难额。C语言的内存管理本来就是一个繁琐的工作，写代码时略有不慎便会出现诸如“段错误（吐核）”的运行时崩溃。</p>
-<p>其实段错误是操作系统的一个内存保护机制，一般情况下某程序尝试访问其许可范围之外的内存空间时便会触发内核的“一般保护性异常”，内核便会向程序发送一个SIGSEGV（11）信号（无效的内存引用），而SIGSEGV信号默认handler的动作便是在终端上打印出名为“段错误”的出错信息，并产生Core（内核转储）文件，最后结束掉当前犯错的程序。</p>
-<p>段错误的成因大致有以下几种：</p>
-<blockquote>
-<ol>
-<li>程序访问了系统数据区，尤其是往系统保护的内存地址写数据。比如尝试对NULL指针进行解引用或者对其指向的内存写入数据（但是不见得所有的指针越界都会触发“段错误”）;</li>
-<li>内存访问越界（数组越界等）；</li>
-<li>无限的递归（导致栈溢出）；</li>
-<li>对malloc &#x2F; calloc申请的堆内存二次释放（可能与glibc库版本有关）；</li>
-<li>由于操作系统的段保护机制，如果由于缓冲区溢出等错误导致对某段内存的非法访问也会触发；</li>
-</ol>
-</blockquote>
-<p>另外还有一些大家平时不大注意的地方会导致段错误，例如使用标准库函数fclose对一个打开的文件关闭了多次也会导致段错误，同时终端可能会输出很多关于运行时库错误的信息。因为对使用malloc族函数申请的堆内存释放第二次的时候会触发段错误，所以我猜测fclose触发段错误的原因可能是对文件指针FILE *指向的内存二次释放时触发的段错误。而Valgrind检测的结果基本上证明了我的猜测，fclose引发了堆异常，错误被定位到了free函数。</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2012/11/20/1-gdb-coredump/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/Linux/">Linux</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/9/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span>
+    <a class="extend prev" rel="prev" href="/page/9/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/11/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -354,7 +364,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">十一月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -372,7 +382,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>6</sup></a></li>
 		  
 		
 		  
@@ -433,7 +443,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>17</sup></a></li>
 			
 		
 			
@@ -466,6 +476,10 @@
 		
 			
 				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP/" title="TCP">TCP<sup>2</sup></a></li>
 			
 		
 			
@@ -502,10 +516,6 @@
 		
 			
 				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -595,7 +605,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2023
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2025
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

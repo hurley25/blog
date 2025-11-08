@@ -83,6 +83,142 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2015/12/06/37-How-to-benchmark-code-execution-times/" title="如何精确测量一段代码的执行时间" itemprop="url">如何精确测量一段代码的执行时间</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2015-12-06T09:59:00.000Z" itemprop="datePublished"> 发表于 2015-12-06</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>最近在工作中遇到了需要精确测量一段C代码执行时间的需求，大家给出的方案有以下三种：</p>
+<ul>
+<li><code>gettimeofday(2)</code></li>
+<li><code>rdtsc/rdtscp</code></li>
+<li><code>clock_gettime(2)</code></li>
+</ul>
+<p>下面我们就逐一介绍下这三种方案的用法和限制，主要的关注点是准确性、精度和调用成本，讨论环境是运行在Intel x86上的Linux x86_64系统，内核的版本号高于2.6.32。</p>
+<p></p>
+
+<h4 id="gettimeofday-2"><a href="#gettimeofday-2" class="headerlink" title="gettimeofday(2)"></a>gettimeofday(2)</h4><p>首先是gettimeofday(2)，函数原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/time.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">gettimeofday</span><span class="params">(<span class="keyword">struct</span> timeval *tv, <span class="keyword">struct</span> timezone *tz)</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> &#123;</span></span><br><span class="line">    <span class="type">time_t</span>      tv_sec;     <span class="comment">/* seconds */</span></span><br><span class="line">    <span class="type">suseconds_t</span> tv_usec;    <span class="comment">/* microseconds */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">timezone</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> tz_minuteswest;     <span class="comment">/* minutes west of Greenwich */</span></span><br><span class="line">    <span class="type">int</span> tz_dsttime;         <span class="comment">/* type of DST correction */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2015/12/06/37-How-to-benchmark-code-execution-times/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Linux/">Linux</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/linux/">linux</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/04/15/36-The-TCP-three-way-handshake-with-data/" title="TCP 连接建立的三次握手过程可以携带数据吗？" itemprop="url">TCP 连接建立的三次握手过程可以携带数据吗？</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2015-04-15T08:38:00.000Z" itemprop="datePublished"> 发表于 2015-04-15</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>前几天实验室的群里扔出了这样一个问题：<strong>TCP连接建立的三次握手过程可以携带数据吗？</strong>突然发现自己还真不清楚这个问题，平日里用tcpdump或者Wireshark抓包时，从来没留意过第三次握手的ACK包有没有数据。于是赶紧用nc配合tcpdump抓了几次包想检验一下。但是经过了多次实验，确实都发现第三次握手的包没有其它数据（后文解释）。后来的探究中发现这个过程有问题，遂整理探究过程和结论汇成本文，以供后来者参考。</p>
+<p>先来张三次握手的图（下面这张图来自网络，若侵犯了作者权利，请联系我删除）：</p>
+<p><img src="/images/36/1.png"></p>
+<p>RFC793文档里带有SYN标志的过程包是不可以携带数据的，也就是说三次握手的前两次是不可以携带数据的（逻辑上看，连接还没建立，携带数据好像也有点说不过去）。重点就是第三次握手可不可以携带数据。</p>
+<p>先说结论：TCP协议建立连接的三次握手过程中的<strong>第三次握手允许携带数据</strong>。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2015/04/15/36-The-TCP-three-way-handshake-with-data/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E7%BD%91%E7%BB%9C/">网络</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/tcp/">tcp</a><a href="/tags/linux/">linux</a><a href="/tags/协议栈/">协议栈</a><a href="/tags/网络/">网络</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2015/03/28/35-Tair-mdb-analyse/" title="Tair MDB 存储引擎的实现" itemprop="url">Tair MDB 存储引擎的实现</a>
   </h1>
   <p class="article-author">By
@@ -212,155 +348,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2014/11/20/33-servie-program/" title="浅谈服务端编程" itemprop="url">浅谈服务端编程</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2014-11-20T03:00:00.000Z" itemprop="datePublished"> 发表于 2014-11-20</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <blockquote>
-<p><strong>我们假定读者掌握了：</strong></p>
-</blockquote>
-<ol>
-<li>Linux环境下C&#x2F;C++的系统编程和基本的socket编程方法</li>
-<li>操作系统基本概念以及Linux的基本概念和原理</li>
-<li>Linux进程和线程的内存地址空间布局和资源关系</li>
-</ol>
-<blockquote>
-<p><strong>我们谈什么，不谈什么：</strong></p>
-</blockquote>
-<ol>
-<li>Linux下的网络程序设计所遵循的规范</li>
-<li>Linux网络程序的工作模型和原理</li>
-<li>一般性质上的网络协议设计方法和原则</li>
-<li>基本上只针对Linux，基本不涉及Windows</li>
-<li>只涉及TCP协议的通信，不谈UDP</li>
-</ol>
-<hr>
-<p><strong>可以先行阅读的参考资料：</strong><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/05/23/18-linux-process-address-space/">进程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/08/02/20-linux-thread-address-space/">线程眼中的线性地址空间</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2013/07/30/19-linux-thread-history/">Linux线程的前世今生</a><br><a target="_blank" rel="noopener" href="http://www.0xffffff.org/2014/10/31/32-memory-management/">聊聊内存管理</a><br><a target="_blank" rel="noopener" href="http://blog.sae.sina.com.cn/archives/2200">Linux系统调用</a><br><a target="_blank" rel="noopener" href="http://www.sizeofvoid.net/goroutine-under-the-hood/">goroutine背后的系统知识</a></p>
-<hr>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2014/11/20/33-servie-program/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E6%A3%80%E9%AA%8C%E6%80%BB%E7%BB%93/">检验总结</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/Linux/">Linux</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2014/10/31/32-memory-management/" title="聊聊内存管理" itemprop="url">聊聊内存管理</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2014-10-31T03:00:00.000Z" itemprop="datePublished"> 发表于 2014-10-31</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>这篇文章我们聊聊内存管理。</p>
-<p>本来我想不针对于任何具体的操作系统来谈内存管理，但是又觉得不接地气、言之无物。所以我决定在阐述概念的同时，还针对 x86  Linux 下的内存管理做简要的介绍，并且以实验来证明结论。以下内容分拆为几个大标题和小节，内容前后承接。</p>
-<h3 id="物理地址空间"><a href="#物理地址空间" class="headerlink" title="物理地址空间"></a>物理地址空间</h3><p>首先，什么是物理地址空间？我们知道 CPU 与外部进行信息传递的公用通道就是总线，一般而言，CPU 有三大总线：控制总线、数据总线、地址总线。这三类总线在一定程度上决定了 CPU 对外部设备的控制和数据传送能力。其中地址总线决定了 CPU 能向外部输出的地址宽度，也就是 CPU 的寻址能力。</p>
-<p>通过 <code>/proc/cpuinfo</code> 可以查看具体的数据：</p>
-<p><img src="/images/32/1.png"></p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2014/10/31/32-memory-management/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/基础知识/">基础知识</a><a href="/tags/内存管理/">内存管理</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/2/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/4/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+    <a class="extend prev" rel="prev" href="/page/2/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/4/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -373,7 +363,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">十一月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -391,7 +381,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>6</sup></a></li>
 		  
 		
 		  
@@ -452,7 +442,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>17</sup></a></li>
 			
 		
 			
@@ -485,6 +475,10 @@
 		
 			
 				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP/" title="TCP">TCP<sup>2</sup></a></li>
 			
 		
 			
@@ -521,10 +515,6 @@
 		
 			
 				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -614,7 +604,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2023
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2025
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		

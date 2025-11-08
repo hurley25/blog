@@ -83,6 +83,157 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
+      <a href="/2014/02/10/29-cjson-analyse/" title="cJSON 库源码分析" itemprop="url">cJSON 库源码分析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-02-10T07:00:00.000Z" itemprop="datePublished"> 发表于 2014-02-10</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <p>cJSON是一个超轻巧，携带方便，单文件，简单的可以作为ANSI-C标准的Json格式解析库。</p>
+<p>那什么是Json格式？这里照搬度娘百科的说法：</p>
+<blockquote>
+<p>Json(JavaScript Object Notation) 是一种轻量级的数据交换格式。它基于JavaScript（Standard ECMA-262 3rd Edition – December 1999）的一个子集。JSON采用完全独立于语言的文本格式，但是也使用了类似于C语言家族的习惯（包括C, C++, C#, Java, JavaScript, Perl, Python等）。这些特性使JSON成为理想的数据交换语言。易于人阅读和编写，同时也易于机器解析和生成。</p>
+</blockquote>
+<p>更加详细的解释和示例请查看 <a target="_blank" rel="noopener" href="http://www.json.org/">http://www.json.org/</a> 主页。</p>
+<p>其实简单说，Json就是一种信息交换格式，而cJSON其实就是对Json格式的字符串进行构建和解析的一个C语言函数库。</p>
+<p>可以在这个地址下载到cJSON的源代码： <a target="_blank" rel="noopener" href="http://sourceforge.net/projects/cjson/">http://sourceforge.net/projects/cjson/</a></p>
+<p>__MACOSX目录是在Mac OSX系统下打包引入的临时目录，无视它。</p>
+<p>简单的阅读下README文件，先学习cJSON库的使用方法。若是连库都还不会使用，分析源码就无从谈起了。通过简单的了解，我们得知cJSON库实际上只有cJSON.c和cJSON.h两个文件组成，绝对轻量级。</p>
+<p>不过，代码风格貌似有点非主流，先用indent格式化一下代码吧。我个人喜欢K&amp;R风格的代码，使用的indent命令行参数如下：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">indent</span> -<span class="keyword">bad</span> -bli <span class="number">0</span> -<span class="keyword">ce</span> -kr -nsob --space-after-<span class="keyword">if</span> --space-after-<span class="keyword">while</span> --space-after-<span class="keyword">for</span> --use-<span class="keyword">tabs</span> -i8</span><br></pre></td></tr></table></figure>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/02/10/29-cjson-analyse/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Linux/">Linux</a><a href="/tags/源码分析/">源码分析</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/01/17/28-golang/" title="Go 语言简明教程" itemprop="url">Go 语言简明教程</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
+		
+  <p class="article-time">
+    <time datetime="2014-01-17T06:00:00.000Z" itemprop="datePublished"> 发表于 2014-01-17</time>
+    
+  </p>
+</header>
+    <div class="article-content">
+        
+        <h3 id="Go语言简介"><a href="#Go语言简介" class="headerlink" title="Go语言简介"></a>Go语言简介</h3><p>Go语言(golang)是Google推出的一种全新的编程语言，可以在不损失应用程序性能的情况下降低代码的复杂性。Google首席软件工程师罗布派克(Rob Pike)说：我们之所以开发Go，是因为过去10多年间软件开发的难度令人沮丧。</p>
+<p>Go语言的主要特性：</p>
+<ul>
+<li>编译型语言，执行效率接近c&#x2F;c++</li>
+<li>自动垃圾回收</li>
+<li>更丰富的内置类型和自动类型推导(类似c++11的auto)</li>
+<li>函数可以返回多个值</li>
+<li>拥有更好的错误处理</li>
+<li>匿名函数和闭包</li>
+<li>支持类型和接口</li>
+<li>并发编程</li>
+<li>支持反射机制</li>
+<li>语言交互性强</li>
+<li>工程依赖自动推导</li>
+<li>打包和部署容易</li>
+<li>……</li>
+</ul>
+<p>就我个人而言，感觉Go语言是对像是对c语言的修补和延伸。这个由一群工程师们设计出的语言实在太符合我的口味了，所有的特性都是为了解决实际问题而存在的。但是新增加的特性并没有给语言带来额外的负担，相反，Go的语法反而很简单。大道至简，这是我喜欢Go的原因。</p>
+<h3 id="Go语言开发环境部署"><a href="#Go语言开发环境部署" class="headerlink" title="Go语言开发环境部署"></a>Go语言开发环境部署</h3><p>这个相信大家很容易在网上就能获取到下载和安装的教程，就不赘述了。</p>
+        
+        
+        <p class="article-more-link">
+          
+            <a href="/2014/01/17/28-golang/#more">Read More</a>
+          
+       </p>
+    </div>
+    <footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Golang/">Golang</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Golang/">Golang</a>
+  </div>
+
+</div>
+
+
+
+
+<div class="comments-count">
+	
+</div>
+
+</footer>
+
+
+    </article>
+
+
+
+
+
+
+   
+    
+    <article class="post-expand post" itemprop="articleBody"> 
+        <header class="article-info clearfix">
+  <h1 itemprop="name">
+    
       <a href="/2014/01/09/27-linux-mutil-threads-programming/" title="《Linux 多线程服务端编程》总结备忘" itemprop="url">《Linux 多线程服务端编程》总结备忘</a>
   </h1>
   <p class="article-author">By
@@ -226,139 +377,9 @@
 
 
 
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2013/12/01/25-hurlex-kernel/" title="hurlex 一个基于x86架构的简单内核实现" itemprop="url">hurlex 一个基于x86架构的简单内核实现</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2013-12-01T11:09:00.000Z" itemprop="datePublished"> 发表于 2013-12-01</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>博客很久都没有更斯了，因为一直在忙于一个小项目的开发。</p>
-<p>事情的起因是这样的：因为今年开设了操作系统课程，但是纯粹的理论学习始终给我一种漂浮在云中的感觉。为了能在实践中深刻理解操作系统的运行机制和x86CPU以及硬件原理，我决定自己动手写一个操作系统内核的Demo程序。</p>
-<p>当然，一开始没有相关的基础自然要找资料去学习。在翻阅了于渊的《Orange’s 一个操作系统的实现》和川合秀实先生的《30天自制操作系统》后感觉这两本书都不是很适合初学者学习。前者体系略乱且在一开始就陷入了硬件机制的漩涡，容易让初学者找不到北；后者不需要初学者有足够的基础，但是在硬件机制等内容上过于简略。只适合一般的爱好者去使用，而作为计算机专业的同学只能作为参考。（肆意诋毁大神作品，罪过罪过……）</p>
-<p>后来在Google上搜索到了《JamesM’s kernel development tutorials》这篇文档后，我立即被作者合理有序的安排所吸引。我理想中的教程就是这样的，应该一步一步逐渐搭建起整个系统原型，由“发现问题——寻找机制——建立策略”的流程来处理。而不是一股脑的告诉我们所有的硬件机制，然后才是一般性的实现策略。</p>
-<p>我主张的学习方法就是先学习一个新事物的基础框架和基本的模式结构，而旁枝末节的细节问题完全可以交给实践去慢慢掌握。暂时用不到的东西就不要告诉读者，完全可以用到了再慢慢补充。同时以任务和实践的方式驱动学习过程，既提升了理论学习的速度，又充满了实践的乐趣和成就感。</p>
-<p>不过我在实践的过程中逐渐发现了这篇教程还是过于简陋，很多地方知其然而不知其所以然，并且部分的代码存在BUG。虽然代码能在当前的测试中通过，但会导致复杂化后其它的模块出现问题。另外这里调试也存在问题，若是能实现内核代码级别的调试功能就能极大的方便学习和开发。</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2013/12/01/25-hurlex-kernel/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/%E5%86%85%E6%A0%B8/">内核</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/内核/">内核</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
-   
-    
-    <article class="post-expand post" itemprop="articleBody"> 
-        <header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2013/10/25/24-x86-asm-4/" title="保护模式汇编系列之四 - 段页式内存管理（二）" itemprop="url">保护模式汇编系列之四 - 段页式内存管理（二）</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="浅墨" target="_blank" itemprop="author">浅墨</a>
-		
-  <p class="article-time">
-    <time datetime="2013-10-25T11:00:00.000Z" itemprop="datePublished"> 发表于 2013-10-25</time>
-    
-  </p>
-</header>
-    <div class="article-content">
-        
-        <p>我们这次接着内存分页继续说。稍微插一句，虽然本系列的名字叫做保护模式汇编，可是到现在颇有些挂羊头卖狗肉的意味。我们只是在一个劲的谈理论，就连仅有的一点代码也是用C语言描述的，而不是汇编。不过我觉得这不是关键，我觉得只要我们掌握了理论就好，至于用什么语言描述都是次要的，你说呢？</p>
-<p>言归正传，我们开始说分页机制。长时间以来，随着计算机技术的发展，存储器的容量在不断的高速增加着。但是说起内存(这里指RAM，下同)这个东西，它有一个很奇葩的特性，就是无论它有多大，都总是不够用(P.S.厨房的垃圾桶也一样)。现在我们看似拥有着以前的程序员想都不敢想的“天文数字”的内存，动辄就是几G十几G的。但是相信我，历史总是嘲弄人的。就像当年程序员们质疑32位地址线带来的4GB空间太大没有意义似的，我们也会有一天抱怨现在的内存太小的。</p>
-<p>那么，既然内存总是不够用的，那内存不够用了怎么办？还有，使用过程中出现的内存碎片怎么办？假设我们有4GB的物理内存，现在有1、2、3、4一共4个程序分别各占据连续的1G内存，然后2、4退出，此时我们拥有着空闲的两段内存，却连一个稍大于1GB的程序都无法载入了。</p>
-<p>当然了，这只是一个例子。不过按照一般的思路，在内存释放之后，我们如何回收呢？做碎片整理吗？即便我们不在乎整理过程带来的效率损失，光是程序加载时候的地址逐一重定位就是及其麻烦的。那怎么办？当然了，解决的办法是有的，聪明的计算机工程师们想到了采用分页的方式来管理物理内存。他们在逻辑上把内存划分为定长的物理页，同时将一个程序执行时候的线性地址地址空间划分为逻辑页，在分页机制工作的前提下，给硬件提供一组数据结构来保存这种映射关系。也就是说，线性地址是连续的，但是其实际指向的物理地址就不见得是连续的了。别忘了，RAM是随机存储器，读取任意一个地址的理论时间都是一样的(暂时让我们忘了cache吧…)。我们让CPU在寻址的时候，自动的去查找线性地址到物理地址的映射关系，从而找到实际的数据就好。严格说地址翻译是由MMU组件来进行的，但是现在MMU一般都是CPU的一个组成部分了，所以我们也不严格区分了。</p>
-        
-        
-        <p class="article-more-link">
-          
-            <a href="/2013/10/25/24-x86-asm-4/#more">Read More</a>
-          
-       </p>
-    </div>
-    <footer class="article-footer clearfix">
-<div class="article-catetags">
-
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/x86%E6%9E%B6%E6%9E%84/">x86架构</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/x86/">x86</a><a href="/tags/汇编/">汇编</a>
-  </div>
-
-</div>
-
-
-
-
-<div class="comments-count">
-	
-</div>
-
-</footer>
-
-
-    </article>
-
-
-
-
-
-
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/4/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+    <a class="extend prev" rel="prev" href="/page/4/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/6/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
   </nav>
 
 </div>
@@ -371,7 +392,7 @@
   
   <div class="archiveslist">
     <p class="asidetitle"><a href="/archives">归档</a></p>
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/11/">十一月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/03/">三月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">七月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">二月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">二月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/04/">四月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/03/">三月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/11/">十一月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/10/">十月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/08/">八月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/04/">四月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/02/">二月 2014</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/01/">一月 2014</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/12/">十二月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/10/">十月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/08/">八月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/07/">七月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/05/">五月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/04/">四月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/03/">三月 2013</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/02/">二月 2013</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/01/">一月 2013</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/12/">十二月 2012</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/11/">十一月 2012</a><span class="archive-list-count">2</span></li></ul>
   </div>
 
 
@@ -389,7 +410,7 @@
 		  
 		
 		  
-			<li><a href="/categories/Linux/" title="Linux">Linux<sup>4</sup></a></li>
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>6</sup></a></li>
 		  
 		
 		  
@@ -450,7 +471,7 @@
 			
 		
 			
-				<li><a href="/tags/Linux/" title="Linux">Linux<sup>15</sup></a></li>
+				<li><a href="/tags/Linux/" title="Linux">Linux<sup>17</sup></a></li>
 			
 		
 			
@@ -483,6 +504,10 @@
 		
 			
 				<li><a href="/tags/linux/" title="linux">linux<sup>2</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/TCP/" title="TCP">TCP<sup>2</sup></a></li>
 			
 		
 			
@@ -519,10 +544,6 @@
 		
 			
 				<li><a href="/tags/smp/" title="smp">smp<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/内存管理/" title="内存管理">内存管理<sup>1</sup></a></li>
 			
 		
 		</ul>
@@ -612,7 +633,7 @@
     
 
 		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2023
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2025
 		
 		<a href="/about" target="_blank" title="浅墨">浅墨</a>
 		
